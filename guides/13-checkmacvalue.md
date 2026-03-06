@@ -81,7 +81,7 @@ SDK 已自動處理 CheckMacValue：
 |------|----------------|---------|---------|-------------|
 | PHP | `urlencode()` | + | %7E | 否（原生行為） |
 | Python | `urllib.parse.quote_plus()` | + | ~ (不編碼) | **需替換 ~→%7e** |
-| Java | `URLEncoder.encode(s, "UTF-8")` | + | %7E | **需替換 ~→%7e（保險起見）** |
+| Java | `URLEncoder.encode(s, "UTF-8")` | + | %7E（多數 JVM）或 ~ (部分 JVM) | **需替換 ~→%7e（實作已有 toLowerCase + replace，兩者都處理）** |
 | C# | `HttpUtility.UrlEncode()` | + | ~ (不編碼) | **需替換 ~→%7e** |
 | Node.js | `encodeURIComponent()` | **%20** | ~ (不編碼) | **需替換 %20→+、~→%7e 和 '→%27** |
 | Go | `url.QueryEscape()` | + | ~ (不編碼) | **需替換 ~→%7e** |
@@ -160,6 +160,7 @@ const crypto = require('crypto');
 function ecpayUrlEncode(source) {
   // encodeURIComponent 空格→%20，需替換為 +
   // encodeURIComponent 不編碼 ' 和 ~，但 PHP urlencode 會編碼為 %27 和 %7E
+  // 此處使用小寫 %7e，因後續 toLowerCase() 會統一小寫，%7e 與 %7E 等價（CheckMacValue 專用）
   let encoded = encodeURIComponent(source).replace(/%20/g, '+').replace(/~/g, '%7e').replace(/'/g, '%27');
   encoded = encoded.toLowerCase();
   const replacements = {
@@ -292,7 +293,7 @@ public class EcpayCheckMacValue {
             .replace("%2d", "-").replace("%5f", "_").replace("%2e", ".")
             .replace("%21", "!").replace("%2a", "*")
             .replace("%28", "(").replace("%29", ")")
-            .replace("~", "%7e");  // PHP urlencode('~') → %7E
+            .replace("~", "%7e");  // PHP urlencode('~') → %7E（大寫），toLowerCase 後為 %7e；若 JVM 不編碼 ~，此處補充替換
     }
 
     public static String generate(
@@ -981,6 +982,9 @@ fun verifyCheckMacValue(
 ---
 
 ### Ruby
+
+> **⚠️ CGI.escape 陷阱**：`CGI.escape` 不編碼 `!*'()` 等字元（RFC 3986 保留字元），但 PHP 的 `urlencode` 會將其編碼為 `%21%2A%27%28%29`。
+> 下方實作已使用 Hash 替換表手動補充這些字元的編碼，確保與 PHP 行為一致。
 
 ```ruby
 require 'digest'

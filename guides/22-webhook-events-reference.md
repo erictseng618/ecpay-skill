@@ -9,6 +9,9 @@
 
 本文件彙整所有 ECPay 服務的 Callback（Webhook）機制，提供統一的欄位定義和安全處理指引。
 
+> **⚠️ 認證方式依服務而異**：金流 AIO → SHA256，國內物流 → **MD5**，ECPG / 發票 / 物流 v2 / 票證 → AES 解密（無 CheckMacValue）。
+> 錯用演算法（如把國內物流當 SHA256 計算）會導致所有 callback 驗證永遠失敗。
+
 ## ⚠️ Callback 回應格式速查（跨服務整合必讀）
 
 **各服務要求不同的回應格式，回應錯誤會導致綠界持續重送。**
@@ -41,21 +44,23 @@
 
 | 服務 | URL 欄位名 | 觸發時機 | 認證方式 | 必須回應 | 重試機制 |
 |------|-----------|---------|---------|---------|---------|
-| AIO 金流 | ReturnURL | 付款完成 | CheckMacValue (SHA256) | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次 |
+| AIO 金流 | ReturnURL | 付款完成 | CheckMacValue (**SHA256**) | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次 |
 | AIO 金流 | PaymentInfoURL | ATM/CVS/BARCODE 取號完成 | CheckMacValue (SHA256) | `1\|OK` | 同上 |
 | AIO 金流 | PeriodReturnURL | 定期定額每期扣款 | CheckMacValue (SHA256) | `1\|OK` | 同上 |
 | AIO 金流 | — | BNPL 無卡分期申請結果 | CheckMacValue (SHA256) | `1\|OK` | 同上 |
 | AIO 金流 | OrderResultURL | 前端跳轉（非 server-to-server） | CheckMacValue (SHA256) | HTML 頁面 | 不重試 |
-| ECPG 站內付 | OrderResultURL | 付款完成 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試 |
-| 信用卡幕後授權 | ReturnURL | 授權結果 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試 |
+| ECPG 站內付 | OrderResultURL | 付款完成 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試（次數未公開）|
+| 信用卡幕後授權 | ReturnURL | 授權結果 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試（次數未公開）|
 | 非信用卡幕後取號 | ServerReplyURL | ATM/CVS/BARCODE 付款完成 | CheckMacValue (SHA256) | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次 |
-| 國內物流 | ServerReplyURL | 物流狀態變更 | CheckMacValue (MD5) | `1\|OK` | 約每 2 小時重試 |
-| 國內物流（逆物流） | ServerReplyURL | 逆物流狀態變更 | CheckMacValue (MD5) | `1\|OK` | 約每 2 小時重試 |
+| 國內物流 | ServerReplyURL | 物流狀態變更 | CheckMacValue (**MD5**) | `1\|OK` | 約每 2 小時重試（次數未公開）|
+| 國內物流（逆物流） | ServerReplyURL | 逆物流狀態變更 | CheckMacValue (**MD5**) | `1\|OK` | 約每 2 小時重試（次數未公開）|
 | 國內物流 | ClientReplyURL | 消費者選店結果（前端跳轉） | CheckMacValue (MD5) | HTML 頁面 | 不重試 |
-| 全方位物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON | 約每 2 小時重試 |
-| 跨境物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON（與全方位物流相同） | 約每 2 小時重試 |
-| 電子票證 | NotifyURL | 退款/核退通知 | AES 解密 Data | `1\|OK` | 約每 2 小時重試 |
+| 全方位物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON | 約每 2 小時重試（次數未公開）|
+| 跨境物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON（與全方位物流相同） | 約每 2 小時重試（次數未公開）|
+| 電子票證 | NotifyURL | 退款/核退通知 | AES 解密 Data | `1\|OK` | 約每 2 小時重試（次數未公開）|
 | 電子發票 | — | 通常由 API 主動查詢 | AES 解密 | JSON | — |
+
+> **重試觸發條件**：HTTP 超時、回應非 200 狀態碼、或回應格式不符（如應回 `1|OK` 但回了其他內容）時觸發重試。AIO 的重試次數有上限（每日 4 次），其他服務的重試上限未公開，建議實作冪等處理（見下方 §冪等性處理建議）。
 
 ## Callback 認證方式速查
 

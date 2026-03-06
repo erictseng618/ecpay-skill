@@ -1,5 +1,27 @@
 # ECPay Skill 更新紀錄
 
+## v2.14 — 2026-03-07
+
+六代理第二輪深度審核全面修正（2 CRITICAL + 3 HIGH + 12 MEDIUM + 4 LOW）：
+
+- **CRITICAL**：SKILL_OPENAI.md 版本號 v2.12→v2.13（漏同步）
+- **CRITICAL**：SKILL.md 版本號記錄 v2.12→v2.13（第 598 行）
+- **HIGH**：guides/00 最快測試路徑補充警告「此路徑不測試 ReturnURL callback」
+- **HIGH**：guides/22 Callback 總覽表補充重試觸發條件、AIO 次數上限、其他服務次數未公開說明
+- **HIGH**：SKILL_OPENAI.md 補充帳號混用風險警告（金流/物流/發票帳號不同）
+- **MEDIUM**：README.md 合併重複條目（431 URL 與 19 份文件說明）
+- **MEDIUM**：SKILL.md guides/24 行數修正（約 900→約 910 行）
+- **MEDIUM**：SKILL_OPENAI.md rule 8 補充 AES-JSON Checklist 引用
+- **MEDIUM**：guides/21 補充未列出錯誤碼的 references 查閱指引
+- **MEDIUM**：guides/00 非 PHP 開發者語言選讀路徑補充閱讀順序說明
+- **MEDIUM**：guides/22 頂部新增認證方式警告（SHA256/MD5/AES 依服務而異）
+- **MEDIUM**：guides/13 Ruby section 頂部補充 CGI.escape 陷阱警告
+- **MEDIUM**：guides/13 Java 表格說明補充（%7E→toLowerCase→%7e 的邏輯說明）
+- **MEDIUM**：guides/13 Node.js URL encode 補充 %7e/%7E 等價說明
+- **MEDIUM**：guides/01 ReturnURL 重要限制補充 10 秒超時 + guides/23 cross-reference
+- **MEDIUM**：guides/15 ReturnURL 排查步驟依優先度重排（高/中/低分組）
+- **LOW**：guides/09 Ecticket cross-reference 指向 Invoice/B2C/ 具體目錄
+
 ## v2.13 — 2026-03-07
 
 六代理深度審核全面修正（3 CRITICAL + 8 HIGH + 9 MEDIUM + 6 LOW）：

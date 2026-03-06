@@ -13,6 +13,8 @@
 > 4. 確認流程正確後，再設定真實的 ReturnURL 接收 callback
 >
 > 此路徑無需 ngrok、無需公開 URL，適合首次快速驗證。
+>
+> ⚠️ **此路徑不測試 ReturnURL callback**：若你的訂單狀態、庫存、發票等業務邏輯依賴 ReturnURL callback 通知，請改用 ngrok 方案（見下方「本地開發環境」）進行完整測試。
 
 ## ECPay 五大服務
 
@@ -58,6 +60,8 @@ composer require "ecpay/sdk:^4.0"
 ECPay 官方僅提供 PHP SDK。其他語言需自行實作：
 - **CheckMacValue 加密**（用於 AIO 金流、國內物流）→ 見 [guides/13-checkmacvalue.md](./13-checkmacvalue.md)
 - **AES 加解密**（用於站內付、發票、全方位物流、跨境物流）→ 見 [guides/14-aes-encryption.md](./14-aes-encryption.md)
+
+> **非 PHP 開發者建議閱讀順序**：先讀 [guides/13](./13-checkmacvalue.md) / [guides/14](./14-aes-encryption.md) 完成加密函式實作，再讀 [guides/20](./20-http-protocol-reference.md) 了解 HTTP 協議細節，最後對照目標服務的 guide（如 guides/01）完成串接。PHP 開發者使用官方 SDK，加密已封裝，可略過 guides/13-14 直接使用 Factory Service。
 
 本 Skill 提供 Python、Node.js、TypeScript、Java、C#、Go、C、C++、Rust、Swift、Kotlin、Ruby 共 12 種語言的完整實作函式。
 

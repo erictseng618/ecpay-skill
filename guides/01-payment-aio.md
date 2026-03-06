@@ -352,6 +352,7 @@ echo '1|OK';  // 必須回應
 - TLS 1.2 必須
 - 不可含特殊字元（分號、管道、反引號）
 - 重送機制：每 5-15 分鐘重送，每天最多 4 次
+- **10 秒超時**：耗時操作（開發票、建物流單、發通知信）需放入非同步佇列，見 [guides/23](./23-performance-scaling.md) §Webhook 佇列架構
 
 ## ATM/CVS/BARCODE 取號通知（PaymentInfoURL）
 

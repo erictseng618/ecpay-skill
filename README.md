@@ -2,7 +2,7 @@
 
 > **綠界科技官方出品** — 由 ECPay 團隊開發與維護，內容與 API 同步更新。
 
-**當前版本：v2.13** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
+**當前版本：v2.14** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
 
 ### 前置需求
 
@@ -146,8 +146,7 @@ git clone <repo-url> ~/.openclaw/skills/ecpay
 - **134 個**經官方驗證的 PHP 範例（可翻譯為任何語言）
 - **25 份**深度整合指南（從入門到上線）
 - **12 種語言**的加密函式實作（Python、Node.js、TypeScript、Java、C#、Go、C、C++、Rust、Swift、Kotlin、Ruby）
-- **431 個**官方 API 文件 URL 索引（可追溯原始文件）
-- **19 份**官方 API 技術文件索引
+- **19 份**官方 API 技術文件索引（共計 431 個 URL，可即時查閱原始文件）
 - 決策樹自動推薦最適方案
 - 跨服務整合場景（收款 + 發票 + 出貨）
 - 內建除錯指南和上線檢查清單
@@ -297,7 +296,7 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 
 > 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)
 
-**v2.13 重點**：六代理深度審核全面修正 — ECPG 雙 Domain 預警、AES-JSON Checklist、應用層安全、行號校準。
+**v2.14 重點**：六代理第二輪審核 — DX 摩擦修正、callback 重試說明補全、入口文件同步、guides/13/15/22 品質提升。
 
 | 日期 | 版本 | 變更摘要 |
 |------|------|---------|
@@ -308,6 +307,7 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 | 2026-03-06 | v2.11 | 企業級強化：SECURITY.md、GitHub 社群模板、CI 驗證、PCI DSS 範圍指引、TypeScript 型別擴充 |
 | 2026-03-06 | v2.12 | 八代理 Review Board：DX 強化、過度設計精簡、串接完整性補強、新手友善路徑 |
 | 2026-03-07 | v2.13 | 六代理深度審核：ECPG 雙 Domain 預警、AES-JSON Checklist、應用層安全、行號校準 |
+| 2026-03-07 | v2.14 | 六代理第二輪審核：DX 摩擦修正、callback 重試說明、入口文件同步、guides/13/15/22 品質提升 |
 
 ## 相關資源
 

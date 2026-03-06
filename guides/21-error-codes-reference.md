@@ -25,6 +25,7 @@
 | 100** | AES-JSON | TransCode 外層錯誤（加密/格式問題） | AES-JSON |
 
 > 完整錯誤碼按服務分類列於下方各節。快速排查流程請見 [guides/15-troubleshooting.md](./15-troubleshooting.md) 的快速排查決策樹。
+> **未列出的錯誤碼**：請 `web_fetch` references/ 對應文件查閱（如 `references/Payment/全方位金流API技術文件.md`），API 文件的「回傳參數說明」或「RtnCode 對照表」章節有完整清單。
 
 ## 錯誤碼閱讀方式
 

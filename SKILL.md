@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.13"
+version: "2.14"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
@@ -254,7 +254,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
 > guides/13、14、24 有 AI Section Index（行號索引），若只需單一語言可用 offset/limit 讀取特定行範圍。
 > AES vs CMV 對比表見 guides/14 line 79-163。
-> guides/24 有約 900 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
+> guides/24 有約 910 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
 >
 > **SNAPSHOT 說明**：guides/ 中的參數欄位名稱、型態、必填規則通常穩定（改動機率 < 5%）。
 > 需要即時查閱的情況：API 回傳不符預期、或需確認最新業務驗證規則（如金額範圍）時。
@@ -595,4 +595,4 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 
 ## 更新紀錄
 
-> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.12）
+> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.14）
