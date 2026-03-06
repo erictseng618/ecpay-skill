@@ -1,0 +1,17 @@
+name: Validate AI Section Index
+
+on:
+  pull_request:
+    paths:
+      - 'guides/13-checkmacvalue.md'
+      - 'guides/14-aes-encryption.md'
+      - 'guides/24-multi-language-integration.md'
+      - 'scripts/validate-ai-index.sh'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate AI Section Index line numbers
+        run: bash scripts/validate-ai-index.sh

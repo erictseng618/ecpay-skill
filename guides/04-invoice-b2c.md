@@ -101,7 +101,7 @@ $input = [
     'Data'       => [
         'MerchantID'    => '2000132',
         'RelateNumber'  => 'Inv' . time(),     // 自訂關聯編號
-        'CustomerPhone' => '0912345678',
+        'CustomerPhone' => '0912345678',        // CustomerPhone 或 CustomerEmail 至少填一個
         'Print'         => '0',                 // 0=不列印, 1=列印
         'Donation'      => '0',                 // 0=不捐贈, 1=捐贈
         'CarrierType'   => '1',                 // 載具類型（見下表）

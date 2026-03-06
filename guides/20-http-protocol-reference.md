@@ -1,4 +1,7 @@
 > 對應 ECPay API 版本 | 語言無關 HTTP 協議參考 | 最後更新：2026-03
+>
+> **更新頻率**：本協議文件每季驗證一次。最後驗證日期：2026-03。
+> HTTP 基礎協議（POST、Content-Type、Domain 結構）通常穩定，年度變動機率 < 5%。
 
 # HTTP 協議參考（非 PHP 語言必讀）
 
@@ -345,7 +348,7 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 
 ---
 
-## 2.4 HTTP Timeout 建議
+## 2.5 HTTP Timeout 建議
 
 | 操作類型 | 建議 Timeout | 說明 |
 |---------|-------------|------|
@@ -372,8 +375,8 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 | **幕後授權** | AES-JSON | `ecpayment-stage.ecpay.com.tw` | `ecpayment.ecpay.com.tw` | 8 | [guides/03](./03-payment-backend.md) |
 | **非信用卡幕後取號** | AES-JSON | `ecpayment-stage.ecpay.com.tw` | `ecpayment.ecpay.com.tw` | 4 | [guides/03](./03-payment-backend.md) |
 | **B2C 電子發票** | AES-JSON | `einvoice-stage.ecpay.com.tw` | `einvoice.ecpay.com.tw` | 26 | [guides/04](./04-invoice-b2c.md) |
-| **B2B 發票（交換）** | AES-JSON | `einvoice-stage.ecpay.com.tw` | `einvoice.ecpay.com.tw` | 28 | [guides/05](./05-invoice-b2b.md) |
-| **B2B 發票（存證）** | AES-JSON | `einvoice-stage.ecpay.com.tw` | `einvoice.ecpay.com.tw` | 17 | [guides/05](./05-invoice-b2b.md) |
+| **B2B 發票（交換）** | AES-JSON* | `einvoice-stage.ecpay.com.tw` | `einvoice.ecpay.com.tw` | 28 | [guides/05](./05-invoice-b2b.md) |
+| **B2B 發票（存證）** | AES-JSON* | `einvoice-stage.ecpay.com.tw` | `einvoice.ecpay.com.tw` | 17 | [guides/05](./05-invoice-b2b.md) |
 | **國內物流** | CMV-MD5 | `logistics-stage.ecpay.com.tw` | `logistics.ecpay.com.tw` | 17 | [guides/06](./06-logistics-domestic.md) |
 | **全方位物流 v2** | AES-JSON | `logistics-stage.ecpay.com.tw` | `logistics.ecpay.com.tw` | 14 | [guides/07](./07-logistics-allinone.md) |
 | **跨境物流** | AES-JSON | `logistics-stage.ecpay.com.tw` | `logistics.ecpay.com.tw` | 5 | [guides/08](./08-logistics-crossborder.md) |
@@ -744,6 +747,75 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 | `PostWithAesStrResponseService` | AES-JSON | POST JSON（三層 AES），回應為 HTML | HTTP POST + AES encrypt + HTML 處理 |
 
 詳細的 SDK Service 翻譯規則見 [guides/12-sdk-reference.md](./12-sdk-reference.md)。
+
+---
+
+## 7. cURL 快速測試範例
+
+以下 cURL 範例使用測試環境憑證，可直接在終端機執行以驗證 API 連通性。
+
+### CMV-SHA256（AIO 查詢訂單）
+
+```bash
+# 查詢 AIO 訂單狀態（需先計算 CheckMacValue）
+# MerchantID: 3002607, HashKey: pwFHCqoQZGmho4w6, HashIV: EkRm7iFT261dpevs
+curl -X POST https://payment-stage.ecpay.com.tw/Cashier/QueryTradeInfo/V5 \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "MerchantID=3002607&MerchantTradeNo=你的訂單編號&TimeStamp=$(date +%s)&CheckMacValue=計算後的值"
+```
+
+> CheckMacValue 計算方式見 [guides/13](./13-checkmacvalue.md)。手動計算不便時，建議先用 Python/Node.js 腳本產生。
+
+### AES-JSON（B2C 發票開立）
+
+```bash
+# AES-JSON 三層結構（Data 欄位需 AES 加密）
+# MerchantID: 2000132, HashKey: ejCk326UnaZWKisg, HashIV: q9jcZX8Ib9LM8wYk
+curl -X POST https://einvoice-stage.ecpay.com.tw/B2CInvoice/Issue \
+  -H "Content-Type: application/json" \
+  -d '{
+    "MerchantID": "2000132",
+    "RqHeader": { "Timestamp": 替換為當前Unix時間戳, "Revision": "3.0.0" },
+    "Data": "AES加密後的Base64字串"
+  }'
+```
+
+> Data 欄位的 AES 加密流程：JSON → URL encode → AES-128-CBC → Base64。
+> 完整加密步驟見 [guides/14](./14-aes-encryption.md)。
+
+### CMV-MD5（國內物流查詢）
+
+```bash
+# 國內物流使用 MD5（非 SHA256）
+# MerchantID: 2000132, HashKey: 5294y06JbISpM5x9, HashIV: v77hoKGq4kWxNNIS
+curl -X POST https://logistics-stage.ecpay.com.tw/Helper/QueryLogisticsTradeInfo/V5 \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "MerchantID=2000132&AllPayLogisticsID=物流訂單編號&TimeStamp=$(date +%s)&CheckMacValue=計算後的值"
+```
+
+### ECPG Token 取得
+
+```bash
+# ECPG 使用 ecpg domain（非 ecpayment）
+curl -X POST https://ecpg-stage.ecpay.com.tw/Merchant/GetTokenbyTrade \
+  -H "Content-Type: application/json" \
+  -d '{
+    "MerchantID": "3002607",
+    "RqHeader": { "Timestamp": 替換為當前Unix時間戳 },
+    "Data": "AES加密後的Base64字串"
+  }'
+```
+
+### 連通性驗證（不需加密）
+
+```bash
+# 檢查 ECPay 各服務 domain 是否可達
+curl -sI https://payment-stage.ecpay.com.tw | head -1
+curl -sI https://ecpg-stage.ecpay.com.tw | head -1
+curl -sI https://einvoice-stage.ecpay.com.tw | head -1
+curl -sI https://logistics-stage.ecpay.com.tw | head -1
+curl -sI https://ecticket-stage.ecpay.com.tw | head -1
+```
 
 ---
 

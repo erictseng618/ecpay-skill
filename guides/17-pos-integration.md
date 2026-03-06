@@ -1,10 +1,11 @@
+> 對應 ECPay API 版本 | 最後更新：2026-03
+> ⚠️ **SNAPSHOT 2026-03** | 來源：`references/Payment/刷卡機POS串接規格.md` — 生成程式碼前請 web_fetch 取得最新規格
+
 # POS 刷卡機串接指引
 
 > **本指南為初步整合指引**，提供 POS 串接的概念說明和官方文件索引。
 > POS 刷卡機為硬體設備，需搭配特定通訊協議，詳細技術規格見
 > `references/Payment/刷卡機POS串接規格.md`。
-
-> 對應 ECPay API 版本 | 最後更新：2026-03
 
 ## 概述
 

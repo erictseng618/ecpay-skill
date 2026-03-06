@@ -27,6 +27,16 @@
 > **跨服務整合注意**：如果你同時使用金流 + 發票 + 物流，建議為各服務使用**不同的 callback URL**，
 > 各自回應對應的正確格式。在同一 URL 判斷服務類型雖可行但容易出錯。
 
+### 實作 Callback 的檢查清單
+
+收到通知後，在業務邏輯前，依序檢查：
+
+- [ ] 驗證 CheckMacValue / AES 解密是否通過
+- [ ] RtnCode 是否在預期值範圍（AIO: 1=成功, 2=ATM取號, 10100073=CVS取號）
+- [ ] 此 MerchantTradeNo 是否已處理過（冪等檢查）
+- [ ] **立即回應** `1|OK` 或 `{"TransCode": 1}`（在任何非同步操作之前）
+- [ ] 非同步處理業務邏輯（發信、開發票、更新庫存）
+
 ## Callback 總覽表
 
 | 服務 | URL 欄位名 | 觸發時機 | 認證方式 | 必須回應 | 重試機制 |
@@ -646,42 +656,64 @@ Callback handler 必須在 10 秒內回應，否則 ECPay 視為失敗。
 
 ## 冪等性實作建議
 
-```sql
--- 使用 UNIQUE constraint 防止重複處理
-CREATE TABLE payment_callbacks (
-  merchant_trade_no VARCHAR(20) PRIMARY KEY,
-  rtn_code INTEGER NOT NULL,
-  trade_no VARCHAR(20),
-  trade_amt INTEGER,
-  payment_date TIMESTAMP,
-  processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  raw_payload TEXT
-);
+Callback 可能因 ECPay 重試而重複到達。你的處理邏輯必須具備冪等性——重複處理同一筆通知不應產生副作用。
 
--- 使用 INSERT ... ON CONFLICT (upsert) 確保冪等性
-INSERT INTO payment_callbacks (merchant_trade_no, rtn_code, trade_no, trade_amt, payment_date, raw_payload)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (merchant_trade_no) DO NOTHING;
+### 冪等鍵設計
+
+使用 `MerchantTradeNo`（金流）或 `AllPayLogisticsID`（物流）作為冪等鍵。
+
+### SQL Upsert 範例
+
+```sql
+-- 金流 Callback 冪等處理
+INSERT INTO payment_notifications (merchant_trade_no, rtn_code, trade_amt, payment_date, raw_data)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (merchant_trade_no) DO UPDATE SET
+  rtn_code = EXCLUDED.rtn_code,
+  updated_at = NOW()
+WHERE payment_notifications.rtn_code != '1';  -- 已成功的不覆蓋
 ```
 
 ```sql
 -- 物流 callback 冪等性
-CREATE TABLE logistics_callbacks (
-  allpay_logistics_id VARCHAR(20),
-  rtn_code VARCHAR(10),
-  merchant_trade_no VARCHAR(20),
-  logistics_type VARCHAR(10),
-  logistics_sub_type VARCHAR(20),
-  processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  raw_payload TEXT,
-  PRIMARY KEY (allpay_logistics_id, rtn_code)
-);
-
 -- 物流狀態會多次變更，用 (allpay_logistics_id, rtn_code) 組合做 PRIMARY KEY
 INSERT INTO logistics_callbacks (allpay_logistics_id, rtn_code, merchant_trade_no, logistics_type, logistics_sub_type, raw_payload)
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (allpay_logistics_id, rtn_code) DO NOTHING;
 ```
+
+### Node.js 冪等 Callback Handler
+
+```javascript
+app.post('/ecpay/notify', async (req, res) => {
+  // 1. 驗證 CheckMacValue
+  if (!verifyCheckMacValue(req.body)) {
+    return res.status(400).send('Invalid CheckMacValue');
+  }
+
+  // 2. 冪等 Upsert（防重複）
+  const result = await db.query(
+    `INSERT INTO notifications (trade_no, status) VALUES ($1, $2)
+     ON CONFLICT (trade_no) DO NOTHING RETURNING *`,
+    [req.body.MerchantTradeNo, req.body.RtnCode]
+  );
+
+  // 3. 僅新插入時處理業務邏輯
+  if (result.rowCount > 0) {
+    await processOrder(req.body);
+  }
+
+  // 4. 立即回應（無論是否已處理過）
+  res.send('1|OK');
+});
+```
+
+### 設計原則
+
+1. **先存後處理**：收到 Callback 立即存入 DB，再做業務邏輯
+2. **Upsert 而非 Insert**：用 `ON CONFLICT` 防止重複插入
+3. **已成功不覆蓋**：已標記為成功的交易不應被後續 Callback 覆蓋
+4. **永遠回應**：無論是否已處理過，都回應 `1|OK`，否則 ECPay 會持續重送
 
 ## 重試機制說明
 

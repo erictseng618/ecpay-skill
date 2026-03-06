@@ -3,9 +3,9 @@
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
 Python: line 103-154 | Node.js: line 155-211 | TypeScript: line 212-276
 Java: line 277-337 | C#: line 338-415 | Go: line 416-489
-C: line 490-651 | C++: line 652-767 | Rust: line 768-843
-Swift: line 844-923 | Kotlin: line 924-981 | Ruby: line 982-1028
-Test vectors: line 1029-1140
+C: line 490-652 | C++: line 653-769 | Rust: line 770-845
+Swift: line 846-924 | Kotlin: line 925-982 | Ruby: line 983-1029
+Test vectors: line 1030-1141
 -->
 
 # CheckMacValue 完整解說
@@ -404,7 +404,7 @@ public static class EcpayCheckMacValue
 }
 ```
 
-> **注意**：`.NET Core` 中 `HttpUtility.UrlEncode` 需要 NuGet 套件 `Microsoft.AspNetCore.WebUtilities`。
+> **⚠️ .NET Core 必讀**：`HttpUtility.UrlEncode` 需要 NuGet 套件 `Microsoft.AspNetCore.WebUtilities`（`dotnet add package Microsoft.AspNetCore.WebUtilities`）。
 > 替代方案：使用 `System.Net.WebUtility.UrlEncode()`，其差異為 hex 輸出大寫（如 `%2F` 而非 `%2f`），
 > 但後續的 `.ToLower()` 步驟已處理此差異，因此可安全替代。
 >
@@ -510,6 +510,7 @@ static char* str_replace(const char *str, const char *from, const char *to) {
 
     size_t new_len = strlen(str) + count * (to_len - from_len);
     char *result = malloc(new_len + 1);
+    if (!result) return NULL;  /* malloc 失敗防護 */
     char *dst = result;
     p = str;
     while (*p) {
@@ -668,13 +669,14 @@ int verify_check_mac_value(
 std::string urlEncode(const std::string &value) {
     std::ostringstream escaped;
     for (char c : value) {
-        if (isalnum(c) || c == '-' || c == '_' || c == '.') {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (isalnum(uc) || c == '-' || c == '_' || c == '.') {
             escaped << c;
         } else if (c == ' ') {
             escaped << '+';
         } else {
             escaped << '%' << std::uppercase << std::hex
-                    << std::setw(2) << std::setfill('0') << (int)(unsigned char)c;
+                    << std::setw(2) << std::setfill('0') << (int)uc;
         }
     }
     return escaped.str();
@@ -897,14 +899,13 @@ func verifyCheckMacValue(
 ) -> Bool {
     guard let received = params["CheckMacValue"] else { return false }
     let calculated = generateCheckMacValue(params: params, hashKey: hashKey, hashIv: hashIv, method: method)
-    // 推薦方案：使用 HMAC 間接比較（timing-safe，無編譯器最佳化風險）
+    // timing-safe：用 HMAC 間接比較（isValidAuthenticationCode 為 constant-time）
+    guard received.count == calculated.count else { return false }
     let key = SymmetricKey(data: Data(hashKey.utf8))
-    let hmacReceived = HMAC<SHA256>.authenticationCode(for: Data(received.utf8), using: key)
-    let hmacCalculated = HMAC<SHA256>.authenticationCode(for: Data(calculated.utf8), using: key)
-    return HMAC<SHA256>.isValidAuthenticationCode(hmacReceived, authenticating: Data(received.utf8), using: key)
-        && HMAC<SHA256>.isValidAuthenticationCode(hmacCalculated, authenticating: Data(calculated.utf8), using: key)
-        && received.count == calculated.count
-        && Data(hmacReceived) == Data(hmacCalculated)
+    return HMAC<SHA256>.isValidAuthenticationCode(
+        HMAC<SHA256>.authenticationCode(for: Data(received.utf8), using: key),
+        authenticating: Data(calculated.utf8), using: key
+    )
 }
 
 // === Fallback: 手動 XOR（iOS 12 以下，⚠️ 有 -O 編譯最佳化風險）===
@@ -1153,3 +1154,9 @@ Method=SHA256
 - PHP SDK 原始碼：`scripts/SDK_PHP/src/Services/CheckMacValueService.php`
 - URL Encode 原始碼：`scripts/SDK_PHP/src/Services/UrlService.php`
 - AES 加解密：[guides/14-aes-encryption.md](./14-aes-encryption.md)
+- 機器可讀測試向量（CI/自動化測試用）：`test-vectors/checkmacvalue.json`
+
+## 官方規格參照
+
+- AIO 金流 CheckMacValue：`references/Payment/全方位金流API技術文件.md` → §附錄 / 檢查碼機制說明
+- 國內物流 CheckMacValue：`references/Logistics/物流整合API技術文件.md` → §附錄 / 檢查碼機制說明

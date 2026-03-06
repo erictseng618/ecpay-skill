@@ -76,6 +76,39 @@ ECPay API 分為三個協議模式，認證方式和請求格式完全不同：
 
 本頁 Quick Start 範例使用 CMV-SHA256（AIO 金流）。AES-JSON 完整端到端範例見本頁下半段及 [guides/24-multi-language-integration.md](./24-multi-language-integration.md)。
 
+### AIO 信用卡付款流程（CMV-SHA256）
+
+```mermaid
+sequenceDiagram
+    participant U as 消費者瀏覽器
+    participant M as 你的伺服器
+    participant E as ECPay
+
+    M->>M: 組裝參數 + 計算 CheckMacValue (SHA256)
+    M->>U: 回傳自動提交 HTML 表單
+    U->>E: 表單 POST 至 /Cashier/AioCheckOut/V5
+    E->>U: 顯示綠界付款頁面
+    U->>E: 消費者完成付款（信用卡/ATM/超商）
+    E-->>M: Server-to-Server POST 至 ReturnURL
+    M->>M: 驗證 CheckMacValue + 處理訂單
+    M-->>E: 回應 "1|OK"
+    E->>U: 導向 ClientBackURL（前端跳轉）
+```
+
+### AES-JSON 流程（ECPG / 發票 / 物流 v2）
+
+```mermaid
+sequenceDiagram
+    participant M as 你的伺服器
+    participant E as ECPay
+
+    M->>M: 業務參數 JSON → URL encode → AES 加密 → Base64
+    M->>E: POST JSON { MerchantID, RqHeader, Data }
+    E->>E: Base64 decode → AES 解密 → URL decode → 處理
+    E-->>M: JSON { TransCode, Data(加密) }
+    M->>M: 檢查 TransCode=1 → 解密 Data → 檢查 RtnCode=1
+```
+
 ## 整合複雜度分級
 
 | Tier | 包含服務 | 預估時間 | 含測試 | 閱讀路徑 |
@@ -169,7 +202,7 @@ func main() {
 		params := map[string]string{
 			"MerchantID": config.MerchantID, "MerchantTradeNo": fmt.Sprintf("Go%d", time.Now().Unix()),
 			"MerchantTradeDate": now, "PaymentType": "aio", "TotalAmount": "100",
-			"TradeDesc": "測試", "ItemName": "測試商品", "ReturnURL": "https://你的網站/notify",
+			"TradeDesc": "測試", "ItemName": "測試商品", "ReturnURL": "https://example.com/notify", // ⚠️ TODO: 替換
 			"ChoosePayment": "ALL", "EncryptType": "1",
 			"SimulatePaid": "1", // ← [正式時移除] 模擬付款
 		}
@@ -234,6 +267,18 @@ func main() {
 
 ## 五分鐘跑通第一筆交易
 
+> **新手最常見的錯誤：CheckMacValue 驗證失敗**
+>
+> CheckMacValue 是 ECPay 的資料防竄改機制（類似數位簽章）。你送出的每筆訂單都必須附上正確的 CheckMacValue，否則 ECPay 會直接拒絕。
+>
+> **最常見的失敗原因**：
+> 1. HashKey 或 HashIV 複製錯誤（多了空格、大小寫錯）
+> 2. URL encode 規則因語言而異（見下方範例中的 `ecpayUrlEncode`）
+> 3. 參數排序必須不區分大小寫
+>
+> 如果遇到驗證失敗，直接看 [guides/15 四步驟排查法](./15-troubleshooting.md)。
+> 驗算工具：[guides/13 測試向量](./13-checkmacvalue.md) 可驗證你的實作是否正確。
+
 ### ECPay 核心概念
 
 | 術語 | 全稱 | 白話說明 |
@@ -288,7 +333,7 @@ $input = [
     'TotalAmount'      => 100,                     // 新台幣整數
     'TradeDesc'        => '測試交易',
     'ItemName'         => '測試商品一件',
-    'ReturnURL'        => 'https://你的網站/ecpay/notify',  // ⚠️ 必須替換：填入你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
+    'ReturnURL'        => 'https://example.com/ecpay/notify',  // ⚠️ TODO: 替換為你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
     'ChoosePayment'    => 'Credit',                // 信用卡
     'EncryptType'      => 1,                       // SHA256
     'SimulatePaid'     => 1,                       // 模擬付款（正式環境請移除此行）
@@ -378,7 +423,8 @@ echo '1|OK';
 ## Node.js Quick Start
 
 ```bash
-npm init -y && npm install express
+npm install express
+# 或 yarn add express
 ```
 
 ```javascript
@@ -397,7 +443,7 @@ const config = {
 
 // === CheckMacValue 計算（參考 guides/13-checkmacvalue.md）===
 function ecpayUrlEncode(source) {
-  let encoded = encodeURIComponent(source).replace(/%20/g, '+').replace(/~/g, '%7e');
+  let encoded = encodeURIComponent(source).replace(/%20/g, '+').replace(/~/g, '%7e').replace(/'/g, '%27');
   encoded = encoded.toLowerCase();
   const replacements = { '%2d': '-', '%5f': '_', '%2e': '.', '%21': '!', '%2a': '*', '%28': '(', '%29': ')' };
   for (const [old, char] of Object.entries(replacements)) {
@@ -429,7 +475,7 @@ app.get('/checkout', (req, res) => {
     TotalAmount: '100',
     TradeDesc: '測試交易',  // CheckMacValue 計算會自動處理 URL encode，不需預先編碼
     ItemName: '測試商品',
-    ReturnURL: 'https://你的網站/ecpay/notify', // ⚠️ 必須替換：填入你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
+    ReturnURL: 'https://example.com/ecpay/notify', // ⚠️ TODO: 替換為你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
     ChoosePayment: 'ALL',
     EncryptType: '1',
     SimulatePaid: '1', // ← [正式時移除] 模擬付款，本地開發免 ReturnURL 即可測試
@@ -464,7 +510,7 @@ app.listen(3000, () => console.log('Server: http://localhost:3000/checkout'));
 ## Python Quick Start
 
 ```bash
-pip install fastapi uvicorn httpx
+pip install fastapi uvicorn pycryptodome
 ```
 
 ```python
@@ -506,7 +552,7 @@ async def checkout():
         'TotalAmount': '100',
         'TradeDesc': '測試交易',  # CheckMacValue 計算會自動處理 URL encode，不需預先編碼
         'ItemName': '測試商品',
-        'ReturnURL': 'https://你的網站/ecpay/notify',  # ⚠️ 必須替換：填入你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
+        'ReturnURL': 'https://example.com/ecpay/notify',  # ⚠️ TODO: 替換為你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
         'ChoosePayment': 'ALL',
         'EncryptType': '1',
         'SimulatePaid': '1',  # ← [正式時移除] 模擬付款，本地開發免 ReturnURL 即可測試
@@ -584,16 +630,16 @@ MerchantID=3002607&MerchantTradeNo=Test1234567890&RtnCode=1&RtnMsg=Succeeded&Tra
 
 ECPay 的 ReturnURL 是 server-to-server 回呼，你的本地伺服器需要一個公開 URL。
 
-**方案 1：使用隧道工具（推薦）**
+**方案 1：使用 ngrok 接收 Callback（選擇性）**
 
-```bash
-# ngrok
-ngrok http 3000
-# 取得類似 https://abc123.ngrok.io 的公開 URL
+> 僅在需要測試 ReturnURL callback 時使用。首次測試建議用 SimulatePaid=1 + QueryTradeInfo 主動查詢。
 
-# cloudflared
-cloudflared tunnel --url http://localhost:3000
-```
+1. 安裝 ngrok：`brew install ngrok` 或從 [ngrok.com](https://ngrok.com) 下載
+2. 啟動你的本地伺服器（例如 `node server.js` 在 port 3000）
+3. 開啟 ngrok：`ngrok http 3000`
+4. 複製 ngrok 給的公開 URL（例如 `https://abc123.ngrok-free.app`）
+5. 將此 URL 填入 `ReturnURL` 參數
+6. 測試完成後可在 ngrok 控制面板 `http://127.0.0.1:4040` 查看請求記錄
 
 **方案 2：SimulatePaid + 查詢 API**
 
@@ -651,7 +697,7 @@ const config = {
 function aesUrlEncode(str) {
   return encodeURIComponent(str)
     .replace(/%20/g, '+')
-    .replace(/~/g, '%7e')
+    .replace(/~/g, '%7E')
     .replace(/!/g, '%21')
     .replace(/'/g, '%27')
     .replace(/\(/g, '%28')
@@ -699,7 +745,7 @@ async function issueInvoice() {
     Data: aesEncrypt(invoiceData, config.hashKey, config.hashIv),
   });
 
-  const response = await fetch('https://einvoice-stage.ecpay.com.tw/B2CInvoice/Issue', {
+  const response = await fetch('https://einvoice-stage.ecpay.com.tw/B2CInvoice/Issue', { // Node.js 18+ 內建 fetch；舊版請改用 const https = require('https') 或 npm install node-fetch
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: requestBody,
@@ -739,7 +785,7 @@ CONFIG = {
 
 def aes_url_encode(source: str) -> str:
     """AES 專用 URL encode — Canonical source: guides/14 §Python"""
-    return urllib.parse.quote_plus(source).replace('~', '%7e').replace("'", '%27')
+    return urllib.parse.quote_plus(source).replace('~', '%7E').replace("'", '%27')
 
 def aes_encrypt(data: dict, hash_key: str, hash_iv: str) -> str:
     json_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)

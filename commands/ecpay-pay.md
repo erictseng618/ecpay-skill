@@ -1,5 +1,5 @@
 ---
-description: 串接綠界金流收款（AIO / ECPG 站內付 / 幕後授權）
+description: 串接綠界金流收款（AIO / ECPG 站內付 / 幕後授權）、查詢訂單、退款、Callback 處理
 ---
 
 使用者需要串接綠界金流。請依以下步驟引導：
@@ -10,5 +10,11 @@ description: 串接綠界金流收款（AIO / ECPG 站內付 / 幕後授權）
    - AIO → `guides/01-payment-aio.md`
    - ECPG 站內付 → `guides/02-payment-ecpg.md`
    - 幕後授權 → `guides/03-payment-backend.md`
-4. **生成程式碼前**，必須從 `references/Payment/` 對應檔案 web_fetch 最新 API 規格
-5. 加密實作參考 `guides/13-checkmacvalue.md`（CMV）或 `guides/14-aes-encryption.md`（AES）
+4. 加密實作參考 `guides/13-checkmacvalue.md`（CMV）或 `guides/14-aes-encryption.md`（AES）
+5. 非 PHP 語言同時參考 `guides/20-http-protocol-reference.md`（HTTP 協議細節）
+6. **生成程式碼前**，必須從 `references/Payment/` 對應檔案 web_fetch 最新 API 規格
+
+擴充功能（依使用者需求選用）：
+- **查詢/對帳** → 對應 guide 的 §QueryTradeInfo 或 §對帳 區段
+- **退款/取消** → 對應 guide 的 §DoAction 區段；跨服務補償見 `guides/11-cross-service-scenarios.md`
+- **Callback** → `guides/22-webhook-events-reference.md`（各服務回應格式彙總）；收不到見 `guides/15-troubleshooting.md` §2

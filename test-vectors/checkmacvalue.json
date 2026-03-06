@@ -1,0 +1,61 @@
+{
+  "description": "ECPay CheckMacValue 測試向量 — 來源: guides/13-checkmacvalue.md",
+  "vectors": [
+    {
+      "name": "SHA256 基本測試（AIO 金流）",
+      "method": "SHA256",
+      "hashKey": "pwFHCqoQZGmho4w6",
+      "hashIV": "EkRm7iFT261dpevs",
+      "params": {
+        "MerchantID": "3002607",
+        "MerchantTradeNo": "Test1234567890",
+        "MerchantTradeDate": "2025/01/01 12:00:00",
+        "PaymentType": "aio",
+        "TotalAmount": "100",
+        "TradeDesc": "測試",
+        "ItemName": "測試商品",
+        "ReturnURL": "https://example.com/notify",
+        "ChoosePayment": "ALL",
+        "EncryptType": "1"
+      },
+      "expected": "291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2"
+    },
+    {
+      "name": "MD5 測試（國內物流）",
+      "method": "MD5",
+      "hashKey": "5294y06JbISpM5x9",
+      "hashIV": "v77hoKGq4kWxNNIS",
+      "params": {
+        "MerchantID": "2000132",
+        "LogisticsType": "CVS",
+        "LogisticsSubType": "UNIMART",
+        "MerchantTradeDate": "2025/01/01 12:00:00"
+      },
+      "expected": "545E6146FD45BDA683C88454DB34CE8D"
+    },
+    {
+      "name": "特殊字元 ' 測試（Node.js/TypeScript 修正驗證）",
+      "method": "SHA256",
+      "hashKey": "pwFHCqoQZGmho4w6",
+      "hashIV": "EkRm7iFT261dpevs",
+      "params": {
+        "MerchantID": "3002607",
+        "ItemName": "Tom's Shop",
+        "TotalAmount": "100"
+      },
+      "expected": "CF0A3D4901D99459D8641516EC57210700E8A5C9AB26B1D021301E9CB93EF78D"
+    },
+    {
+      "name": "特殊字元 ~ 測試",
+      "method": "SHA256",
+      "hashKey": "pwFHCqoQZGmho4w6",
+      "hashIV": "EkRm7iFT261dpevs",
+      "params": {
+        "MerchantID": "3002607",
+        "ItemName": "Test~Product",
+        "TotalAmount": "200"
+      },
+      "note": "驗證各語言 ~ → %7E 替換。ecpayUrlEncode 會將 ~ 編碼為 %7e，再經 toLowerCase 保持小寫"
+    }
+  ]
+}

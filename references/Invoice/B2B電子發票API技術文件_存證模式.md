@@ -75,6 +75,3 @@ https://developers.ecpay.com.tw/24319.md
 
 ## 附錄 / 參數加密方式說明
 https://developers.ecpay.com.tw/24329.md
-
-## 使用流程圖說明
-https://developers.ecpay.com.tw/25224.md

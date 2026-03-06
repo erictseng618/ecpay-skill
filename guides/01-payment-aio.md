@@ -2,6 +2,8 @@
 
 # 全方位金流 AIO 完整指南
 
+> **非 PHP 開發者？** 請同時參考 [guides/20 HTTP 協議參考](./20-http-protocol-reference.md)（請求格式）和 [guides/13 CheckMacValue](./13-checkmacvalue.md)（12 語言加密實作）。完整多語言 E2E 範例見 [guides/24](./24-multi-language-integration.md)。
+
 ## 概述
 
 AIO（All-In-One）是 ECPay 最常用的金流整合方案，將消費者導向綠界標準付款頁面，支援 10+ 種付款方式。適合絕大多數電商場景。
@@ -137,7 +139,7 @@ $input = [
     'MerchantTradeDate'=> date('Y/m/d H:i:s'),
     'PaymentType'      => 'aio',
     'TotalAmount'      => 100,
-    'TradeDesc'        => UrlService::ecpayUrlEncode('測試交易'),  // SDK 會在計算 CheckMacValue 時自動處理，但建議明確 encode
+    'TradeDesc'        => UrlService::ecpayUrlEncode('測試交易'),  // 官方 SDK 範例做法，見 scripts/SDK_PHP/example/Payment/Aio/CreateCreditOrder.php
     'ItemName'         => '測試商品',
     'ReturnURL'        => 'https://你的網站/ecpay/notify',
     'ChoosePayment'    => 'Credit',
@@ -292,6 +294,16 @@ $input = [
 | TradeDate | 交易日期 |
 | SimulatePaid | 是否為模擬付款（0=否, 1=是） |
 | CheckMacValue | 檢查碼 |
+
+> ⚠️ **ATM/CVS/BARCODE 特殊 RtnCode**
+>
+> | RtnCode | 意義 | 說明 |
+> |:-------:|------|------|
+> | 1 | 付款成功 | 信用卡/WebATM/TWQR 等即時付款 |
+> | 2 | ATM 取號成功 | 消費者**尚未繳費**，需等待第二次 Callback（RtnCode=1）|
+> | 10100073 | CVS/BARCODE 取號成功 | 同上，等待消費者到超商繳費 |
+>
+> **不要把 RtnCode=2 或 10100073 當作錯誤！** 這代表取號成功，消費者會在期限內去繳費。
 
 ### 各付款方式額外回傳參數
 
@@ -506,6 +518,14 @@ $response = $postService->post(
     'https://payment-stage.ecpay.com.tw/CreditDetail/DoAction'
 );
 ```
+
+### 退款注意事項
+
+- **已關帳（已請款）**：`Action=R` 可退款，`TotalAmount` 填退款金額。支援多次部分退款，累計不得超過原交易金額
+- **未關帳（未請款）**：僅能取消授權（`Action=E`）或放棄（`Action=N`），不支援部分取消
+- 退款後無法復原，請確認金額正確再執行
+
+> 完整退款參數規格請 web_fetch `references/Payment/全方位金流API技術文件.md` 中「信用卡請退款功能」對應 URL。
 
 ## 查詢訂單
 

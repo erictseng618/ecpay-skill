@@ -1,6 +1,7 @@
 # 離線電子發票指引
 
 > 對應 ECPay API 版本 | 最後更新：2026-03
+> ⚠️ **SNAPSHOT 2026-03** | 來源：`references/Invoice/離線電子發票API技術文件.md` — 生成程式碼前請 web_fetch 取得最新規格
 
 ## 概述
 

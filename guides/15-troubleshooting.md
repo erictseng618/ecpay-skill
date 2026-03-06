@@ -2,6 +2,30 @@
 
 # 除錯指南 + 錯誤碼 + 常見陷阱
 
+> 若需確認最新 API 錯誤碼定義或參數規格，可從 `references/` 對應檔案 web_fetch 取得最新官方文件。
+
+## 症狀速查表
+
+> 不知道錯誤碼？從你看到的**症狀**開始找：
+
+| 你遇到的症狀 | 最可能原因 | 前往 |
+|-------------|-----------|------|
+| CheckMacValue 驗證失敗 | HashKey/HashIV 錯誤、Hash 方法搞混（SHA256 vs MD5） | [§1](#1-checkmacvalue-驗證失敗) |
+| ReturnURL 收不到通知 | URL 格式、防火牆、未回應 `1\|OK` | [§2](#2-returnurl-收不到通知) |
+| HTTP 403 Forbidden | API 速率限制，需等 30 分鐘 | [§3](#3-http-403-forbidden) |
+| 付款頁面空白 | 使用了 iframe（AIO 不支援） | [§6](#6-iframe-交易失敗) |
+| LINE/FB 內無法交易 | WebView 安全限制 | [§4](#4-ios-linefacebook-無法交易) |
+| RtnCode=2 | **不是錯誤** — ATM 取號成功 | [§9](#9-atm-取號-rtncode2-不是錯誤) |
+| RtnCode=10100073 | **不是錯誤** — CVS/BARCODE 取號成功 | [§10](#10-cvsbarcode-取號-rtncode10100073-不是錯誤) |
+| HTTP 404 Not Found | ECPG 雙 Domain 搞混（ecpg vs ecpayment） | [§14](#14-ecpg-404-雙-domain-錯誤) |
+| AES 解密失敗 / TransCode≠1 | Key/IV 長度非 16 bytes、URL encode 順序錯 | [§13](#13-aes-解密失敗) |
+| MerchantTradeNo 重複 | 訂單編號已存在 | [§12](#12-merchanttradeno-重複) |
+| ItemName 亂碼或截斷 | 超過 400 bytes | [§5](#5-itemname-亂碼或被截斷) |
+| BNPL 被拒 | 金額 < 3,000 元 | [§7](#7-bnpl-被拒) |
+| 定期定額停止扣款 | 連續 6 次授權失敗 | [§8](#8-定期定額停止扣款) |
+
+---
+
 ## 快速排查決策樹
 
 > **錯誤碼查找**：如果你知道具體的 RtnCode 或 TransCode 數字，直接查 [guides/21-error-codes-reference.md](./21-error-codes-reference.md)。
@@ -218,37 +242,50 @@ ATM 取號成功的 `RtnCode` 是 `2`（不是 `1`）。
 
 詳見：[guides/14-aes-encryption.md](./14-aes-encryption.md)
 
-## 14. Apple Pay 限制
+## 14. ECPG 404 雙 Domain 錯誤
+
+**症狀**：呼叫 ECPG 站內付 API 回傳 HTTP 404 Not Found。
+
+**原因**：ECPG 使用**兩個不同的 Domain**，API 打錯 Domain 會得到 404：
+
+| API | 正確 Domain |
+|-----|-----------|
+| GetTokenbyTrade（取 Token） | `ecpg-stage.ecpay.com.tw` |
+| CreateTrade、QueryTrade、DoAction 等 | `ecpayment-stage.ecpay.com.tw` |
+
+**解決**：確認每個 API 的 Domain。詳見 [guides/02-payment-ecpg.md](./02-payment-ecpg.md) 頂部端點對照表。
+
+## 15. Apple Pay 限制
 
 - 僅在 **Safari** 瀏覽器可見（2025/4/1 起同步顯示在其他瀏覽器）
 - 需要向綠界申請啟用
 
-## 15. WebATM 限制
+## 16. WebATM 限制
 
 - **手機瀏覽器不支援**（需要讀卡機）
 - 僅支援桌面瀏覽器
 
-## 16. 微信支付 / TWQR 限制
+## 17. 微信支付 / TWQR 限制
 
 - 需要向綠界另外申請啟用
 - 微信支付需要微信商戶號
 
-## 17. URL 含特殊編碼
+## 18. URL 含特殊編碼
 
 如果 API 回傳的 URL 含 `%26`（&）、`%3C`（<）等：
 - 需要 `urldecode()` 處理後再使用
 - 不要直接拿 URL-encoded 的值做業務邏輯
 
-## 18. 僅限新台幣
+## 19. 僅限新台幣
 
 ECPay 所有服務僅支援 **新台幣 (TWD)**，不支援多幣別。
 
-## 19. 3D Secure 2.0
+## 20. 3D Secure 2.0
 
 - **2025/8/1 起強制啟用** 3D Secure 2.0
 - 測試環境 SMS 驗證碼固定為 `1234`
 
-## 20. ChoosePayment=ALL 排除特定付款方式
+## 21. ChoosePayment=ALL 排除特定付款方式
 
 如果用 `ChoosePayment=ALL` 但想排除某些付款方式，使用 `IgnorePayment` 參數：
 

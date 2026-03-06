@@ -270,6 +270,69 @@ $response = $postService->post($input, 'https://ecticket-stage.ecpay.com.tw/api/
 
 如需完整的跨服務整合範例，請參考 [guides/11-cross-service-scenarios.md](./11-cross-service-scenarios.md)。
 
+## 非 PHP 語言 HTTP 範例（Node.js）
+
+電子票證使用 AES-JSON 協議，與 B2C 發票格式完全相同。以下為 Node.js 票券發行範例：
+
+```javascript
+const crypto = require('crypto');
+
+// 測試帳號需向綠界客服申請（電子票證無公開測試帳號）
+const MERCHANT_ID = '你的MerchantID';
+const HASH_KEY = '你的HashKey';
+const HASH_IV = '你的HashIV';
+const BASE_URL = 'https://ecticket-stage.ecpay.com.tw';
+
+// AES 加密（與 B2C 發票相同）— 完整實作見 guides/14
+function aesEncrypt(data, hashKey, hashIV) {
+  const json = JSON.stringify(data);
+  const urlEncoded = encodeURIComponent(json)
+    .replace(/%20/g, '+').replace(/~/g, '%7E')
+    .replace(/!/g, '%21').replace(/\*/g, '%2A')
+    .replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29');
+  const key = Buffer.from(hashKey.substring(0, 16), 'utf8');
+  const iv = Buffer.from(hashIV.substring(0, 16), 'utf8');
+  const cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
+  let encrypted = cipher.update(urlEncoded, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+  return encrypted;
+}
+
+// 票券發行
+async function issueTicket() {
+  const ticketData = {
+    MerchantID: MERCHANT_ID,
+    TicketName: '遊樂園入場券',
+    TicketPrice: 500,
+    TicketQty: 1,
+    ValidDate: '2026/12/31',
+    ServerReplyURL: 'https://your-domain.com/ecticket/notify',
+  };
+
+  const body = JSON.stringify({
+    MerchantID: MERCHANT_ID,
+    RqHeader: { Timestamp: Math.floor(Date.now() / 1000), Revision: '1.0.0' },
+    Data: aesEncrypt(ticketData, HASH_KEY, HASH_IV),
+  });
+
+  const res = await fetch(`${BASE_URL}/api/Ticket/Issue`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+  });
+  const result = await res.json();
+
+  // 雙層錯誤檢查（AES-JSON 必備）
+  if (result.TransCode !== 1) {
+    throw new Error(`傳輸層錯誤: ${result.TransMsg}`);
+  }
+  // 解密 Data 後檢查 RtnCode...
+}
+```
+
+> 上述 `aesEncrypt` 為簡化版。完整加密/解密實作（含 PKCS7 padding、URL decode）見 [guides/14-aes-encryption.md](./14-aes-encryption.md) §Node.js。
+> 其他語言開發者：電子票證的 AES 加密方式與 B2C 發票**完全相同**，可直接複用 guides/14 的加密函式。
+
 ## 整合提示
 
 1. **建議從「價金保管 — 使用後核銷」開始**，流程最直覺、風險最低

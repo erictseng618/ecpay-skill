@@ -1,0 +1,42 @@
+{
+  "description": "ECPay AES-128-CBC 測試向量 — 來源: guides/14-aes-encryption.md",
+  "algorithm": "AES-128-CBC with PKCS7 padding",
+  "flow": "JSON → URL encode → AES encrypt → Base64 encode",
+  "vectors": [
+    {
+      "name": "基本測試（插入順序 JSON key）",
+      "hashKey": "ejCk326UnaZWKisg",
+      "hashIV": "q9jcZX8Ib9LM8wYk",
+      "key_bytes": "ejCk326UnaZWKisg",
+      "iv_bytes": "q9jcZX8Ib9LM8wYk",
+      "plaintext_json": "{\"MerchantID\":\"2000132\",\"BarCode\":\"/1234567\"}",
+      "expected_url_encoded": "%7B%22MerchantID%22%3A%222000132%22%2C%22BarCode%22%3A%22%2F1234567%22%7D",
+      "expected_base64": "XeEOdHpTRvxKEqs/JD9RSd16s7VtpyWVCN6AV44pKTW3DVa6yI7vKmjBRp2eulDhXoru/qBqFDBH3fEqlkMn3bbJfJBfGAq+v+SvttutYnc=",
+      "note": "JSON key 順序依插入順序（MerchantID 在前）。Python/Node.js/C#/Ruby 等保留插入順序的語言應比對此值"
+    },
+    {
+      "name": "基本測試（字母序 JSON key）",
+      "hashKey": "ejCk326UnaZWKisg",
+      "hashIV": "q9jcZX8Ib9LM8wYk",
+      "plaintext_json": "{\"BarCode\":\"/1234567\",\"MerchantID\":\"2000132\"}",
+      "expected_base64": "r0JSyF9wVmywUav725b3rdJs3xp/ekrC/7PGb18zhKyXkPsamV9l4rPnBkaaraPcHtMSwrmSPP3wuS7b8g/aAKGs0iGiknpgpbdXKXvFrYM=",
+      "note": "Go map / Java HashMap / Swift JSONEncoder 等字母序 JSON 的語言應比對此值"
+    },
+    {
+      "name": "特殊字元測試（!*'()~）",
+      "hashKey": "ejCk326UnaZWKisg",
+      "hashIV": "q9jcZX8Ib9LM8wYk",
+      "plaintext_json": "{\"Name\":\"test!*'()~value\"}",
+      "expected_url_encoded": "%7B%22Name%22%3A%22test%21%2A%27%28%29%7Evalue%22%7D",
+      "url_encode_expectations": {
+        "!": "%21",
+        "*": "%2A",
+        "'": "%27",
+        "(": "%28",
+        ")": "%29",
+        "~": "%7E"
+      },
+      "note": "Node.js encodeURIComponent 不編碼 !*'()，Java URLEncoder.encode 不編碼 *，需手動補 replace"
+    }
+  ]
+}

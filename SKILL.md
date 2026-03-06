@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.6"
+version: "2.12"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
@@ -8,13 +8,11 @@ description: >
   線上付款, 金流串接, 超商取貨, 超商代碼, ATM轉帳, 電子發票, 發票開立, CheckMacValue,
   AES加密, 站內付, ECPG, AIO, 物流串接, 宅配, 跨境物流, 定期定額, 訂閱制, 綁卡,
   退款, 折讓, 對帳, POS刷卡機, 直播收款, Shopify金流, WooCommerce金流,
-  電子票證, 票券, BNPL先買後付, TWQR, 微信支付, Apple Pay, 銀聯,
-  分期付款, 3D Secure, webhook, 回呼, postback, 測試帳號, sandbox,
-  對帳檔, 手續費, 特店後台, MerchantID, ReturnURL, 交易查詢,
-  信用卡退款, 取消交易, NFC, 感應支付, payment gateway, 金流平台,
-  發票作廢, invoice void, 物流追蹤, logistics tracking, Token綁定,
-  自動扣款, periodic payment, 3DS, 整合串接,
-  第三方支付, 刷卡, 串金流, 串物流, 開發票, 收錢, 收款方式, 付款方式,
+  電子票證, BNPL先買後付, TWQR, 微信支付, Apple Pay, 銀聯,
+  分期付款, 3D Secure, webhook, 回呼, 測試帳號, sandbox,
+  MerchantID, ReturnURL, 交易查詢, 信用卡退款, payment gateway,
+  發票作廢, 物流追蹤, Token綁定, 定期定額, 3DS,
+  第三方支付, 串金流, 串物流, 開發票, 收款方式, 付款方式,
   線上收款, 超商繳費, 代收
 license: MIT
 metadata:
@@ -64,7 +62,18 @@ metadata:
 > **生成程式碼前，必須同時從 references/ 即時讀取最新 API 規格**（見步驟 3 第 3 項）。
 > 決策樹路由到 guide 後，不可跳過 reference 即時查閱步驟。
 
-#### 快速協議選擇（先看這個）
+#### 新手推薦（不確定選哪個？看這裡）
+
+| 排序 | 場景 | 採用率 | 直接跳轉 | 預估時間 |
+|:---:|------|:-----:|---------|:------:|
+| 1 | 網頁收款（最常見） | ~60% | [guides/01](./guides/01-payment-aio.md) AIO | 30m |
+| 2 | 前後端分離 / 嵌入式付款 | ~25% | [guides/02](./guides/02-payment-ecpg.md) ECPG | 1h |
+| 3 | 超商取貨 / 宅配 | ~10% | [guides/06](./guides/06-logistics-domestic.md) | 45m |
+| 4 | 其他（發票、票證、BNPL 等） | ~5% | 使用下方完整決策樹 | — |
+
+> **AIO 是最簡單的起點**。不確定就選 AIO，30 分鐘可完成第一筆測試交易。
+
+#### 完整協議選擇
 
 | 你的場景 | 協議 | 難度 | 指南 |
 |---------|------|:----:|------|
@@ -122,12 +131,13 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 │   ├── 信用卡 → 幕後授權（讀 guides/03）[預計 1h]
 │   └── ATM/超商 → 幕後取號（讀 guides/03）[預計 1h]
 ├── 訂閱制 → AIO 定期定額（讀 guides/01 §定期定額）[預計 45m]
+├── BNPL 先買後付 → AIO（ChoosePayment=BNPL，最低消費金額 3,000 元）（讀 guides/01）[預計 30m]
 ├── 綁卡快速付 → ECPG 綁卡（讀 guides/02 §綁卡付款流程）[預計 1h]
 ├── 實體門市刷卡 → POS 刷卡機（讀 guides/17）[預計 2h]
 ├── 直播電商收款 → 直播收款（讀 guides/18）[預計 1h]
 ├── Shopify → 購物車模組（讀 guides/10-cart-plugins.md #Shopify，API 規格見 references/Payment/Shopify專用金流API技術文件.md）
 ├── Mobile App（iOS/Android）→ ECPG 站內付（讀 guides/02-payment-ecpg.md + guides/24 Mobile App 區段）
-├── Apple Pay / Google Pay → AIO（ChoosePayment=ApplePay）或 ECPG，讀 guides/01 或 guides/02
+├── Apple Pay / Google Pay → AIO（ChoosePayment=ApplePay）或 ECPG。**注意：Google Pay 目前透過 TWQR 通路支援，非獨立支付方式**。讀 guides/01 或 guides/02
 ├── 非 PHP 語言完整範例 → 讀 guides/24-multi-language-integration.md（Go/Java/C#/TS/Kotlin/Ruby E2E + Mobile App）
 ├── 查詢訂單狀態 → AIO: guides/01 QueryTradeInfo 區段 / ECPG: guides/02 查詢區段
 ├── 下載對帳檔 → guides/01 對帳區段（注意 domain 為 vendor.ecpay.com.tw）
@@ -157,7 +167,10 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 #### 其他決策樹
 
 ```
-電子票證？→ 讀 guides/09-ecticket.md（⚠️ 無公開測試帳號，需向綠界客服申請）
+電子票證？→ 讀 guides/09-ecticket.md
+   ⚠️ 重要限制：無公開測試帳號，需向綠界客服申請
+   聯繫方式：(02)2655-1775 或 techsupport@ecpay.com.tw
+   適用場景：演唱會、電影票、餐券、遊樂園等虛擬票證
 購物車平台？→ 讀 guides/10-cart-plugins.md
 收款+發票+出貨？→ 讀 guides/11-cross-service-scenarios.md
 ```
@@ -195,48 +208,30 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 | 情境 | Claude Code `/` 指令 | 對應 guide |
 |------|---------------------|------------|
-| 串接金流收款 | `/ecpay-pay` | guides/01, 02, 03 |
+| 串接金流（收款、查詢、退款、Callback） | `/ecpay-pay` | guides/01, 02, 03, 22 |
 | 串接電子發票 | `/ecpay-invoice` | guides/04, 05, 19 |
-| 串接物流 | `/ecpay-logistics` | guides/06, 07, 08 |
-| 串接電子票證 | `/ecpay-ecticket` | guides/09 |
-| CheckMacValue 加密 | `/ecpay-checkmac` | guides/13 |
-| 查詢訂單 / 對帳 | `/ecpay-query` | guides/01, 02 §查詢 |
-| 退款 / 作廢 / 折讓 | `/ecpay-refund` | guides/01, 04, 05 §退款 |
-| Callback / Webhook | `/ecpay-callback` | guides/22 |
-| 除錯排查 | `/ecpay-debug` | guides/15, 21 |
+| 串接物流 / 電子票證 | `/ecpay-logistics` | guides/06, 07, 08, 09 |
+| 除錯 + 加密驗證 | `/ecpay-debug` | guides/13, 14, 15, 21 |
 | 上線前檢查 | `/ecpay-go-live` | guides/16 |
 
-#### 常見問題快查
+#### 快查表（問題→指南 / 需求→指南）
 
-| 開發者問題 | 直接讀 |
+| 問題或需求 | 直接讀 |
 |-----------|--------|
 | CheckMacValue 驗證失敗 | guides/13 + guides/15 §1 |
 | AES 解密結果亂碼 | guides/14 §常見錯誤 |
-| Callback 收不到 | guides/15 §2 + guides/22 |
+| Callback 收不到 | guides/15 §2 + guides/22 失敗恢復策略 |
 | 如何退款 | guides/01 §DoAction (AIO) / guides/02 §DoAction (ECPG) |
 | 如何查訂單 | guides/01 §QueryTradeInfo / guides/02 §查詢 |
 | 如何對帳 | guides/01 §對帳（domain: vendor.ecpay.com.tw）|
 | 如何開發票 | guides/04 (B2C) / guides/05 (B2B) |
+| 處理 Callback / Webhook | guides/22（各服務 callback 回應格式彙總）|
 | 測試帳號是什麼 | guides/00 §測試帳號 |
-| 上線前檢查 | guides/16 |
-| 如何切換正式環境 | guides/16 §帳號與環境 |
-| Callback 格式 / Webhook 結構 | guides/22（各服務 callback 回應格式彙總） |
+| 上線前檢查 / 切換正式環境 | guides/16 |
 | ECPG 404 / Domain 打錯 | guides/02 端點表（ecpg vs ecpayment）+ guides/16 §ECPG |
 | AES-JSON 雙層錯誤檢查 | guides/21 §TransCode vs RtnCode + guides/04 §AES 請求格式 |
-
-#### 反向快查：我想要...
-
-| 需求 | 推薦指南 |
-|------|---------|
-| 信用卡退款 | guides/01 DoAction (AIO) / guides/02 DoAction (ECPG) |
-| 查詢訂單狀態 | guides/01 QueryTradeInfo / guides/02 查詢區段 |
 | 物流退貨 | guides/06 逆物流 / guides/07 逆物流 |
-| 開發票 | guides/04 (B2C) / guides/05 (B2B) |
-| 處理 Callback | guides/22（各服務 callback 格式彙總）|
-| Domain 搞混 404 | guides/02 端點表 + guides/16 §ECPG 雙 Domain |
-| AES 雙層錯誤 | guides/21 §TransCode vs RtnCode |
 | 非 PHP 完整範例 | guides/24（⚠️ 使用 AI Section Index 行號跳轉） |
-| Callback 收不到 | guides/15 §2 + guides/22 失敗恢復策略 |
 
 ### AI 注意事項（不可做的事）
 
@@ -246,8 +241,10 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **不可在前端或版本控制中暴露** HashKey/HashIV
 - **不可將 ATM RtnCode=2 或 CVS RtnCode=10100073 視為錯誤**（代表等待付款中）
 - **不可僅依賴 guides/ 中的參數表生成 API 呼叫程式碼**（guides/ 所有參數表和端點表標記為 SNAPSHOT，僅供整合流程理解。生成程式碼前**必須**從 references/ 即時 web_fetch 官方最新規格確認端點路徑和參數定義）
+- **生成程式碼時必須標註資料來源**：在程式碼註解中標明參數值取自 SNAPSHOT 或 web_fetch（例如 `// Source: web_fetch references/Payment/... 2026-03-06`），方便開發者日後驗證
 - **不可將 ECPG 所有端點都打向 ecpg domain**（交易類走 `ecpayment`，Token 類走 `ecpg`）
 - **不可省略 Callback 回應**：CMV-SHA256 回 `1|OK`、ECPG 回 JSON `{ "TransCode": 1 }`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）
+- **AES-JSON API 必須做雙層錯誤檢查**：先查 `TransCode`（傳輸層），再查 `RtnCode`（業務層）。僅 `TransCode == 1` 且 `RtnCode` 為成功值時交易才真正成功（詳見 [guides/21](./guides/21-error-codes-reference.md) §TransCode vs RtnCode）
 - **不可使用 TWD 以外的幣別**（ECPay 僅支援新台幣）
 - **超出範圍**：若功能不在本 Skill 覆蓋範圍或需要未支援的語言，告知使用者聯繫綠界客服 (02-2655-1775) 或參考最接近的語言實作翻譯
 
@@ -256,6 +253,10 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 > guides/13、14、24 有 AI Section Index（行號索引），若只需單一語言可用 offset/limit 讀取特定行範圍。
 > AES vs CMV 對比表見 guides/14 line 79-163。
 > guides/24 有 1,774 行，**禁止全量載入**。必須使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
+>
+> **SNAPSHOT 說明**：guides/ 中的參數欄位名稱、型態、必填規則通常穩定（改動機率 < 5%）。
+> 需要即時查閱的情況：API 回傳不符預期、或需確認最新業務驗證規則（如金額範圍）時。
+> **大多數情況下，guide 內容足以完成串接。**
 
 ### 步驟 2.5：確認 HTTP 協議規格（非 PHP 語言必讀）
 
@@ -307,15 +308,20 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | 類別 | 陷阱 | 影響語言 | 解法 |
 |------|------|---------|------|
 | **URL encode** | `encodeURIComponent` 空格→%20 | Node.js, Rust | 替換為 + |
-| **URL encode** | `~` 不被編碼 | 全部非 PHP | 手動替換 `~` → `%7e` |
+| **URL encode** | `~` 不被編碼 | 全部非 PHP | 手動替換 `~` → `%7E`（大寫；CMV 後續 toLowerCase 無影響，AES 必須大寫） |
 | **CMV URL encode** | `'` 不被 `encodeURIComponent` 編碼 | Node.js/TS | 替換 `'` → `%27`（PHP `urlencode("'")` = `%27`） |
-| **AES URL encode** | `!*'()` 部分字元未編碼 | Node.js/TS（全 5 字元）、Java/Kotlin（`*`）、C#（`!*'`）、Rust/Swift（依 crate/API 而異） | 見 guides/14 §各語言 aesUrlEncode（Python/Go/Ruby 原生已編碼） |
+| **AES URL encode** | `!*'()` 部分字元未編碼 | Node.js/TS（全 5 字元）、Java/Kotlin（`*`）、C#（`!*'`）、Rust/Swift（依 crate/API 而異） | 見 guides/14 §各語言 aesUrlEncode（Python/Go 原生已編碼；Ruby 需 `.gsub` 補齊） |
 | **JSON 序列化** | HTML entity 轉義 | Go, Java, Kotlin | `SetEscapeHTML(false)` / `disableHtmlEscaping()` |
 | **JSON 序列化** | `ensure_ascii=True` 預設 | Python | 必須 `ensure_ascii=False, separators=(',', ':')` |
 | **JSON 序列化** | key 順序不保證 | Swift, Java (HashMap) | 用 `JSONEncoder+.sortedKeys` / `LinkedHashMap` |
 | **加密** | 無內建 PKCS7 | Go | 手動實作 padding |
 | **加密** | Key/IV 長度 | C/C++ | 明確截取前 16 bytes |
+| **URL encode** | AES 與 CMV 的 URL encode 邏輯混用 | 全部非 PHP | AES 不做 `toLowerCase` 和 `.NET 字元還原`，見 guides/14 §AES vs CMV 對比表 |
 | **比較** | 非 timing-safe | 全部 | 見 guides/13 各語言 timing-safe 函式 |
+| **AES URL encode** | hex 大小寫必須大寫 | C, Rust, Swift | PHP `urlencode` 輸出大寫 hex（`%7E`、`%2A`），AES 不做 `toLowerCase`，大小寫影響密文 |
+| **URL encode** | `isalnum` 對 signed char 為未定義行為 | C++ | `static_cast<unsigned char>(c)` 後再呼叫 `isalnum` |
+| **AES URL encode** | `CGI.escape` 不編碼 `!*'()` | Ruby | 需 `.gsub` 手動替換（見 guides/14 §Ruby） |
+| **JSON 序列化** | `json.NewEncoder` 輸出含尾部 `\n` | Go | `strings.TrimRight(buf.String(), "\n")` 去除 |
 
 ## 快速參考
 
@@ -469,7 +475,7 @@ composer require "ecpay/sdk:^4.0"
 | 直播收款 | references/Payment/直播主收款網址串接技術文件.md | guides/18 |
 | Shopify 專用 | references/Payment/Shopify專用金流API技術文件.md | guides/10 |
 
-**Invoice（電子發票）— 4 files, 120 URLs**
+**Invoice（電子發票）— 4 files, 119 URLs**
 
 | 服務 | 檔案 | 對應 Guide |
 |------|------|-----------|
@@ -505,17 +511,17 @@ composer require "ecpay/sdk:^4.0"
 | 目錄 | 檔案數 | URL 數 |
 |------|-------|--------|
 | references/Payment/ | 8 | 174 |
-| references/Invoice/ | 4 | 120 |
+| references/Invoice/ | 4 | 119 |
 | references/Logistics/ | 3 | 76 |
 | references/Ecticket/ | 3 | 57 |
 | references/Cart/ | 1 | 5 |
-| **合計** | **19** | **432** |
+| **合計** | **19** | **431** |
 
 ### ⚠️ AI 必讀：API 規格即時查閱機制
 
 **references/ 是即時 API 規格入口，不是靜態文件。**
 
-references/ 的 19 個檔案包含 432 個 URL，每個 URL 連結至綠界 `developers.ecpay.com.tw` 官方最新 API 規格頁面。guides/ 提供整合知識（如何串接），references/ 提供即時規格來源（最新參數表、欄位定義）。**兩者結合才是完整的回答。**
+references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `developers.ecpay.com.tw` 官方最新 API 規格頁面。guides/ 提供整合知識（如何串接），references/ 提供即時規格來源（最新參數表、欄位定義）。**兩者結合才是完整的回答。**
 
 #### 何時必須即時查閱 references/
 
@@ -565,7 +571,7 @@ references/ 的 19 個檔案包含 432 個 URL，每個 URL 連結至綠界 `dev
 | 目錄 | 範例數 |
 |------|-------|
 | Payment/Aio/ | 20 |
-| Payment/Ecpg/（含 8 個 GetToken 子目錄） | 24 |
+| Payment/Ecpg/（含 8 個 GetToken 子目錄 + 1 個僅含 .html 的子目錄） | 24 |
 | Invoice/B2C/ | 19 |
 | Invoice/B2B/ | 23 |
 | Logistics/Domestic/ | 24 |
@@ -575,43 +581,8 @@ references/ 的 19 個檔案包含 432 個 URL，每個 URL 連結至綠界 `dev
 
 ## 維護指引
 
-### 定期驗證（建議每季執行）
-
-1. **URL 可達性驗證**：抽查 references/ 中的 URL 是否仍可存取（建議每季抽查 10-20 個 URL）
-2. **AI 即時讀取測試**：使用 `web_fetch` 讀取 2-3 個 reference URL，確認回傳內容包含預期的 API 參數表
-3. **PHP SDK 版本檢查**：比對 `scripts/SDK_PHP/composer.json` 與 [ECPay 官方 PHP SDK](https://github.com/ECPay/ECPayAIO_PHP) 最新版本
-4. **AI Section Index 校驗**：執行 `bash scripts/validate-ai-index.sh` 確認行號索引正確
-
-> **URL 失效回退策略**：若 `developers.ecpay.com.tw` 單一 URL 失效（404/重新導向），先在該站搜尋替代頁面更新 reference 檔案。
-> 若大量 URL 同時失效（網站改版），聯繫綠界技術支援 (techsupport@ecpay.com.tw) 取得新 URL 結構。
-
-### 新增 API 端點時
-1. 在對應 `guides/` 中新增或補充 API 說明
-2. 在 `references/` 中新增官方文件 URL 索引（確保 URL 可被 AI 即時讀取）
-3. 更新 SKILL.md 決策樹（若為新服務類型）
-4. 更新文件索引表
-
-### PHP SDK 更新時
-1. 比對新版 PHP 範例與現有 guide 內容
-2. 更新參數差異、新增 API
-3. 同步加密實作（若有變更）
-
-### 新增語言支援
-1. 在 `guides/13-checkmacvalue.md` 新增 CheckMacValue 實作
-2. 在 `guides/14-aes-encryption.md` 新增 AES 實作
-3. 更新語言計數（SKILL.md、guides/00-getting-started.md）
-4. 在語言特定陷阱表中補充已知問題
+> 維護者請參閱 [CONTRIBUTING.md](./CONTRIBUTING.md) §維護指引（定期驗證、URL 回退策略、SDK 更新流程）。
 
 ## 更新紀錄
 
-| 日期 | 版本 | 變更摘要 |
-|------|------|---------|
-| 2025-03 ~ 2026-03 | v1.0-v1.8 | 初始版本→25 份指南、12 語言、134 個 PHP 範例、多輪品質審查修正 |
-| 2026-03-05 | v1.9 | 二次六代理審查修正：CRITICAL 程式碼修正（C#/Go/C AES URL encode、TypeScript timingSafeEqual）、過度設計精簡（-121 行）、AI Section Index 導航 |
-| 2026-03-05 | v2.0 | 三次六代理全面修復：AES URL encode 多語言 bug 修正（Java/C#/Kotlin/Ruby/Rust/C++/Swift）、callback 格式矛盾解決、B2B 端點補齊、timing-safe 全面化、導航增強、精簡瘦身 |
-| 2026-03-05 | v2.1 | 四次六代理審查修復：DX 摩擦點修正（ECPG domain 視覺區隔、本地開發前置、AES 雙層檢查警告）、過度設計精簡（guides/23 企業模式移除、guides/11 場景六精簡）、反向快查表、語言陷阱精簡化、Callback 術語統一 |
-| 2026-03-05 | v2.2 | 五次六代理審查修復：跨境物流 callback 格式修正、幕後授權 callback 矛盾解決（信用卡 JSON vs 非信用卡 1\|OK）、callback 表去重統一至 guides/22、語言陷阱精確度提升、ECPG CSP 指引、AIO 部分退款範例、直播收款端點補齊、rate limiter 精簡、AI Index 結束行號、Swift CryptoKit timing-safe、Rust/TS E2E 新增 |
-| 2026-03-05 | v2.3 | 六次七代理企業級審查修復：Python AES URL encode 單引號 bug 修正（C2 CRITICAL）、pycryptodome 依賴補齊、3D Secure 日期更新、核心概念詞彙表、SimulatePaid 零配置測試推廣、Callback 認證速查卡、Dispute/Chargeback 處理流程、Node.js/Python 生產級 Webhook Handler、Swift/Rust AES-JSON E2E 完整範例、BackAuth 參數表、ECPG JS SDK 版本說明、HTTP Timeout 建議、references 19 檔驗證日期標頭、guides/20+21 參考文件連結擴充、AI Section Index 校正 |
-| 2026-03-05 | v2.4 | 七次七代理企業典範審查修復：SKILL.md 協議選擇速查卡＋決策樹時間標籤＋文件索引閱讀時間、guides/00 開發者路線選擇表＋Go Quick Start＋必改標籤、guides/01 定期定額重試機制表＋對帳檔格式說明、guides/02 ECPG 雙域名警告增強＋CSP/CORS/Token 安全、guides/05 B2B 決策樹＋B2B vs B2C 比較表、guides/07 全方位物流 AES-JSON callback 回應範例、guides/09 三模式比較表、guides/14 中文＋特殊字元測試向量、guides/15 HTTP 錯誤回應範例＋ItemName 格式＋Rate Limit 細節、guides/22 全方位物流 callback 回應格式、guides/23 冪等 Webhook 設計（Node.js＋Python）、guides/24 語言快速導航表、SDK 版本鎖定 |
-| 2026-03-06 | v2.5 | API 規格即時查閱機制：SKILL.md 新增「AI 必讀」references 即時查閱指令＋各平台 web_fetch 工具對應表＋查閱流程決策樹、步驟 3 新增 references 即時讀取步驟、AI 注意事項強化 references 提醒、SKILL_OPENAI.md 新增 Live API Spec 指令＋Web Search 流程、19 個 references 檔案新增 AI 即時讀取標頭指令、README.md 即時規格架構說明 |
-| 2026-03-06 | v2.6 | 八次六代理審核修復：DX 無摩擦改善（guides/00 首測路徑明確化＋時間承諾修正＋付款後業務引導、guides/22 Callback 回應格式跨服務速查表、guides/15 四步驟除錯法、SKILL.md START HERE 速查入口）；企業級強化（維護驗證協議＋URL 回退策略＋OpenAI 信心檢查＋README 驗證段落＋Git 版控）；SKILL.md 19 檔 reference 完整索引表；API 準確度修正（SDK 版本統一＋callback JSON 語法＋TransCode 型別）；測試憑證安全警告強化 |
+> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.12）

@@ -1,11 +1,11 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 204-250 | Node.js: line 251-299 | TypeScript: line 300-354
-Java: line 355-433 | C#: line 434-490 | Go: line 491-596
-C: line 597-748 | C++: line 749-900 | Rust: line 901-964
-Swift: line 965-1039 | Kotlin: line 1040-1088 | Ruby: line 1089-1138
-Test vectors: line 1139-1254
+Python: line 217-263 | Node.js: line 264-312 | TypeScript: line 313-367
+Java: line 368-446 | C#: line 447-508 | Go: line 509-614
+C: line 615-768 | C++: line 769-921 | Rust: line 922-985
+Swift: line 986-1060 | Kotlin: line 1061-1109 | Ruby: line 1110-1159
+Test vectors: line 1160-1294 | 常見錯誤: line 1295-1325
 -->
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
@@ -15,6 +15,19 @@ Test vectors: line 1139-1254
 ## 概述
 
 AES-128-CBC 加密用於 ECPG 站內付、電子發票、全方位物流、跨境物流。這些服務不使用 CheckMacValue，而是將業務資料 AES 加密後放入 Data 欄位。
+
+## AES 和 CheckMacValue 有什麼不同？
+
+| 比較 | CheckMacValue (CMV) | AES 加解密 |
+|------|-------------------|-----------|
+| **用途** | 驗證資料未被竄改（簽章） | 加密敏感資料（機密性） |
+| **複雜度** | 簡單（排序→串接→雜湊） | 較複雜（加密→Base64→URL encode） |
+| **適用服務** | AIO 金流、國內物流 | ECPG、發票、全方位物流、票證 |
+| **學習順序** | 先學這個（guides/13） | 再學這個（本文件） |
+| **運算成本** | < 1ms | < 10ms |
+
+> 如果你只用 AIO 金流，只需學 CheckMacValue（[guides/13](./13-checkmacvalue.md)），不需要本文件。
+> 使用 ECPG、發票、或全方位物流時才需要 AES。
 
 ## 使用場景
 
@@ -89,7 +102,7 @@ ECPay 的加解密順序是**非常規**的：
 | URL 編碼 | `urlencode()` / `encodeURIComponent()` | `urlencode()` / `encodeURIComponent()` |
 | 轉小寫 | **不做** | 全部轉小寫 |
 | .NET 字元替換 | **不做** | `%2d→-`, `%5f→_`, `%2e→.`, `%21→!`, `%2a→*`, `%28→(`, `%29→)` |
-| `~` 處理 | `~→%7e`（僅此一項額外處理） | `~→%7e` |
+| `~` 處理 | `~→%7E`（PHP 僅需此項；其他語言需額外處理 `!*'()` — 見下方各語言實作） | `~→%7E` |
 | 使用場景 | AES 加密前（AES-JSON 服務） | CheckMacValue 計算（CMV-SHA256/CMV-MD5） |
 
 **PHP SDK 原始碼對照**：
@@ -100,7 +113,7 @@ ECPay 的加解密順序是**非常規**的：
 
 ```python
 # Python — AES 專用（注意：不做 lower() 和 .NET 替換）
-# quote_plus 不編碼 ~ 和 '，但 PHP urlencode 會，需手動替換
+# quote_plus 不編碼 ~，但 PHP urlencode 會，需手動替換（' 已被 quote_plus 編碼為 %27，.replace 為冪等保險）
 def aes_url_encode(source: str) -> str:
     encoded = urllib.parse.quote_plus(source)
     return encoded.replace('~', '%7E').replace("'", '%27')
@@ -195,7 +208,7 @@ $decrypted = $aesService->decrypt($encrypted); // base64 string → array
 ### 加密規格
 - 演算法：AES-128-CBC
 - Key 長度：16 bytes（HashKey 的前 16 bytes；PHP SDK 傳入完整字串，OpenSSL 自動截取）
-- IV 長度：16 bytes（HashIV 的前 16 bytes；其他語言需手動截取 `hashKey[:16]`）
+- IV 長度：16 bytes（HashIV 的前 16 bytes；其他語言需手動截取 `hashIV[:16]`）
 - Padding：PKCS7
 - 輸出：Base64
 
@@ -213,9 +226,9 @@ from Crypto.Util.Padding import pad, unpad
 def aes_encrypt(data: dict, hash_key: str, hash_iv: str) -> str:
     """對應 AesService::encrypt()"""
     # 1. JSON encode
-    # ensure_ascii=False 是關鍵：
-    # True（預設）→ 中文轉為 \uXXXX → URL encode 結果不同 → 解密失敗
-    # False → 保留原始中文 → 與 PHP json_encode 行為一致
+    # ⚠️ ensure_ascii=False 是關鍵（遺漏此參數是 Python 最常見的 AES 串接錯誤）：
+    #   True（預設）→ 中文轉為 \uXXXX → URL encode 結果不同 → ECPay 解密失敗
+    #   False → 保留原始中文 → 與 PHP json_encode 行為一致
     json_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
     # 2. URL encode（空格→+）
     # quote_plus 不編碼 ~，但 PHP urlencode 會編碼為 %7E
@@ -486,6 +499,11 @@ public static class EcpayAes
 }
 ```
 
+> **注意**：.NET Core 中 `HttpUtility.UrlEncode` 需引用 `System.Web`（`<FrameworkReference Include="Microsoft.AspNetCore.App" />`），
+> 或改用 `System.Net.WebUtility.UrlEncode()` + 手動補齊差異字元。
+> **HttpUtility vs WebUtility 選擇**：`HttpUtility.UrlEncode` 較接近 PHP `urlencode`（空格→`+`），為 AES 加密推薦選擇。
+> `WebUtility.UrlEncode` 空格→`%20`，若使用需額外將 `%20` 替換為 `+`。兩者皆需手動補 `~!*'()` 替換。
+
 ---
 
 ### Go
@@ -600,6 +618,8 @@ func AesDecrypt(cipherText, hashKey, hashIv string) (map[string]interface{}, err
 
 > :warning: 本實作使用 OpenSSL EVP 介面。若您使用 OpenSSL 3.0+，請確認未使用已 deprecated 的低階 AES API（如 `AES_set_encrypt_key`）。
 
+> ⚠️ 此實作依賴 guides/13 §C 的 `str_replace()` 輔助函式。完整可編譯程式碼需合併兩份檔案的 C 區段。
+
 ```c
 #include <openssl/evp.h>
 #include <openssl/bio.h>
@@ -649,9 +669,9 @@ char* ecpay_aes_encrypt(const char* json_str, const char* hash_key, const char* 
     char *url_encoded = curl_easy_escape(curl, json_str, 0);
     /* curl_easy_escape 不編碼 ~!*'()，但 PHP urlencode 會，需手動替換 */
     char *temp;
-    temp = str_replace(url_encoded, "~", "%7e");  curl_free(url_encoded); url_encoded = temp;
+    temp = str_replace(url_encoded, "~", "%7E");  curl_free(url_encoded); url_encoded = temp;
     temp = str_replace(url_encoded, "!", "%21");   free(url_encoded); url_encoded = temp;
-    temp = str_replace(url_encoded, "*", "%2a");   free(url_encoded); url_encoded = temp;
+    temp = str_replace(url_encoded, "*", "%2A");   free(url_encoded); url_encoded = temp;
     temp = str_replace(url_encoded, "'", "%27");   free(url_encoded); url_encoded = temp;
     temp = str_replace(url_encoded, "(", "%28");   free(url_encoded); url_encoded = temp;
     temp = str_replace(url_encoded, ")", "%29");   free(url_encoded); url_encoded = temp;
@@ -763,14 +783,15 @@ char* ecpay_aes_decrypt(const char* cipher_text, const char* hash_key, const cha
 // 推薦使用 nlohmann/json 做 JSON 處理
 // 編譯：g++ -o aes aes.cpp -lssl -lcrypto -std=c++17
 
-// AES 專用 URL encode（PHP urlencode 相容：空格→+，只白名單 alnum）
+// AES 專用 URL encode（PHP urlencode 相容：空格→+，白名單 alnum + -_.）
 // ⚠️ 與 CMV 的 ecpayUrlEncode 不同，AES 不做 toLower 和 .NET 替換
 std::string aesUrlEncode(const std::string& str) {
     std::ostringstream encoded;
     encoded.fill('0');
     encoded << std::hex << std::uppercase;
     for (char c : str) {
-        if (isalnum(static_cast<unsigned char>(c))) {
+        if (isalnum(static_cast<unsigned char>(c))
+            || c == '-' || c == '_' || c == '.') {
             encoded << c;
         } else if (c == ' ') {
             encoded << '+';
@@ -918,8 +939,8 @@ type Aes128CbcDec = Decryptor<Aes128>;
 fn aes_encrypt(json_str: &str, hash_key: &str, hash_iv: &str) -> String {
     // 2. URL encode（urlencoding 空格→%20，需替換）
     let url_encoded = urlencoding::encode(json_str)
-        .replace("%20", "+").replace("~", "%7e")
-        .replace("!", "%21").replace("*", "%2a")
+        .replace("%20", "+").replace("~", "%7E")
+        .replace("!", "%21").replace("*", "%2A")
         .replace("'", "%27").replace("(", "%28").replace(")", "%29");
     // 3. AES-128-CBC + PKCS7
     let key = &hash_key.as_bytes()[..16];
@@ -1177,6 +1198,12 @@ print('驗證通過')
 > **注意**：確保 JSON 序列化的 key 順序和格式（compact, 無空格）與 PHP 的 `json_encode` 一致，否則加密結果會不同。
 > 上方預期值基於 `{"MerchantID":"2000132","BarCode":"/1234567"}` 這個確切的 JSON 字串（無空格、key 順序為 MerchantID 在前）。
 > 若你的語言 JSON 序列化預設排序不同（如字母序排為 BarCode 在前），需手動調整順序以匹配。
+>
+> **字母序 JSON key 的預期密文**（BarCode 在前）：
+> 明文 JSON: `{"BarCode":"/1234567","MerchantID":"2000132"}`
+> Step 2 URL encode: `%7B%22BarCode%22%3A%22%2F1234567%22%2C%22MerchantID%22%3A%222000132%22%7D`
+> Base64 密文: `r0JSyF9wVmywUav725b3rdJs3xp/ekrC/7PGb18zhKyXkPsamV9l4rPnBkaaraPcHtMSwrmSPP3wuS7b8g/aAKGs0iGiknpgpbdXKXvFrYM=`
+> 使用 Go `map` / Java `HashMap` / Swift `JSONEncoder` 等字母序 JSON 的語言，應比對此預期值。
 
 ### 特殊字元測試向量
 
@@ -1252,6 +1279,19 @@ Step 2 URL encode：`%7B%22Name%22%3A%22test%21%2A%27%28%29%7Evalue%22%7D`
 > - Python 的 `json.dumps` 需要 `ensure_ascii=False`
 > - 上述任何一個錯誤都會導致密文不一致，ECPay 端解密失敗
 
+#### 向量 4：URL encode safe characters（`-_.`）
+
+```json
+{
+  "CustomerEmail": "user@test-site.com",
+  "ItemName": "item_v2.0-beta"
+}
+```
+
+> **關鍵陷阱**：PHP `urlencode()` 不編碼 `-`、`_`、`.`（它們是 safe characters）。
+> 各語言的 URL encode 函式必須保持一致行為，否則加密結果不同導致 ECPay 解密失敗。
+> 此向量可偵測白名單遺漏問題（如 C++ 的 `isalnum` 不含這三個字元）。
+
 ## 常見錯誤
 
 1. **URL encode 順序錯誤** — 必須先 URL encode 再 AES 加密（非常規）
@@ -1277,3 +1317,10 @@ Step 2 URL encode：`%7B%22Name%22%3A%22test%21%2A%27%28%29%7Evalue%22%7D`
 - CheckMacValue：[guides/13-checkmacvalue.md](./13-checkmacvalue.md)
 - ECPG 整合：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)
 - B2C 發票：[guides/04-invoice-b2c.md](./04-invoice-b2c.md)
+- 機器可讀測試向量（CI/自動化測試用）：`test-vectors/aes-encryption.json`
+
+## 官方規格參照
+
+- ECPG 加密方式：`references/Payment/站內付2.0API技術文件Web.md` → §附錄 / 參數加密方式說明
+- B2C 發票加密：`references/Invoice/B2C電子發票介接技術文件.md` → §附錄 / 參數加密方式說明
+- 全方位物流加密：`references/Logistics/全方位物流服務API技術文件.md` → §附錄 / 參數加密方式說明

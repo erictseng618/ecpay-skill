@@ -40,141 +40,45 @@ ECPAY_LOGISTICS_HASH_IV=v77hoKGq4kWxNNIS
 
 ### 步驟 1：建立 AIO 訂單
 
-> 參考：`scripts/SDK_PHP/example/Payment/Aio/CreateOrder.php`
+完整建單範例見 [guides/01 §建立訂單](./01-payment-aio.md)。
 
-```php
-use Ecpay\Sdk\Factories\Factory;
-use Ecpay\Sdk\Services\CheckMacValueService;
+- SDK 範例：`scripts/SDK_PHP/example/Payment/Aio/CreateOrder.php`
+- 加密方式：CMV-SHA256（見 [guides/13](./13-checkmacvalue.md)）
+- 必要欄位：`MerchantTradeNo`、`TotalAmount`、`ReturnURL`、`ChoosePayment`
 
-// 金流 Factory（正式環境務必使用環境變數）
-$paymentFactory = new Factory([
-    'hashKey'    => getenv('ECPAY_PAYMENT_HASH_KEY'),
-    'hashIv'     => getenv('ECPAY_PAYMENT_HASH_IV'),
-]);
+### 步驟 2：處理付款通知（ReturnURL）
 
-$autoSubmitFormService = $paymentFactory->create('AutoSubmitFormWithCmvService');
-$orderNo = 'ORD' . time();
+完整 callback 處理見 [guides/01 §接收付款結果](./01-payment-aio.md)。
 
-$input = [
-    'MerchantID'       => getenv('ECPAY_PAYMENT_MERCHANT_ID'),
-    'MerchantTradeNo'  => $orderNo,
-    'MerchantTradeDate'=> date('Y/m/d H:i:s'),
-    'PaymentType'      => 'aio',
-    'TotalAmount'      => 1500,
-    'TradeDesc'        => '線上購物訂單',
-    'ItemName'         => '商品A 500 TWD x 1#商品B 1000 TWD x 1',
-    'ReturnURL'        => 'https://你的網站/ecpay/payment-notify',
-    'ChoosePayment'    => 'ALL',
-    'EncryptType'      => 1,
-];
-
-echo $autoSubmitFormService->generate(
-    $input,
-    'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'
-);
-```
-
-### 步驟 2：處理付款通知
-
-> 參考：`scripts/SDK_PHP/example/Payment/Aio/GetCheckoutResponse.php`
-
-```php
-use Ecpay\Sdk\Response\VerifiedArrayResponse;
-
-$checkoutResponse = $paymentFactory->create(VerifiedArrayResponse::class);
-$result = $checkoutResponse->get($_POST);
-
-// ⚠️ 生產環境建議：ReturnURL 有回應時間限制
-// 將發票和物流操作放入非同步佇列，ReturnURL 只做狀態更新
-if ($result['RtnCode'] === '1' && $result['SimulatePaid'] === '0') {
-    updateOrderStatus($orderNo, 'paid');
-    // 生產環境：使用 Queue (Laravel Queue / RabbitMQ / Redis)
-    // dispatch(new IssueInvoiceJob($orderNo, 1500));
-    // dispatch(new CreateShipmentJob($orderNo));
-
-    // 快速驗證（僅限開發/測試環境）：
-    issueInvoice($orderNo, 1500);
-    createShipment($orderNo);
-}
-
-echo '1|OK'; // 必須立即回應
-```
+- SDK 範例：`scripts/SDK_PHP/example/Payment/Aio/GetCheckoutResponse.php`
+- 必須驗證 `RtnCode=1` 且 `SimulatePaid=0` 後才進行後續步驟
+- 必須立即回應 `1|OK`，發票和物流操作應放入非同步佇列
 
 ### 步驟 3：開立 B2C 發票
 
-> 參考：`scripts/SDK_PHP/example/Invoice/B2C/Issue.php`
+完整開立範例見 [guides/04 §開立發票](./04-invoice-b2c.md)。
 
-```php
-// 發票 Factory（不同的 HashKey/HashIV，正式環境務必使用環境變數）
-$invoiceFactory = new Factory([
-    'hashKey' => getenv('ECPAY_INVOICE_HASH_KEY'),
-    'hashIv'  => getenv('ECPAY_INVOICE_HASH_IV'),
-]);
-
-$postService = $invoiceFactory->create('PostWithAesJsonResponseService');
-
-$input = [
-    'MerchantID' => getenv('ECPAY_INVOICE_MERCHANT_ID'),
-    'RqHeader'   => ['Timestamp' => time(), 'Revision' => '3.0.0'],
-    'Data'       => [
-        'MerchantID'    => getenv('ECPAY_INVOICE_MERCHANT_ID'),
-        'RelateNumber'  => $orderNo,
-        'CustomerPhone' => '0912345678',
-        'Print'         => '0',
-        'Donation'      => '0',
-        'CarrierType'   => '1',
-        'TaxType'       => '1',
-        'SalesAmount'   => 1500,
-        'Items'         => [
-            ['ItemName' => '商品A', 'ItemCount' => 1, 'ItemWord' => '件',
-             'ItemPrice' => 500, 'ItemTaxType' => '1', 'ItemAmount' => 500],
-            ['ItemName' => '商品B', 'ItemCount' => 1, 'ItemWord' => '件',
-             'ItemPrice' => 1000, 'ItemTaxType' => '1', 'ItemAmount' => 1000],
-        ],
-        'InvType' => '07',
-    ],
-];
-
-$response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/Issue');
-```
+- SDK 範例：`scripts/SDK_PHP/example/Invoice/B2C/Issue.php`
+- 加密方式：AES-JSON（見 [guides/14](./14-aes-encryption.md)）
+- 注意：發票的 MerchantID / HashKey / HashIV 與金流不同
 
 ### 步驟 4：建立物流訂單
 
-> 參考：`scripts/SDK_PHP/example/Logistics/Domestic/CreateCvs.php`
+完整建單範例見 [guides/06 §建立訂單](./06-logistics-domestic.md)。
 
-```php
-// 物流 Factory（又是不同的 HashKey/HashIV 和加密方式，正式環境務必使用環境變數）
-$logisticsFactory = new Factory([
-    'hashKey'    => getenv('ECPAY_LOGISTICS_HASH_KEY'),
-    'hashIv'     => getenv('ECPAY_LOGISTICS_HASH_IV'),
-    'hashMethod' => 'md5',
-]);
+- SDK 範例：`scripts/SDK_PHP/example/Logistics/Domestic/CreateCvs.php`
+- 加密方式：CMV-MD5（見 [guides/13](./13-checkmacvalue.md)）
+- 注意：物流的 MerchantID / HashKey / HashIV 又與金流和發票不同
 
-$postService = $logisticsFactory->create('PostWithCmvStrResponseService');
+### 跨服務整合要點
 
-$input = [
-    'MerchantID'       => getenv('ECPAY_LOGISTICS_MERCHANT_ID'),
-    'MerchantTradeNo'  => $orderNo,
-    'MerchantTradeDate'=> date('Y/m/d H:i:s'),
-    'LogisticsType'    => 'CVS',
-    'LogisticsSubType' => 'FAMI',
-    'GoodsAmount'      => 1500,
-    'GoodsName'        => '網購商品',
-    'SenderName'       => '商店名稱',
-    'SenderCellPhone'  => '0912345678',
-    'ReceiverName'     => '消費者姓名',
-    'ReceiverCellPhone'=> '0987654321',
-    'ServerReplyURL'   => 'https://你的網站/ecpay/logistics-notify',
-    'ReceiverStoreID'  => '消費者選的門市',
-];
+| 面向 | 金流 | 發票 | 物流 |
+|------|------|------|------|
+| **MerchantID** | 獨立帳號 | 獨立帳號 | 獨立帳號 |
+| **加密方式** | SHA256 | AES | MD5 |
+| **Callback URL** | ReturnURL | 發票 Callback | ServerReplyURL |
 
-$response = $postService->post($input, 'https://logistics-stage.ecpay.com.tw/Express/Create');
-```
-
-### 關鍵提醒
-
-- **三組不同帳號**：金流、發票、物流各有獨立的 MerchantID / HashKey / HashIV
-- **三種加密方式**：金流用 SHA256、物流用 MD5、發票用 AES
+- **三組不同帳號**：金流、發票、物流各有獨立的 MerchantID / HashKey / HashIV，務必分開管理
 - **付款確認後再開票出貨**：務必在 RtnCode=1 且 SimulatePaid=0 後才執行
 
 ### 跨服務 Callback 時序
@@ -468,7 +372,6 @@ ECPAY_INVOICE_MERCHANT_ID / ECPAY_INVOICE_HASH_KEY / ECPAY_INVOICE_HASH_IV
 | Callback 到達順序不一致 | 各 handler 獨立處理 | 各 callback 只更新自己的資料表 → 每次處理後檢查「全部就緒」→ 全部就緒時更新訂單為 completed |
 
 > 錯誤恢復的核心原則：**冪等性重試 + 補償動作 + 最終一致性檢查**。
-> 大型專案可使用 workflow orchestration 工具（如 Temporal）管理跨服務補償交易。
 
 ## 跨服務補償動作對照表
 
@@ -487,7 +390,12 @@ ECPAY_INVOICE_MERCHANT_ID / ECPAY_INVOICE_HASH_KEY / ECPAY_INVOICE_HASH_IV
 - **超時處理**：ECPay callback 可能延遲，設定合理的等待超時（建議 30 分鐘）
 - **部分失敗**：發票作廢和物流取消可能需要人工介入，建議記錄每步驟執行狀態方便追蹤
 
-> 大型專案建議使用 workflow orchestration 工具（如 Temporal）管理跨服務補償交易。
+### 故障時補償原則
+
+1. **金流優先**：金流是核心，發票和物流失敗不應阻擋金流處理
+2. **延後補償**：發票和物流失敗可重試或人工處理，不需要即時回滾金流
+3. **記錄所有失敗**：每個步驟的結果都應記錄，方便事後排查
+4. **不要自動退款**：除非消費者明確要求，不應因發票/物流失敗而自動退款
 
 ## 相關文件
 
@@ -497,3 +405,6 @@ ECPAY_INVOICE_MERCHANT_ID / ECPAY_INVOICE_HASH_KEY / ECPAY_INVOICE_HASH_IV
 - 國內物流：[guides/06-logistics-domestic.md](./06-logistics-domestic.md)
 - 效能與擴展：[guides/23-performance-scaling.md](./23-performance-scaling.md)
 - Callback 參考：[guides/22-webhook-events-reference.md](./22-webhook-events-reference.md)
+- API 規格（金流）：`references/Payment/全方位金流API技術文件.md`
+- API 規格（發票）：`references/Invoice/B2C電子發票介接技術文件.md`
+- API 規格（物流）：`references/Logistics/物流整合API技術文件.md`
