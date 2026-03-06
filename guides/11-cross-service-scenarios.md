@@ -1,0 +1,499 @@
+> 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
+
+# 跨服務整合場景
+
+## 概述
+
+實際電商運作通常需要同時串接金流 + 發票 + 物流。本指南提供四個完整的端到端場景，涵蓋從下單到退貨的全部流程。
+
+## 場景一：電商標準流程（收款 + 發票 + 出貨）
+
+適用：一般線上購物，消費者下單 → 付款 → 開發票 → 出貨 → 收貨。
+
+### 完整流程
+
+```
+步驟 1: 建立 AIO 訂單，消費者付款
+步驟 2: ReturnURL 收到付款成功通知
+步驟 3: 開立 B2C 電子發票
+步驟 4: 建立物流訂單
+步驟 5: 追蹤物流狀態
+步驟 6: 消費者收到貨品
+```
+
+### 環境變數設定
+
+```bash
+# .env 檔案（勿加入版本控制）
+ECPAY_PAYMENT_MERCHANT_ID=3002607
+ECPAY_PAYMENT_HASH_KEY=pwFHCqoQZGmho4w6
+ECPAY_PAYMENT_HASH_IV=EkRm7iFT261dpevs
+ECPAY_INVOICE_MERCHANT_ID=2000132
+ECPAY_INVOICE_HASH_KEY=ejCk326UnaZWKisg
+ECPAY_INVOICE_HASH_IV=q9jcZX8Ib9LM8wYk
+ECPAY_LOGISTICS_MERCHANT_ID=2000132
+ECPAY_LOGISTICS_HASH_KEY=5294y06JbISpM5x9
+ECPAY_LOGISTICS_HASH_IV=v77hoKGq4kWxNNIS
+```
+
+> 以上為測試帳號。正式環境請替換為您的正式帳號。
+
+### 步驟 1：建立 AIO 訂單
+
+> 參考：`scripts/SDK_PHP/example/Payment/Aio/CreateOrder.php`
+
+```php
+use Ecpay\Sdk\Factories\Factory;
+use Ecpay\Sdk\Services\CheckMacValueService;
+
+// 金流 Factory（正式環境務必使用環境變數）
+$paymentFactory = new Factory([
+    'hashKey'    => getenv('ECPAY_PAYMENT_HASH_KEY'),
+    'hashIv'     => getenv('ECPAY_PAYMENT_HASH_IV'),
+]);
+
+$autoSubmitFormService = $paymentFactory->create('AutoSubmitFormWithCmvService');
+$orderNo = 'ORD' . time();
+
+$input = [
+    'MerchantID'       => getenv('ECPAY_PAYMENT_MERCHANT_ID'),
+    'MerchantTradeNo'  => $orderNo,
+    'MerchantTradeDate'=> date('Y/m/d H:i:s'),
+    'PaymentType'      => 'aio',
+    'TotalAmount'      => 1500,
+    'TradeDesc'        => '線上購物訂單',
+    'ItemName'         => '商品A 500 TWD x 1#商品B 1000 TWD x 1',
+    'ReturnURL'        => 'https://你的網站/ecpay/payment-notify',
+    'ChoosePayment'    => 'ALL',
+    'EncryptType'      => 1,
+];
+
+echo $autoSubmitFormService->generate(
+    $input,
+    'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'
+);
+```
+
+### 步驟 2：處理付款通知
+
+> 參考：`scripts/SDK_PHP/example/Payment/Aio/GetCheckoutResponse.php`
+
+```php
+use Ecpay\Sdk\Response\VerifiedArrayResponse;
+
+$checkoutResponse = $paymentFactory->create(VerifiedArrayResponse::class);
+$result = $checkoutResponse->get($_POST);
+
+// ⚠️ 生產環境建議：ReturnURL 有回應時間限制
+// 將發票和物流操作放入非同步佇列，ReturnURL 只做狀態更新
+if ($result['RtnCode'] === '1' && $result['SimulatePaid'] === '0') {
+    updateOrderStatus($orderNo, 'paid');
+    // 生產環境：使用 Queue (Laravel Queue / RabbitMQ / Redis)
+    // dispatch(new IssueInvoiceJob($orderNo, 1500));
+    // dispatch(new CreateShipmentJob($orderNo));
+
+    // 快速驗證（僅限開發/測試環境）：
+    issueInvoice($orderNo, 1500);
+    createShipment($orderNo);
+}
+
+echo '1|OK'; // 必須立即回應
+```
+
+### 步驟 3：開立 B2C 發票
+
+> 參考：`scripts/SDK_PHP/example/Invoice/B2C/Issue.php`
+
+```php
+// 發票 Factory（不同的 HashKey/HashIV，正式環境務必使用環境變數）
+$invoiceFactory = new Factory([
+    'hashKey' => getenv('ECPAY_INVOICE_HASH_KEY'),
+    'hashIv'  => getenv('ECPAY_INVOICE_HASH_IV'),
+]);
+
+$postService = $invoiceFactory->create('PostWithAesJsonResponseService');
+
+$input = [
+    'MerchantID' => getenv('ECPAY_INVOICE_MERCHANT_ID'),
+    'RqHeader'   => ['Timestamp' => time(), 'Revision' => '3.0.0'],
+    'Data'       => [
+        'MerchantID'    => getenv('ECPAY_INVOICE_MERCHANT_ID'),
+        'RelateNumber'  => $orderNo,
+        'CustomerPhone' => '0912345678',
+        'Print'         => '0',
+        'Donation'      => '0',
+        'CarrierType'   => '1',
+        'TaxType'       => '1',
+        'SalesAmount'   => 1500,
+        'Items'         => [
+            ['ItemName' => '商品A', 'ItemCount' => 1, 'ItemWord' => '件',
+             'ItemPrice' => 500, 'ItemTaxType' => '1', 'ItemAmount' => 500],
+            ['ItemName' => '商品B', 'ItemCount' => 1, 'ItemWord' => '件',
+             'ItemPrice' => 1000, 'ItemTaxType' => '1', 'ItemAmount' => 1000],
+        ],
+        'InvType' => '07',
+    ],
+];
+
+$response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/Issue');
+```
+
+### 步驟 4：建立物流訂單
+
+> 參考：`scripts/SDK_PHP/example/Logistics/Domestic/CreateCvs.php`
+
+```php
+// 物流 Factory（又是不同的 HashKey/HashIV 和加密方式，正式環境務必使用環境變數）
+$logisticsFactory = new Factory([
+    'hashKey'    => getenv('ECPAY_LOGISTICS_HASH_KEY'),
+    'hashIv'     => getenv('ECPAY_LOGISTICS_HASH_IV'),
+    'hashMethod' => 'md5',
+]);
+
+$postService = $logisticsFactory->create('PostWithCmvStrResponseService');
+
+$input = [
+    'MerchantID'       => getenv('ECPAY_LOGISTICS_MERCHANT_ID'),
+    'MerchantTradeNo'  => $orderNo,
+    'MerchantTradeDate'=> date('Y/m/d H:i:s'),
+    'LogisticsType'    => 'CVS',
+    'LogisticsSubType' => 'FAMI',
+    'GoodsAmount'      => 1500,
+    'GoodsName'        => '網購商品',
+    'SenderName'       => '商店名稱',
+    'SenderCellPhone'  => '0912345678',
+    'ReceiverName'     => '消費者姓名',
+    'ReceiverCellPhone'=> '0987654321',
+    'ServerReplyURL'   => 'https://你的網站/ecpay/logistics-notify',
+    'ReceiverStoreID'  => '消費者選的門市',
+];
+
+$response = $postService->post($input, 'https://logistics-stage.ecpay.com.tw/Express/Create');
+```
+
+### 關鍵提醒
+
+- **三組不同帳號**：金流、發票、物流各有獨立的 MerchantID / HashKey / HashIV
+- **三種加密方式**：金流用 SHA256、物流用 MD5、發票用 AES
+- **付款確認後再開票出貨**：務必在 RtnCode=1 且 SimulatePaid=0 後才執行
+
+### 跨服務 Callback 時序
+
+三個服務的 callback 各自獨立、無順序保證，以下為典型時序：
+
+```
+消費者完成付款
+    │
+    ├─── 金流 ReturnURL ──────────────────────────► 你的 Server
+    │    (即時，付款完成後數秒)                        │
+    │                                                 ├→ 驗證 CheckMacValue
+    │                                                 ├→ 回應 "1|OK"
+    │                                                 └→ 更新訂單狀態
+    │
+    ├─── 發票 Callback（若有）────────────────────► 你的 Server
+    │    (非即時，可能延遲數秒至數分鐘)                 │
+    │                                                 ├→ AES 解密 Data
+    │                                                 ├→ 回應 "1|OK"
+    │                                                 └→ 記錄發票號碼
+    │
+    └─── 物流 ServerReplyURL ────────────────────► 你的 Server
+         (出貨後，物流狀態變更時)                       │
+                                                      ├→ 驗證 CheckMacValue
+                                                      ├→ 回應 "1|OK"
+                                                      └→ 更新出貨狀態
+```
+
+#### Callback 回應格式差異
+
+> 各服務 Callback 回應格式完整對照表見 [guides/22-webhook-events-reference.md](./22-webhook-events-reference.md) §Callback 總覽表。
+> 重點提醒：AIO 金流回應 `1|OK`，ECPG/信用卡幕後授權回應 JSON `{ "TransCode": 1 }`，全方位/跨境物流回應 AES 加密 JSON。
+
+#### 冪等性與事件驅動建議
+
+- 每個 callback 都應實作冪等性（用 MerchantTradeNo/AllPayLogisticsID 作 unique key）
+- ECPay 可能重送 callback（如 server 未回應），務必用 upsert 避免重複處理
+- 建議架構：收到 callback → 驗證 → 推入佇列 → 立即回應 → 非同步處理業務邏輯
+
+#### 延伸參考
+
+- 詳細 callback 欄位定義：見 [guides/22-webhook-events-reference.md](./22-webhook-events-reference.md)
+- 錯誤碼排查：見 [guides/21-error-codes-reference.md](./21-error-codes-reference.md)
+
+## 場景二：訂閱制（定期定額 + 每期開發票）
+
+適用：SaaS 月費、會員訂閱、雜誌訂閱等。
+
+### 完整流程
+
+```
+步驟 1: 建立 AIO 定期定額訂單
+步驟 2: 首次付款成功 → 開立首期發票
+步驟 3: 每月 PeriodReturnURL 收到授權結果
+步驟 4: 授權成功 → 開立當期發票
+步驟 5: 授權失敗 → 通知用戶 / 重新授權 / 取消
+```
+
+### 步驟 1：建立定期定額
+
+> 參考：`scripts/SDK_PHP/example/Payment/Aio/CreatePeriodicOrder.php`
+
+```php
+$input = [
+    'MerchantID'       => '3002607',
+    'MerchantTradeNo'  => 'SUB' . time(),
+    'MerchantTradeDate'=> date('Y/m/d H:i:s'),
+    'PaymentType'      => 'aio',
+    'TotalAmount'      => 499,
+    'TradeDesc'        => '月訂閱方案',
+    'ItemName'         => 'Pro 月訂閱',
+    'ReturnURL'        => 'https://你的網站/ecpay/payment-notify',
+    'ChoosePayment'    => 'Credit',
+    'EncryptType'      => 1,
+    'PeriodAmount'     => 499,
+    'PeriodType'       => 'M',
+    'Frequency'        => 1,
+    'ExecTimes'        => 12,
+    'PeriodReturnURL'  => 'https://你的網站/ecpay/period-notify',
+];
+```
+
+### 步驟 3-4：每期通知 + 開票
+
+```php
+// PeriodReturnURL handler
+$result = $checkoutResponse->get($_POST);
+
+if ($result['RtnCode'] === '1') {
+    // 本期授權成功，開立發票
+    issueMonthlyInvoice($result['MerchantTradeNo'], 499);
+}
+```
+
+### 步驟 5：失敗處理
+
+> 參考：`scripts/SDK_PHP/example/Payment/Aio/CreditCardPeriodAction.php`
+
+```php
+// 重新授權
+$input = [
+    'MerchantID'      => '3002607',
+    'MerchantTradeNo' => '訂閱訂單編號',
+    'Action'          => 'ReAuth',
+    'TimeStamp'       => time(),
+];
+// 或取消
+$input['Action'] = 'Cancel';
+```
+
+**注意**：連續 6 次授權失敗會自動取消。
+
+## 場景三：綁卡快速付款（ECPG + 發票）
+
+適用：常客快速結帳、外送平台、計程車。
+
+### 完整流程
+
+```
+步驟 1: ECPG 綁卡（首次）
+步驟 2: 日後用 BindCardID 扣款
+步驟 3: 扣款成功 → 開立發票
+```
+
+### 步驟 1：綁卡
+
+> 參考：`scripts/SDK_PHP/example/Payment/Ecpg/GetTokenbyBindingCard.php` → `CreateBindCard.php`
+
+首次綁卡流程見 [guides/02-payment-ecpg.md](./02-payment-ecpg.md#綁卡付款流程)
+
+### 步驟 2：扣款
+
+> 參考：`scripts/SDK_PHP/example/Payment/Ecpg/CreatePaymentWithCardID.php`
+
+```php
+$input['Data'] = [
+    'MerchantID' => '3002607',
+    'BindCardID' => '之前綁卡取得的ID',
+    'OrderInfo'  => [
+        'MerchantTradeNo' => 'PAY' . time(),
+        'TotalAmount'     => 350,
+        'TradeDesc'       => '快速結帳',
+        'ItemName'        => '外送餐點',
+        'ReturnURL'       => 'https://你的網站/ecpay/notify',
+        'MerchantTradeDate'=> date('Y/m/d H:i:s'),
+    ],
+    'ConsumerInfo' => [
+        'MerchantMemberID' => 'member001',
+        'Email' => 'user@example.com',
+    ],
+];
+```
+
+### 步驟 3：扣款成功後開票
+
+同場景一步驟 3。
+
+## 場景四：退款 + 折讓 + 退貨（完整逆向流程）
+
+適用：消費者退貨退款全流程。
+
+### 完整流程
+
+```
+步驟 1: 信用卡退款（AIO: DoAction Action=R / ECPG: DoAction Action=R）
+步驟 2: 發票折讓（部分退款）或作廢（全額退款）
+步驟 3: 物流退貨（若有實體商品）
+步驟 4: 記錄完整退款軌跡（金額、發票、物流單號、時間戳）
+```
+
+> ⚠️ 發票作廢有時間限制，建議退款時同步作廢。ECPG 退款使用 `ecpayment` domain 的 DoAction API。
+
+### 步驟 1：退款
+
+> 參考：`scripts/SDK_PHP/example/Payment/Aio/Capture.php`
+
+```php
+$input = [
+    'MerchantID'      => '3002607',
+    'MerchantTradeNo' => '原訂單編號',
+    'TradeNo'         => '綠界交易編號',
+    'Action'          => 'R',       // R=退款
+    'TotalAmount'     => 500,       // 退款金額
+];
+$response = $postService->post($input, 'https://payment-stage.ecpay.com.tw/CreditDetail/DoAction');
+```
+
+### 步驟 2A：部分退款 → 折讓
+
+> 參考：`scripts/SDK_PHP/example/Invoice/B2C/Allowance.php`
+
+```php
+$data = [
+    'MerchantID'      => '2000132',
+    'InvoiceNo'       => '原發票號碼',
+    'InvoiceDate'     => '原發票日期',
+    'AllowanceNotify' => 'E',
+    'NotifyMail'      => 'customer@example.com',
+    'AllowanceAmount' => 500,
+    'Items'           => [
+        ['ItemSeq' => 1, 'ItemName' => '退貨商品', 'ItemCount' => 1,
+         'ItemWord' => '件', 'ItemPrice' => 500, 'ItemAmount' => 500],
+    ],
+];
+```
+
+### 步驟 2B：全額退款 → 作廢
+
+> 參考：`scripts/SDK_PHP/example/Invoice/B2C/Invalid.php`
+
+```php
+$data = [
+    'MerchantID'  => '2000132',
+    'InvoiceNo'   => '原發票號碼',
+    'InvoiceDate' => '原發票日期',
+    'Reason'      => '全額退貨',
+];
+```
+
+### 步驟 3：物流退貨
+
+> 參考：`scripts/SDK_PHP/example/Logistics/Domestic/ReturnFamiCvs.php` 或 `ReturnHome.php`
+
+超商退貨：
+```php
+$input = [
+    'MerchantID'     => '2000132',
+    'GoodsAmount'    => 500,
+    'ServiceType'    => '4',
+    'SenderName'     => '退貨人',
+    'ServerReplyURL' => 'https://你的網站/ecpay/return-notify',
+];
+$response = $postService->post($input, 'https://logistics-stage.ecpay.com.tw/express/ReturnCVS');
+```
+
+## 跨服務帳號對照
+
+> 各服務測試帳號見 SKILL.md §測試帳號 或 [guides/00 §測試帳號](./00-getting-started.md)。
+
+**重點**：金流/物流/發票使用**不同的** MerchantID 和 HashKey/HashIV。正式環境中取決於申請方式，務必分開管理。
+
+## 場景五：B2B 發票整合
+
+企業間交易需要 B2B 發票，流程與 B2C 不同。
+
+### 交換模式 vs 存證模式
+
+| 面向 | 交換模式 | 存證模式 |
+|------|---------|---------|
+| 買方接收 | 透過加值中心交換 | 直接存證於電子發票整合平台 |
+| 確認步驟 | 需要買方確認（IssueConfirm） | 不需確認 |
+| 適用場景 | 雙方都有加值中心 | 一般企業交易 |
+| API 數量 | ~34 個（含 Confirm/Reject 系列） | ~17 個 |
+
+### B2B 電商典型流程
+
+```
+1. 收款（AIO 或 ECPG）
+2. 開立 B2B 發票（Issue）
+3. [交換模式] 等待買方確認（IssueConfirm）
+4. 折讓/作廢：Allowance / Invalid
+5. [交換模式] 等待對方確認折讓/作廢
+```
+
+> **選擇建議**：如不確定，先用**存證模式**（較簡單、不需確認流程）。
+
+詳細 API 見 [guides/05-invoice-b2b.md](./05-invoice-b2b.md)
+
+## 統一環境設定
+
+跨服務帳號需分開管理（金流 SHA256、物流 MD5、發票 AES），以環境變數區分：
+
+```
+ECPAY_PAYMENT_MERCHANT_ID / ECPAY_PAYMENT_HASH_KEY / ECPAY_PAYMENT_HASH_IV
+ECPAY_LOGISTICS_MERCHANT_ID / ECPAY_LOGISTICS_HASH_KEY / ECPAY_LOGISTICS_HASH_IV
+ECPAY_INVOICE_MERCHANT_ID / ECPAY_INVOICE_HASH_KEY / ECPAY_INVOICE_HASH_IV
+```
+
+> 完整環境設定範例見 [guides/00](./00-getting-started.md) 和 [guides/24](./24-multi-language-integration.md)。
+
+## 跨服務錯誤恢復
+
+實際運營中，跨服務整合最常遇到「部分成功」——某個服務成功但另一個失敗。
+
+### 常見錯誤場景與處理原則
+
+| 錯誤場景 | 核心原則 | 處理方式 |
+|---------|---------|---------|
+| 付款成功，發票開立失敗 | 付款不可撤銷，發票需重試 | 記錄狀態 `paid_invoice_failed` → 指數退避重試（1min/5min/30min，最多 3 次）→ 超限告警人工處理。⚠️ 台灣法規要求 48 小時內完成開立 |
+| 付款成功，物流建單失敗 | 通常是參數問題 | 優先檢查參數（收件人資料、門市代碼）→ 修正後重試 → 告警 + 備用物流方案 |
+| Callback 到達順序不一致 | 各 handler 獨立處理 | 各 callback 只更新自己的資料表 → 每次處理後檢查「全部就緒」→ 全部就緒時更新訂單為 completed |
+
+> 錯誤恢復的核心原則：**冪等性重試 + 補償動作 + 最終一致性檢查**。
+> 大型專案可使用 workflow orchestration 工具（如 Temporal）管理跨服務補償交易。
+
+## 跨服務補償動作對照表
+
+跨服務整合（付款 + 發票 + 物流）任一步驟失敗時，需要反向補償已完成的步驟：
+
+| 步驟 | 正向動作 | 補償動作 | 失敗影響 |
+|------|---------|---------|---------|
+| 1. 建立訂單 | 資料庫建立訂單記錄 | 標記訂單為已取消 | 僅本地影響 |
+| 2. 付款 | AIO/ECPG 收款 | 呼叫退款 API（AIO: `DoAction` Action=R / ECPG: 退款端點） | 需要退款處理 |
+| 3. 開立發票 | B2C/B2B 開立發票 | 呼叫作廢發票 API（`Invalid`） | 需要作廢處理 |
+| 4. 建立物流 | 建立物流訂單 | 聯繫物流取消（部分物流不支援 API 取消） | 可能需人工介入 |
+
+### 注意事項
+
+- **冪等性**：每個步驟必須可重複執行，避免重複扣款或重複開票
+- **超時處理**：ECPay callback 可能延遲，設定合理的等待超時（建議 30 分鐘）
+- **部分失敗**：發票作廢和物流取消可能需要人工介入，建議記錄每步驟執行狀態方便追蹤
+
+> 大型專案建議使用 workflow orchestration 工具（如 Temporal）管理跨服務補償交易。
+
+## 相關文件
+
+- 金流 AIO：[guides/01-payment-aio.md](./01-payment-aio.md)
+- 站內付 ECPG：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)
+- B2C 發票：[guides/04-invoice-b2c.md](./04-invoice-b2c.md)
+- 國內物流：[guides/06-logistics-domestic.md](./06-logistics-domestic.md)
+- 效能與擴展：[guides/23-performance-scaling.md](./23-performance-scaling.md)
+- Callback 參考：[guides/22-webhook-events-reference.md](./22-webhook-events-reference.md)

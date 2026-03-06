@@ -1,0 +1,819 @@
+> 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
+
+# 從零開始：第一筆交易到上線
+
+## 概述
+
+本指南帶你跑通第一筆 ECPay 測試交易。PHP 開發者約 30 分鐘可完成基礎串接（含 SimulatePaid 模擬付款），非 PHP 開發者約 45-60 分鐘。
+
+> 🎯 **最快測試路徑（無需 ReturnURL）**：
+> 1. 建立訂單時設定 `SimulatePaid=1`
+> 2. `ReturnURL` 填任意 HTTPS URL（如 `https://example.com/notify`）
+> 3. 前端完成模擬付款流程後，用 QueryTradeInfo API 主動查詢訂單狀態
+> 4. 確認流程正確後，再設定真實的 ReturnURL 接收 callback
+>
+> 此路徑無需 ngrok、無需公開 URL，適合首次快速驗證。
+
+## ECPay 五大服務
+
+| 服務 | 說明 | 適用場景 |
+|------|------|---------|
+| 金流 | 信用卡、ATM、超商代碼、條碼、WebATM、TWQR、BNPL、微信、Apple Pay、銀聯 | 線上收款 |
+| 物流 | 超商取貨（全家/統一/萊爾富/OK）、宅配（黑貓/郵局）、跨境 | 商品配送 |
+| 電子發票 | B2C、B2B（交換/存證模式）、離線 | 合規開票 |
+| 電子票證 | 價金保管（使用後核銷/分期）、純發行 | 票券、餐券、遊樂園 |
+| 購物車 | WooCommerce、OpenCart、Magento、Shopify 模組 | 現成電商平台 |
+
+## 金流合約模式：代收付 vs 新型閘道
+
+ECPay 金流提供兩種合約模式。**API 技術規格完全相同**，差異僅在商務面（簽約對象、款項撥付、可用服務數量）。
+
+> 完整對照表見 [SKILL.md §代收付 vs 新型閘道模式](../SKILL.md)。
+> **快速結論**：不確定選哪個？**先用代收付模式**（門檻最低、服務最全）。新型閘道模式適合需要 AMEX/國旅卡的大型商戶。
+
+## 商務申請流程
+
+> 💡 **立即開始開發**：下方共用測試帳號（MerchantID: 3002607）**無需申請、立即可用**。
+> 建議邊開發邊申請專屬帳號，不必等審核通過才動手。
+
+1. **立即開始開發** — 使用下方共用測試帳號，無需等待任何申請
+2. 至 [綠界科技官網](https://www.ecpay.com.tw) 申請帳號並提交營業登記相關文件
+3. 審核通過後取得正式 **MerchantID**、**HashKey**、**HashIV**
+4. 上線前將程式碼中的測試帳號替換為正式帳號（見 [guides/16](./16-go-live-checklist.md)）
+
+> **申請時程參考**：
+> - 專屬測試帳號：通常 1-3 個工作天
+> - 正式帳號：依審核進度約 5-10 個工作天（需備齊營業登記等文件）
+
+## 開發環境設定
+
+### PHP（推薦，有官方 SDK）
+
+```bash
+composer require "ecpay/sdk:^4.0"
+```
+
+### 其他語言
+
+ECPay 官方僅提供 PHP SDK。其他語言需自行實作：
+- **CheckMacValue 加密**（用於 AIO 金流、國內物流）→ 見 [guides/13-checkmacvalue.md](./13-checkmacvalue.md)
+- **AES 加解密**（用於站內付、發票、全方位物流、跨境物流）→ 見 [guides/14-aes-encryption.md](./14-aes-encryption.md)
+
+本 Skill 提供 Python、Node.js、TypeScript、Java、C#、Go、C、C++、Rust、Swift、Kotlin、Ruby 共 12 種語言的完整實作函式。
+
+## 三大 HTTP 協議模式
+
+ECPay API 分為三個協議模式，認證方式和請求格式完全不同：
+
+| 模式 | 認證方式 | Content-Type | 適用服務 | 難度 |
+|------|---------|-------------|---------|:----:|
+| **CMV-SHA256** | CheckMacValue SHA256 | application/x-www-form-urlencoded | AIO 金流 | ★★☆ |
+| **AES-JSON** | AES-128-CBC | application/json | ECPG / 發票 / v2 物流 / 幕後 / 跨境 / 票券 | ★★★ |
+| **CMV-MD5** | CheckMacValue MD5 | application/x-www-form-urlencoded | 國內物流 | ★★☆ |
+
+> **PHP 開發者**：SDK 已封裝所有協議細節，可直接使用 Factory Service，無需關心模式差異。
+> **非 PHP 開發者**：請先讀 [guides/20-http-protocol-reference.md](./20-http-protocol-reference.md) 了解各模式的請求/回應格式差異。
+
+本頁 Quick Start 範例使用 CMV-SHA256（AIO 金流）。AES-JSON 完整端到端範例見本頁下半段及 [guides/24-multi-language-integration.md](./24-multi-language-integration.md)。
+
+## 整合複雜度分級
+
+| Tier | 包含服務 | 預估時間 | 含測試 | 閱讀路徑 |
+|:----:|---------|:-------:|:-----:|---------|
+| **Tier 1** 基礎 | AIO 金流 (CMV-SHA256) | 30 分鐘 | **45m** | 本頁 → [guides/01](./01-payment-aio.md) |
+| **Tier 2** 標準 | + 發票 (AES-JSON) + 國內物流 (CMV-MD5) | 2-3 小時 | **3-4h** | + [guides/04](./04-invoice-b2c.md) + [guides/06](./06-logistics-domestic.md) + [guides/11](./11-cross-service-scenarios.md) |
+| **Tier 3** 進階 | + ECPG / 幕後 / 定期 / 全方位 / 跨境 | 4-8 小時 | **5-10h** | + [guides/20](./20-http-protocol-reference.md) → 依需求選讀 |
+
+## 選擇指引
+
+不確定該讀哪份文件？依你的需求快速定位：
+
+| 需求 | 推薦指南 |
+|------|---------|
+| 只需收款 | [guides/01-payment-aio.md](./01-payment-aio.md) |
+| 嵌入式付款體驗 | [guides/02-payment-ecpg.md](./02-payment-ecpg.md) |
+| 需要開發票 | [guides/04-invoice-b2c.md](./04-invoice-b2c.md) 或 [guides/05-invoice-b2b.md](./05-invoice-b2b.md) |
+| 需要出貨 | [guides/06-logistics-domestic.md](./06-logistics-domestic.md) |
+| 全部都要（收款+發票+出貨） | [guides/11-cross-service-scenarios.md](./11-cross-service-scenarios.md) |
+| 非 PHP 語言完整範例 (Go/Java/C#/TS/Kotlin/Ruby) | [guides/24-multi-language-integration.md](./24-multi-language-integration.md)（⚠️ 1,774 行，使用 AI Section Index 跳轉） |
+| 完整決策樹 | SKILL.md 步驟 2 |
+
+## 按語言選讀路徑（非 PHP 開發者必讀）
+
+依你使用的程式語言，建議按以下順序閱讀：
+
+| 語言 | 建議閱讀順序 |
+|------|-------------|
+| PHP | 本指南 → guides/01 or 02 → guides/12（SDK 工具函式） |
+| Node.js / Python / TypeScript | 本指南 → guides/13 → guides/20 → guides/01（已有 Quick Start） |
+| Go / Java / C# / Kotlin / Ruby | 本指南 → guides/13 → guides/14 → guides/24（完整 E2E） |
+| Swift / Rust | 本指南 → guides/13 → guides/14 → guides/24（CLI 範例 + Mobile App） |
+| C / C++ | 本指南 → guides/13 → guides/14 → guides/20（HTTP 協議 → 自行整合） |
+
+> **所有非 PHP 語言**都需要先讀 [13-checkmacvalue](./13-checkmacvalue.md) 了解加密機制。
+> 如果你的服務用到 ECPG/發票/全方位物流，還需加讀 [14-aes-encryption](./14-aes-encryption.md)。
+
+## Go Quick Start（最小範例）
+
+> 完整 Go E2E 範例（含 AES-JSON 發票）見 [guides/24](./24-multi-language-integration.md) §Go。
+
+```go
+// go mod init ecpay-demo && go mod tidy
+package main
+
+import (
+	"crypto/sha256"
+	"fmt"
+	"net/http"
+	"net/url"
+	"sort"
+	"strings"
+	"time"
+)
+
+var config = struct {
+	MerchantID, HashKey, HashIV, BaseURL string
+}{
+	"3002607",                                    // ← [必改] 你的 MerchantID
+	"pwFHCqoQZGmho4w6",                           // ← [必改] 你的 HashKey
+	"EkRm7iFT261dpevs",                           // ← [必改] 你的 HashIV
+	"https://payment-stage.ecpay.com.tw",          // ← [正式時改] 移除 -stage
+}
+
+func ecpayURLEncode(s string) string {
+	encoded := url.QueryEscape(s)
+	encoded = strings.ReplaceAll(encoded, "%7E", "%7e")
+	encoded = strings.ToLower(encoded)
+	for _, r := range [][2]string{{"%2d", "-"}, {"%5f", "_"}, {"%2e", "."}, {"%21", "!"}, {"%2a", "*"}, {"%28", "("}, {"%29", ")"}} {
+		encoded = strings.ReplaceAll(encoded, r[0], r[1])
+	}
+	return encoded
+}
+
+func generateCMV(params map[string]string) string {
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		if k != "CheckMacValue" { keys = append(keys, k) }
+	}
+	sort.Slice(keys, func(i, j int) bool { return strings.ToLower(keys[i]) < strings.ToLower(keys[j]) })
+	parts := make([]string, len(keys))
+	for i, k := range keys { parts[i] = k + "=" + params[k] }
+	raw := "HashKey=" + config.HashKey + "&" + strings.Join(parts, "&") + "&HashIV=" + config.HashIV
+	h := sha256.Sum256([]byte(ecpayURLEncode(raw)))
+	return strings.ToUpper(fmt.Sprintf("%x", h))
+}
+
+func main() {
+	http.HandleFunc("/checkout", func(w http.ResponseWriter, r *http.Request) {
+		now := time.Now().Format("2006/01/02 15:04:05")
+		params := map[string]string{
+			"MerchantID": config.MerchantID, "MerchantTradeNo": fmt.Sprintf("Go%d", time.Now().Unix()),
+			"MerchantTradeDate": now, "PaymentType": "aio", "TotalAmount": "100",
+			"TradeDesc": "測試", "ItemName": "測試商品", "ReturnURL": "https://你的網站/notify",
+			"ChoosePayment": "ALL", "EncryptType": "1",
+			"SimulatePaid": "1", // ← [正式時移除] 模擬付款
+		}
+		params["CheckMacValue"] = generateCMV(params)
+		fmt.Fprintf(w, `<form id="f" method="POST" action="%s/Cashier/AioCheckOut/V5">`, config.BaseURL)
+		for k, v := range params { fmt.Fprintf(w, `<input type="hidden" name="%s" value="%s">`, k, v) }
+		fmt.Fprint(w, `</form><script>document.getElementById('f').submit()</script>`)
+	})
+	fmt.Println("Go Server: http://localhost:3000/checkout")
+	http.ListenAndServe(":3000", nil)
+}
+```
+
+> CheckMacValue 完整實作見 [guides/13 §Go](./13-checkmacvalue.md)。AES 加解密見 [guides/14 §Go](./14-aes-encryption.md)。
+
+## 測試帳號
+
+測試帳號一覽表（含 MerchantID、HashKey、HashIV、加密方式）見 [SKILL.md §測試帳號](../SKILL.md)。
+
+> ⚠️ **警告**：測試帳號僅供開發測試。
+> 正式環境務必使用環境變數管理您的 HashKey/HashIV，禁止寫入版本控制。
+
+> 電子票證（E-Ticket）測試帳號非公開，需聯繫綠界客服申請。
+
+> **⚠️ 重要**：金流、物流、發票使用**不同的** MerchantID 和 HashKey/HashIV。
+> 切勿混用不同服務的憑證，否則會收到加密驗證失敗。
+
+### 測試信用卡
+
+- 卡號：`4311-9522-2222-2222`（或任何通過 Luhn 演算法的卡號）
+- 有效期限：任意未過期日期
+- CVV：`222`
+- 3D 驗證 SMS 碼：`1234`
+
+## 你是誰？選一個路線
+
+| 你的情況 | 路線 | 預估時間 | 直接跳轉 |
+|---------|------|:-------:|---------|
+| PHP 開發者，只想收信用卡 | Tier 1 | 45 分鐘 | 本頁 Quick Start → [guides/01](./01-payment-aio.md) |
+| Node.js / Python 開發者 | Quick Start | 30 分鐘 | 本頁 Node.js/Python Quick Start |
+| Go / Java / C# / Kotlin 開發者 | E2E 範例 | 1-2 小時 | [guides/13](./13-checkmacvalue.md) → [guides/24](./24-multi-language-integration.md) |
+| 需要收款+開發票+出貨 | 完整電商 | 3-4 小時 | [guides/11](./11-cross-service-scenarios.md) |
+| 不確定，先快速體驗 | 零配置測試 | 5 分鐘 | 本頁 Quick Start（設 SimulatePaid=1，無需 ReturnURL） |
+
+### AIO 信用卡付款流程
+
+```
+消費者          你的伺服器              ECPay               銀行
+  │                │                    │                   │
+  │──下單────────>│                    │                   │
+  │                │──POST 建單表單───>│                   │
+  │<───付款頁面────│<──HTML 重導───────│                   │
+  │──輸入卡號付款─────────────────────>│──授權請求────────>│
+  │                │                    │<──授權結果────────│
+  │                │<──ReturnURL POST──│   (Server 通知)   │
+  │                │  (必須回 1|OK)     │                   │
+  │<──前端跳轉────│                    │                   │
+  │  (ClientBackURL)                    │                   │
+```
+
+> **要點**：ReturnURL 是 Server-to-Server 通知，不是瀏覽器重導。你的 Server 收到後必須回應 `1|OK`。
+
+## 五分鐘跑通第一筆交易
+
+### ECPay 核心概念
+
+| 術語 | 全稱 | 白話說明 |
+|------|------|---------|
+| **AIO** | All-In-One | 綠界最常用的收款方式。消費者點擊付款後跳轉到綠界頁面完成付款，支援信用卡、ATM、超商等 10+ 種付款方式 |
+| **ECPG** | ECPay Payment Gateway | 站內付。消費者在你的網站上直接完成付款，不需跳轉到綠界。適合前後端分離架構 |
+| **CheckMacValue (CMV)** | — | 資料防竄改驗證碼。類似數位簽章，用你的 HashKey/HashIV 計算，確認資料未被中間人修改 |
+| **HashKey / HashIV** | — | 你和綠界共享的加密金鑰。HashKey 像密碼，HashIV 像加密的起始向量。每個服務有獨立的一組 |
+| **MerchantID** | — | 你在綠界的特店編號。不同服務（金流/物流/發票）使用不同的 MerchantID |
+| **MerchantTradeNo** | — | 你自己定義的訂單編號，最長 20 字元。同一組 MerchantID 下不可重複 |
+| **ReturnURL** | — | 綠界伺服器端回呼 URL（Server-to-Server POST）。付款完成後綠界會主動通知你的伺服器，不是消費者看到的頁面 |
+| **SimulatePaid** | — | 模擬付款參數。設為 1 時測試環境會模擬付款成功，不需要真的輸入信用卡。正式環境此參數無效 |
+
+### 術語說明
+
+| 術語 | 說明 |
+|------|------|
+| **ReturnURL** | ECPay 伺服器端回呼（POST），付款/物流結果通知。你的伺服器必須在此端點接收並驗證 |
+| **ClientBackURL** | 消費者瀏覽器 302 重導 URL。付款完成後消費者被帶回此頁面（僅前端，不含付款結果） |
+| **OrderResultURL** | 付款完成後導向的 URL，同時帶回付款結果（ECPG 使用） |
+| **ServerReplyURL** | 物流狀態變更通知 URL（等同 ReturnURL，但物流服務使用此名稱） |
+| **PaymentInfoURL** | ATM/CVS/BARCODE 取號結果通知 URL |
+| **Callback / Webhook** | 泛稱伺服器端回呼機制，本文件中指 ReturnURL/ServerReplyURL 等 |
+
+### 步驟 1：建立訂單
+
+> 原始範例：`scripts/SDK_PHP/example/Payment/Aio/CreateCreditOrder.php`
+
+> **⚠️ 本地開發提示**：ReturnURL 需要公開可達的 HTTPS URL。
+> **最簡單的本地測試方式**：設定 `SimulatePaid=1`（下方範例已包含），無需真實 ReturnURL。
+> 付款結果改用 QueryTradeInfo API 主動查詢即可驗證。完整本地開發方案見「[本地開發環境](#本地開發環境)」區段。
+
+```php
+<?php
+require __DIR__ . '/../../vendor/autoload.php';
+
+use Ecpay\Sdk\Factories\Factory;
+
+$factory = new Factory([
+    'hashKey' => 'pwFHCqoQZGmho4w6',
+    'hashIv'  => 'EkRm7iFT261dpevs',
+]);
+
+// 建立自動送出的表單
+$autoSubmitFormService = $factory->create('AutoSubmitFormWithCmvService');
+
+$input = [
+    'MerchantID'       => '3002607',              // ← [必改] 替換為你的 MerchantID
+    'MerchantTradeNo'  => 'Test' . time(),        // 不可重複
+    'MerchantTradeDate'=> date('Y/m/d H:i:s'),    // yyyy/MM/dd HH:mm:ss
+    'PaymentType'      => 'aio',                   // 固定值
+    'TotalAmount'      => 100,                     // 新台幣整數
+    'TradeDesc'        => '測試交易',
+    'ItemName'         => '測試商品一件',
+    'ReturnURL'        => 'https://你的網站/ecpay/notify',  // ⚠️ 必須替換：填入你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
+    'ChoosePayment'    => 'Credit',                // 信用卡
+    'EncryptType'      => 1,                       // SHA256
+    'SimulatePaid'     => 1,                       // 模擬付款（正式環境請移除此行）
+];
+
+// 產生含 CheckMacValue 的自動送出表單 HTML
+echo $autoSubmitFormService->generate(
+    $input,
+    'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'
+);
+```
+
+**執行後流程**：
+1. 瀏覽器自動跳轉到綠界付款頁面
+2. 輸入測試卡號完成付款
+3. 綠界 POST 付款結果到你的 ReturnURL
+4. 消費者被導回你的網站
+
+### 步驟 2：處理付款結果（ReturnURL）
+
+> 原始範例：`scripts/SDK_PHP/example/Payment/Aio/GetCheckoutResponse.php`
+
+```php
+<?php
+require __DIR__ . '/../../vendor/autoload.php';
+
+use Ecpay\Sdk\Factories\Factory;
+use Ecpay\Sdk\Response\VerifiedArrayResponse;
+
+$factory = new Factory([
+    'hashKey' => 'pwFHCqoQZGmho4w6',
+    'hashIv'  => 'EkRm7iFT261dpevs',
+]);
+
+$checkoutResponse = $factory->create(VerifiedArrayResponse::class);
+$serverPost = $checkoutResponse->get($_POST);
+
+// 驗證付款結果
+if ($serverPost['RtnCode'] === '1') {
+    // 付款成功
+    // 檢查是否為模擬付款
+    if ($serverPost['SimulatePaid'] === '0') {
+        // 真實付款，處理訂單邏輯
+    }
+}
+
+// 必須回應 1|OK，否則綠界會持續重送
+echo '1|OK';
+```
+
+**重要**：ReturnURL 必須回應純字串 `1|OK`，不可有任何 HTML 標籤。
+
+### 付款成功後的業務邏輯
+
+收到 `RtnCode=1` 且 `SimulatePaid=0`（真實付款）後，典型處理順序：
+
+1. **更新訂單狀態**（必須）— 在 ReturnURL handler 中立即處理
+2. **開立電子發票**（如有需要）— 見 [guides/04](./04-invoice-b2c.md)
+3. **建立物流訂單**（如有需要）— 見 [guides/06](./06-logistics-domestic.md)
+4. **發送確認通知給消費者**（建議）
+
+> ⚠️ ReturnURL 有 **10 秒超時限制**。步驟 2-4 等耗時操作建議放入非同步佇列，
+> ReturnURL 內只做驗證 + 更新狀態 + 回應 `1|OK`。詳見 [guides/23](./23-performance-scaling.md)。
+>
+> 完整的「收款 + 開發票 + 出貨」跨服務整合流程見 [guides/11](./11-cross-service-scenarios.md)。
+
+### 步驟 3：使用模擬付款驗證
+
+若不想輸入信用卡資訊，可使用模擬付款：
+
+1. 登入特店後台：`https://vendor-stage.ecpay.com.tw`
+2. 進入「一般訂單 → 全方位金流訂單」
+3. 找到你的訂單，點擊「模擬付款」按鈕
+4. 綠界會 POST 付款結果到你的 ReturnURL
+
+或在建立訂單時加入 `SimulatePaid=1` 參數（僅測試環境有效）。
+
+### 測試失敗流程
+
+- **信用卡失敗**：在 3D Secure 驗證碼輸入非 `1234` 的值
+- **模擬不同 RtnCode**：使用特店後台的模擬付款功能
+- **交易金額為 0**：會被 API 拒絕（TotalAmount 最小值為 1）
+- **重複 MerchantTradeNo**：會收到錯誤回應
+
+> 測試環境中，可在特店後台手動將訂單設為不同狀態來測試各種情境。
+
+## Node.js Quick Start
+
+```bash
+npm init -y && npm install express
+```
+
+```javascript
+const express = require('express');
+const crypto = require('crypto');
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+
+// === ECPay 設定 ===
+const config = {
+  merchantId: '3002607',       // ← [必改] 替換為你的 MerchantID
+  hashKey: 'pwFHCqoQZGmho4w6', // ← [必改] 替換為你的 HashKey
+  hashIv: 'EkRm7iFT261dpevs',  // ← [必改] 替換為你的 HashIV
+  baseUrl: 'https://payment-stage.ecpay.com.tw', // ← [正式時改] 移除 -stage
+};
+
+// === CheckMacValue 計算（參考 guides/13-checkmacvalue.md）===
+function ecpayUrlEncode(source) {
+  let encoded = encodeURIComponent(source).replace(/%20/g, '+').replace(/~/g, '%7e');
+  encoded = encoded.toLowerCase();
+  const replacements = { '%2d': '-', '%5f': '_', '%2e': '.', '%21': '!', '%2a': '*', '%28': '(', '%29': ')' };
+  for (const [old, char] of Object.entries(replacements)) {
+    encoded = encoded.split(old).join(char);
+  }
+  return encoded;
+}
+
+function generateCheckMacValue(params) {
+  const filtered = Object.entries(params).filter(([k]) => k !== 'CheckMacValue');
+  const sorted = filtered.sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
+  const paramStr = sorted.map(([k, v]) => `${k}=${v}`).join('&');
+  const raw = `HashKey=${config.hashKey}&${paramStr}&HashIV=${config.hashIv}`;
+  const encoded = ecpayUrlEncode(raw);
+  return crypto.createHash('sha256').update(encoded, 'utf8').digest('hex').toUpperCase();
+}
+
+// === 建立訂單頁面 ===
+app.get('/checkout', (req, res) => {
+  const params = {
+    MerchantID: config.merchantId,
+    MerchantTradeNo: 'Node' + Date.now(),
+    MerchantTradeDate: (() => {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${now.getFullYear()}/${pad(now.getMonth()+1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    })(),
+    PaymentType: 'aio',
+    TotalAmount: '100',
+    TradeDesc: '測試交易',  // CheckMacValue 計算會自動處理 URL encode，不需預先編碼
+    ItemName: '測試商品',
+    ReturnURL: 'https://你的網站/ecpay/notify', // ⚠️ 必須替換：填入你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
+    ChoosePayment: 'ALL',
+    EncryptType: '1',
+    SimulatePaid: '1', // ← [正式時移除] 模擬付款，本地開發免 ReturnURL 即可測試
+  };
+  params.CheckMacValue = generateCheckMacValue(params);
+
+  // 產生自動提交表單
+  const fields = Object.entries(params)
+    .map(([k, v]) => `<input type="hidden" name="${k}" value="${v}">`)
+    .join('');
+  res.send(`<form id="ecpay" method="POST" action="${config.baseUrl}/Cashier/AioCheckOut/V5">
+    ${fields}<script>document.getElementById('ecpay').submit();</script></form>`);
+});
+
+// === ReturnURL Webhook Handler ===
+app.post('/ecpay/notify', (req, res) => {
+  const cmv = generateCheckMacValue(req.body);
+  if (cmv !== req.body.CheckMacValue) {
+    console.error('CheckMacValue 驗證失敗');
+    return res.send('0|ErrorMessage');
+  }
+  if (req.body.RtnCode === '1' && req.body.SimulatePaid === '0') {
+    console.log('付款成功:', req.body.MerchantTradeNo);
+    // 處理訂單邏輯...
+  }
+  res.send('1|OK');
+});
+
+app.listen(3000, () => console.log('Server: http://localhost:3000/checkout'));
+```
+
+## Python Quick Start
+
+```bash
+pip install fastapi uvicorn httpx
+```
+
+```python
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse
+import hashlib, urllib.parse, time, datetime
+
+app = FastAPI()
+
+# === ECPay 設定 ===
+CONFIG = {
+    'merchant_id': '3002607',                          # ← [必改] 替換為你的 MerchantID
+    'hash_key': 'pwFHCqoQZGmho4w6',                    # ← [必改] 替換為你的 HashKey
+    'hash_iv': 'EkRm7iFT261dpevs',                     # ← [必改] 替換為你的 HashIV
+    'base_url': 'https://payment-stage.ecpay.com.tw',   # ← [正式時改] 移除 -stage
+}
+
+# === CheckMacValue 計算（參考 guides/13-checkmacvalue.md）===
+def ecpay_url_encode(source: str) -> str:
+    encoded = urllib.parse.quote_plus(source).replace('~', '%7e').lower()
+    for old, new in {'%2d': '-', '%5f': '_', '%2e': '.', '%21': '!', '%2a': '*', '%28': '(', '%29': ')'}.items():
+        encoded = encoded.replace(old, new)
+    return encoded
+
+def generate_cmv(params: dict) -> str:
+    filtered = {k: v for k, v in params.items() if k != 'CheckMacValue'}
+    sorted_params = sorted(filtered.items(), key=lambda x: x[0].lower())
+    param_str = '&'.join(f'{k}={v}' for k, v in sorted_params)
+    raw = f"HashKey={CONFIG['hash_key']}&{param_str}&HashIV={CONFIG['hash_iv']}"
+    return hashlib.sha256(ecpay_url_encode(raw).encode('utf-8')).hexdigest().upper()
+
+@app.get('/checkout', response_class=HTMLResponse)
+async def checkout():
+    params = {
+        'MerchantID': CONFIG['merchant_id'],
+        'MerchantTradeNo': f'Py{int(time.time())}',
+        'MerchantTradeDate': datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
+        'PaymentType': 'aio',
+        'TotalAmount': '100',
+        'TradeDesc': '測試交易',  # CheckMacValue 計算會自動處理 URL encode，不需預先編碼
+        'ItemName': '測試商品',
+        'ReturnURL': 'https://你的網站/ecpay/notify',  # ⚠️ 必須替換：填入你的公開回呼 URL（本地開發可用 ngrok，見「本地開發環境」節）
+        'ChoosePayment': 'ALL',
+        'EncryptType': '1',
+        'SimulatePaid': '1',  # ← [正式時移除] 模擬付款，本地開發免 ReturnURL 即可測試
+    }
+    params['CheckMacValue'] = generate_cmv(params)
+    fields = ''.join(f'<input type="hidden" name="{k}" value="{v}">' for k, v in params.items())
+    action = f"{CONFIG['base_url']}/Cashier/AioCheckOut/V5"
+    return f'<form id="ecpay" method="POST" action="{action}">{fields}</form><script>document.getElementById("ecpay").submit();</script>'
+
+@app.post('/ecpay/notify')
+async def notify(request: Request):
+    form = dict(await request.form())
+    cmv = generate_cmv(form)
+    if cmv != form.get('CheckMacValue'):
+        return '0|ErrorMessage'
+    if form.get('RtnCode') == '1' and form.get('SimulatePaid') == '0':
+        print(f"付款成功: {form.get('MerchantTradeNo')}")
+    return '1|OK'
+
+# 啟動: uvicorn main:app --port 3000
+```
+
+## 任何語言：Raw HTTP 請求
+
+### 完整 HTTP Request 格式
+
+```
+POST /Cashier/AioCheckOut/V5 HTTP/1.1
+Host: payment-stage.ecpay.com.tw
+Content-Type: application/x-www-form-urlencoded
+
+MerchantID=3002607&MerchantTradeNo=Test1234567890&MerchantTradeDate=2025%2f01%2f01+12%3a00%3a00&PaymentType=aio&TotalAmount=100&TradeDesc=%e6%b8%ac%e8%a9%a6&ItemName=%e6%b8%ac%e8%a9%a6%e5%95%86%e5%93%81&ReturnURL=https%3a%2f%2fexample.com%2fnotify&ChoosePayment=ALL&EncryptType=1&CheckMacValue=計算後的值
+```
+
+### curl 範例
+
+```bash
+curl -X POST https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5 \
+  -d "MerchantID=3002607" \
+  -d "MerchantTradeNo=Test$(date +%s)" \
+  -d "MerchantTradeDate=$(date '+%Y/%m/%d %H:%M:%S')" \
+  -d "PaymentType=aio" \
+  -d "TotalAmount=100" \
+  -d "TradeDesc=%e6%b8%ac%e8%a9%a6" \
+  -d "ItemName=%e6%b8%ac%e8%a9%a6%e5%95%86%e5%93%81" \
+  -d "ReturnURL=https://example.com/notify" \
+  -d "ChoosePayment=ALL" \
+  -d "EncryptType=1" \
+  -d "CheckMacValue=你計算的CheckMacValue"
+```
+
+> AIO 回傳的是 HTML 付款頁面（302 或直接 HTML），不是 JSON。
+
+### ReturnURL 收到的 POST Body 範例
+
+```
+MerchantID=3002607&MerchantTradeNo=Test1234567890&RtnCode=1&RtnMsg=Succeeded&TradeNo=2501011200001234&TradeAmt=100&PaymentDate=2025/01/01 12:05:00&PaymentType=Credit_CreditCard&PaymentTypeChargeFee=2&TradeDate=2025/01/01 12:00:00&SimulatePaid=0&CheckMacValue=ABC123...
+```
+
+### ECPG JSON 回應結構
+
+```json
+{
+  "MerchantID": "3002607",
+  "RpHeader": { "Timestamp": 1234567890 },
+  "TransCode": 1,
+  "TransMsg": "Success",
+  "Data": "AES加密後的Base64字串（解密後為業務資料JSON）"
+}
+```
+
+## 本地開發環境
+
+### ReturnURL 需要公開 URL
+
+ECPay 的 ReturnURL 是 server-to-server 回呼，你的本地伺服器需要一個公開 URL。
+
+**方案 1：使用隧道工具（推薦）**
+
+```bash
+# ngrok
+ngrok http 3000
+# 取得類似 https://abc123.ngrok.io 的公開 URL
+
+# cloudflared
+cloudflared tunnel --url http://localhost:3000
+```
+
+**方案 2：SimulatePaid + 查詢 API**
+
+不使用 ReturnURL，改用主動查詢：
+1. 建立訂單時加入 `SimulatePaid=1`（僅測試環境）
+2. 用 QueryTradeInfo API 查詢訂單狀態
+
+**建議開發順序**：
+1. 先確認參數正確（能跳到綠界付款頁）
+2. 再用 SimulatePaid + 查詢驗證流程
+3. 最後用 ngrok 測試 ReturnURL 回呼
+
+## 環境 URL 對照
+
+> 環境 URL 對照表見 SKILL.md §快速參考。
+
+> 以 SKILL.md 快速參考為唯一權威來源。如有不一致，以 SKILL.md 為準。
+
+## 最小可行電商
+
+第一次做電商、不確定該用哪些服務？建議「漸進式」路徑：
+
+1. **先串金流** — 用 AIO 收信用卡付款（本頁步驟 1-2）
+2. **再加發票** — 串 B2C 電子發票（[guides/04-invoice-b2c.md](./04-invoice-b2c.md)）
+3. **最後串物流** — 加超商取貨或宅配（[guides/06-logistics-domestic.md](./06-logistics-domestic.md)）
+
+完整的跨服務整合範例見 [guides/11-cross-service-scenarios.md](./11-cross-service-scenarios.md) 場景一。
+
+---
+
+## AES-JSON 端到端範例（非 PHP 語言必讀）
+
+> **⚠️ 以下為 AES-JSON 範例**（用於 ECPG/發票/物流 v2/幕後授權/跨境物流/電子票證）。
+> 如果你只需要 AIO 金流（CMV-SHA256），上方的 Quick Start 已足夠，可跳過此區段。
+> AES 的 URL encode 函式（`aesUrlEncode`）與 CMV 的（`ecpayUrlEncode`）邏輯不同，**切勿混用**。
+> 完整 AES 加解密實作見 [guides/14-aes-encryption.md](./14-aes-encryption.md)，更多語言 E2E 見 [guides/24](./24-multi-language-integration.md)。
+
+AES-JSON 服務使用 AES-128-CBC 加密，請求/回應結構與 CMV-SHA256（AIO）完全不同。
+以下提供 Node.js 和 Python 的 B2C 發票開立端到端範例。
+
+### Node.js — B2C 發票開立
+
+```javascript
+const crypto = require('crypto');
+const https = require('https');
+
+const config = {
+  merchantId: '2000132',
+  hashKey: 'ejCk326UnaZWKisg',
+  hashIv: 'q9jcZX8Ib9LM8wYk',
+};
+
+// === Canonical source: guides/14 §Node.js — 完整說明見 guides/14-aes-encryption.md ===
+// AES 專用 URL encode — 不做 toLowerCase 和 .NET 還原
+function aesUrlEncode(str) {
+  return encodeURIComponent(str)
+    .replace(/%20/g, '+')
+    .replace(/~/g, '%7e')
+    .replace(/!/g, '%21')
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')
+    .replace(/\*/g, '%2A');
+}
+
+function aesEncrypt(data, hashKey, hashIv) {
+  const jsonStr = JSON.stringify(data);
+  const urlEncoded = aesUrlEncode(jsonStr);
+  const key = Buffer.from(hashKey.substring(0, 16), 'utf8');
+  const iv = Buffer.from(hashIv.substring(0, 16), 'utf8');
+  const cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
+  let encrypted = cipher.update(urlEncoded, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+  return encrypted;
+}
+
+function aesDecrypt(cipherText, hashKey, hashIv) {
+  const key = Buffer.from(hashKey.substring(0, 16), 'utf8');
+  const iv = Buffer.from(hashIv.substring(0, 16), 'utf8');
+  const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+  let decrypted = decipher.update(cipherText, 'base64', 'utf8');
+  decrypted += decipher.final('utf8');
+  return JSON.parse(decodeURIComponent(decrypted));
+}
+
+// 發票開立
+async function issueInvoice() {
+  const invoiceData = {
+    MerchantID: config.merchantId,
+    RelateNumber: 'INV' + Date.now(),
+    CustomerEmail: 'test@example.com',
+    Print: '0',
+    Donation: '0',
+    TaxType: '1',
+    SalesAmount: 100,
+    Items: [{ ItemName: '測試商品', ItemCount: 1, ItemWord: '件', ItemPrice: 100, ItemTaxType: '1', ItemAmount: 100 }],
+    InvType: '07',
+  };
+
+  const requestBody = JSON.stringify({
+    MerchantID: config.merchantId,
+    RqHeader: { Timestamp: Math.floor(Date.now() / 1000), Revision: '3.0.0' },
+    Data: aesEncrypt(invoiceData, config.hashKey, config.hashIv),
+  });
+
+  const response = await fetch('https://einvoice-stage.ecpay.com.tw/B2CInvoice/Issue', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: requestBody,
+  });
+  const result = await response.json();
+
+  // 雙層錯誤檢查
+  if (result.TransCode !== 1) {
+    throw new Error(`外層錯誤 TransCode=${result.TransCode}: ${result.TransMsg}`);
+  }
+  const data = aesDecrypt(result.Data, config.hashKey, config.hashIv);
+  if (data.RtnCode !== 1) {
+    throw new Error(`業務錯誤 RtnCode=${data.RtnCode}: ${data.RtnMsg}`);
+  }
+  console.log('發票號碼:', data.InvoiceNo);
+  return data;
+}
+```
+
+### Python — B2C 發票開立
+
+```bash
+pip install pycryptodome requests
+```
+
+```python
+import json, time, base64, urllib.parse  # pip install pycryptodome requests
+import requests  # 可替換為 httpx（async 支援 + HTTP/2）
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
+CONFIG = {
+    'merchant_id': '2000132',
+    'hash_key': 'ejCk326UnaZWKisg',
+    'hash_iv': 'q9jcZX8Ib9LM8wYk',
+}
+
+def aes_url_encode(source: str) -> str:
+    """AES 專用 URL encode — Canonical source: guides/14 §Python"""
+    return urllib.parse.quote_plus(source).replace('~', '%7e').replace("'", '%27')
+
+def aes_encrypt(data: dict, hash_key: str, hash_iv: str) -> str:
+    json_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
+    url_encoded = aes_url_encode(json_str)
+    key = hash_key[:16].encode('utf-8')
+    iv = hash_iv[:16].encode('utf-8')
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    encrypted = cipher.encrypt(pad(url_encoded.encode('utf-8'), AES.block_size))
+    return base64.b64encode(encrypted).decode('utf-8')
+
+def aes_decrypt(cipher_text: str, hash_key: str, hash_iv: str) -> dict:
+    key = hash_key[:16].encode('utf-8')
+    iv = hash_iv[:16].encode('utf-8')
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted = unpad(cipher.decrypt(base64.b64decode(cipher_text)), AES.block_size)
+    return json.loads(urllib.parse.unquote_plus(decrypted.decode('utf-8')))
+
+def issue_invoice():
+    invoice_data = {
+        'MerchantID': CONFIG['merchant_id'],
+        'RelateNumber': f'INV{int(time.time())}',
+        'CustomerEmail': 'test@example.com',
+        'Print': '0',
+        'Donation': '0',
+        'TaxType': '1',
+        'SalesAmount': 100,
+        'Items': [{'ItemName': '測試商品', 'ItemCount': 1, 'ItemWord': '件', 'ItemPrice': 100, 'ItemTaxType': '1', 'ItemAmount': 100}],
+        'InvType': '07',
+    }
+
+    request_body = {
+        'MerchantID': CONFIG['merchant_id'],
+        'RqHeader': {'Timestamp': int(time.time()), 'Revision': '3.0.0'},
+        'Data': aes_encrypt(invoice_data, CONFIG['hash_key'], CONFIG['hash_iv']),
+    }
+
+    resp = requests.post('https://einvoice-stage.ecpay.com.tw/B2CInvoice/Issue', json=request_body)
+    result = resp.json()
+
+    # 雙層錯誤檢查
+    if result['TransCode'] != 1:
+        raise Exception(f"外層錯誤 TransCode={result['TransCode']}: {result['TransMsg']}")
+    data = aes_decrypt(result['Data'], CONFIG['hash_key'], CONFIG['hash_iv'])
+    if data['RtnCode'] != 1:
+        raise Exception(f"業務錯誤 RtnCode={data['RtnCode']}: {data['RtnMsg']}")
+    print(f"發票號碼: {data['InvoiceNo']}")
+    return data
+```
+
+> **重點**：AES-JSON 的回應必須做雙層錯誤檢查——先檢查外層 `TransCode`（加密/格式問題），
+> 再解密 `Data` 後檢查內層 `RtnCode`（業務邏輯問題）。只檢查其中一層會漏掉錯誤。
+
+## 下一步
+
+根據你的需求選擇對應指南：
+
+- 想收各種付款 → [guides/01-payment-aio.md](./01-payment-aio.md)（全方位金流）
+- 想嵌入付款到自己的頁面 → [guides/02-payment-ecpg.md](./02-payment-ecpg.md)（站內付 2.0）
+- 想開電子發票 → [guides/04-invoice-b2c.md](./04-invoice-b2c.md)（B2C 發票）
+- 想做超商取貨/宅配 → [guides/06-logistics-domestic.md](./06-logistics-domestic.md)（國內物流）
+- 想一次搞定收款+發票+出貨 → [guides/11-cross-service-scenarios.md](./11-cross-service-scenarios.md)
+- **非 PHP 語言開發**：
+  - HTTP 協議參考 → [guides/20-http-protocol-reference.md](./20-http-protocol-reference.md)
+  - Go/Java/C# 完整範例 → [guides/24-multi-language-integration.md](./24-multi-language-integration.md)
+- 實體門市刷卡 → [guides/17-pos-integration.md](./17-pos-integration.md)（POS 刷卡機）
+- 直播電商收款 → [guides/18-livestream-payment.md](./18-livestream-payment.md)
+- 錯誤碼排查 → [guides/21-error-codes-reference.md](./21-error-codes-reference.md)
+- Callback 處理 → [guides/22-webhook-events-reference.md](./22-webhook-events-reference.md)
+- 效能與擴展 → [guides/23-performance-scaling.md](./23-performance-scaling.md)
+- 遇到問題 → [guides/15-troubleshooting.md](./15-troubleshooting.md)
+
+### 官方 API 技術文件
+
+- [references/Payment/全方位金流API技術文件.md](../references/Payment/全方位金流API技術文件.md) — AIO 金流完整 API 規格
+- [references/Payment/站內付2.0API技術文件Web.md](../references/Payment/站內付2.0API技術文件Web.md) — ECPG 站內付 API 規格
+- [references/Invoice/B2C電子發票介接技術文件.md](../references/Invoice/B2C電子發票介接技術文件.md) — B2C 電子發票 API 規格
+- [references/Logistics/物流整合API技術文件.md](../references/Logistics/物流整合API技術文件.md) — 國內物流 API 規格
