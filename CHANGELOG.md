@@ -1,5 +1,23 @@
 # ECPay Skill 更新紀錄
 
+## v2.13 — 2026-03-07
+
+六代理深度審核全面修正（3 CRITICAL + 8 HIGH + 9 MEDIUM + 6 LOW）：
+
+- **CRITICAL**：修正 CLAUDE.md 中 guides/24 行數（1,775→900）和版本號（v2.1→v2.12）
+- **CRITICAL**：guides/09 補充 Ecticket 無 PHP SDK 範例的說明及替代方案
+- **HIGH**：SKILL.md 決策樹新增 ECPG 雙 Domain 警告和 ReturnURL 10 秒超時提醒
+- **HIGH**：SKILL.md 測試帳號區新增帳號混用風險警告
+- **HIGH**：guides/24 新增 AES-JSON 統一 Checklist（10 步驟）
+- **HIGH**：guides/24 AI Section Index 行號全面校準
+- **HIGH**：SKILL.md Language Traps Table 擴充 AES padding、hex 大小寫、compact JSON 等項目
+- **MEDIUM**：guides/21 錯誤碼速查表新增 TransCode 項目
+- **MEDIUM**：guides/11 場景一新增時間分解表
+- **MEDIUM**：guides/16 新增應用層安全檢查清單（SQL 注入、XSS、冪等性）
+- **MEDIUM**：guides/01 非 PHP 開發者路徑改為編號步驟式導引
+- **MEDIUM**：README 更新紀錄新增 v2.12 重點摘要
+- **LOW**：CLAUDE.md references URL 數量修正（432→431）
+
 ## v2.12 — 2026-03-06
 
 八代理企業級 Review Board 全面修正：

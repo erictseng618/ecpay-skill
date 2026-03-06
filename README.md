@@ -2,7 +2,7 @@
 
 > **綠界科技官方出品** — 由 ECPay 團隊開發與維護，內容與 API 同步更新。
 
-**當前版本：v2.12** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
+**當前版本：v2.13** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
 
 ### 前置需求
 
@@ -297,14 +297,17 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 
 > 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)
 
+**v2.13 重點**：六代理深度審核全面修正 — ECPG 雙 Domain 預警、AES-JSON Checklist、應用層安全、行號校準。
+
 | 日期 | 版本 | 變更摘要 |
 |------|------|---------|
 | 2025-03 ~ 2026-03 | v1.0-v1.8 | 初始版本 → 25 份指南、12 語言、134 個 PHP 範例 |
 | 2026-03-05 | v1.9-v2.4 | 多輪代理審查：多語言 AES/CMV bug、callback 統一、DX 改善、企業級強化 |
 | 2026-03-06 | v2.5-v2.9 | API 即時查閱機制、Commands 精簡、guides/24 瘦身、hex 大小寫修正、CHANGELOG 獨立 |
 | 2026-03-06 | v2.10 | 十二次六代理審核：AES hex 修正（CRITICAL）、AI Section Index 校準、SKILL.md 瘦身、去重 |
-| 2026-03-06 | v2.11 | 企業級強化：SECURITY.md、GitHub 社群模板、CI 驗證、PCI DSS 範圍指引、TypeScript 型別擴充、E2E 組裝說明、C# AES 釐清 |
-| 2026-03-06 | v2.12 | 八代理 Review Board：DX 強化、過度設計精簡、串接完整性補強、新手友善路徑、SECURITY.md 整合 |
+| 2026-03-06 | v2.11 | 企業級強化：SECURITY.md、GitHub 社群模板、CI 驗證、PCI DSS 範圍指引、TypeScript 型別擴充 |
+| 2026-03-06 | v2.12 | 八代理 Review Board：DX 強化、過度設計精簡、串接完整性補強、新手友善路徑 |
+| 2026-03-07 | v2.13 | 六代理深度審核：ECPG 雙 Domain 預警、AES-JSON Checklist、應用層安全、行號校準 |
 
 ## 相關資源
 

@@ -2,7 +2,11 @@
 
 # 全方位金流 AIO 完整指南
 
-> **非 PHP 開發者？** 請同時參考 [guides/20 HTTP 協議參考](./20-http-protocol-reference.md)（請求格式）和 [guides/13 CheckMacValue](./13-checkmacvalue.md)（12 語言加密實作）。完整多語言 E2E 範例見 [guides/24](./24-multi-language-integration.md)。
+> **非 PHP 開發者？** 建議閱讀順序：
+> 1. [guides/13](./13-checkmacvalue.md) — 實作你的語言的 CheckMacValue，並通過測試向量驗證
+> 2. [guides/20](./20-http-protocol-reference.md) — 確認 AIO 的 HTTP 請求格式（Content-Type、回應格式）
+> 3. 回到本文 — 理解 AIO 整合流程和參數，將 PHP 範例翻譯為你的語言
+> 4. [guides/24](./24-multi-language-integration.md) — 完整多語言 E2E 範例和 Checklist
 
 ## 概述
 

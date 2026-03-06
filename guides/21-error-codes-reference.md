@@ -6,6 +6,8 @@
 
 | 錯誤碼 | 服務 | 一句話原因 | 詳見 |
 |--------|------|-----------|------|
+| **TransCode=1** | AES-JSON 全服務 | 外層成功，需再檢查 RtnCode | 下方 §AES-JSON |
+| **TransCode!=1** | AES-JSON 全服務 | 外層失敗（加密/格式/CheckMacValue 問題） | [guides/14](./14-aes-encryption.md) + [guides/15](./15-troubleshooting.md) |
 | 1 | 全服務 | 交易成功 | — |
 | 2 | AIO 金流 | ATM 取號成功（等待轉帳） | AIO 金流 |
 | 10100073 | AIO 金流 | CVS/BARCODE 取號成功（等待繳費） | AIO 金流 |

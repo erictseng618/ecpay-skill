@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.12"
+version: "2.13"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
@@ -78,7 +78,7 @@ metadata:
 | 你的場景 | 協議 | 難度 | 指南 |
 |---------|------|:----:|------|
 | 消費者跳轉綠界付款頁 | **CMV-SHA256** | ★★☆ | [guides/01](./guides/01-payment-aio.md) |
-| 嵌入付款到你的頁面（SPA/App） | **AES-JSON** | ★★★ | [guides/02](./guides/02-payment-ecpg.md) |
+| 嵌入付款到你的頁面（SPA/App） | **AES-JSON** | ★★★ | [guides/02](./guides/02-payment-ecpg.md) — **注意雙 Domain：Token API 走 `ecpg`，交易/查詢 API 走 `ecpayment`，混用會 404** |
 | 純後台扣款（無前端） | **AES-JSON** | ★★★ | [guides/03](./guides/03-payment-backend.md) |
 | 超商取貨/宅配（國內物流） | **CMV-MD5** | ★★☆ | [guides/06](./guides/06-logistics-domestic.md) |
 | 全方位/跨境物流 | **AES-JSON** | ★★★ | [guides/07](./guides/07-logistics-allinone.md) |
@@ -122,7 +122,9 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── 收款 + 發票 + 出貨（完整電商）→ 讀 guides/11 [預計 2-3h]
 ├── 消費者在網頁/App 付款
 │   ├── 要綠界標準付款頁 → AIO（讀 guides/01）[預計 30m]
+│   │   └── ⚠️ ReturnURL 有 10 秒超時限制，耗時邏輯需用佇列處理（見 guides/23）
 │   ├── 要嵌入式體驗 → ECPG 站內付（讀 guides/02）[預計 1h]
+│   │   └── ⚠️ 雙 Domain：Token API 走 ecpg，交易 API 走 ecpayment（混用會 404）
 │   ├── 不確定
 │   │   ├── 前後端分離（React/Vue/Angular/SPA）→ 推薦 ECPG 站內付
 │   │   └── 傳統 SSR / 簡單需求 → 推薦 AIO（最簡單、最常用）
@@ -252,7 +254,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
 > guides/13、14、24 有 AI Section Index（行號索引），若只需單一語言可用 offset/limit 讀取特定行範圍。
 > AES vs CMV 對比表見 guides/14 line 79-163。
-> guides/24 有 1,774 行，**禁止全量載入**。必須使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
+> guides/24 有約 900 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
 >
 > **SNAPSHOT 說明**：guides/ 中的參數欄位名稱、型態、必填規則通常穩定（改動機率 < 5%）。
 > 需要即時查閱的情況：API 回傳不符預期、或需確認最新業務驗證規則（如金額範圍）時。
@@ -322,6 +324,11 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | **URL encode** | `isalnum` 對 signed char 為未定義行為 | C++ | `static_cast<unsigned char>(c)` 後再呼叫 `isalnum` |
 | **AES URL encode** | `CGI.escape` 不編碼 `!*'()` | Ruby | 需 `.gsub` 手動替換（見 guides/14 §Ruby） |
 | **JSON 序列化** | `json.NewEncoder` 輸出含尾部 `\n` | Go | `strings.TrimRight(buf.String(), "\n")` 去除 |
+| **AES padding** | PKCS7 padding 需手動實作 | Go, C, Rust | 見 guides/14 各語言 AES 實作 |
+| **AES hex 大小寫** | `urlencode` 輸出大寫 hex，AES 不做 toLowerCase | C, Rust, Swift | 確保 `%XX` 為大寫（見 guides/14 §hex 大小寫） |
+| **JSON 序列化** | compact JSON 無空白 | Python, Ruby | `separators=(',',':')` / `JSON.generate` 無美化 |
+
+> 完整差異對照見 [guides/13](./guides/13-checkmacvalue.md)、[guides/14](./guides/14-aes-encryption.md)、[guides/24 §JSON 序列化全語言對照](./guides/24-multi-language-integration.md)。
 
 ## 快速參考
 
@@ -354,6 +361,9 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | 電子發票 | 2000132 | ejCk326UnaZWKisg | q9jcZX8Ib9LM8wYk | AES |
 
 > 電子票證（E-Ticket）測試帳號非公開，需聯繫綠界客服申請。
+
+> **常見錯誤：帳號混用** — 金流、物流、發票使用**不同的** MerchantID 和 HashKey/HashIV。
+> 同時串接多個服務時，請確認每個 API 呼叫使用對應服務的帳號，混用會導致 CheckMacValue 驗證失敗。
 
 ### 3D 驗證 SMS 碼：`1234`
 

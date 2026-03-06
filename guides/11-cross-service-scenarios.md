@@ -10,6 +10,16 @@
 
 適用：一般線上購物，消費者下單 → 付款 → 開發票 → 出貨 → 收貨。
 
+### 預估時間分解
+
+| 環節 | 對應指南 | 預估時間 |
+|------|---------|:-------:|
+| AIO 收款 + Callback | [guides/01](./01-payment-aio.md) | 45m |
+| B2C 發票開立 | [guides/04](./04-invoice-b2c.md) | 30m |
+| 國內物流建單 | [guides/06](./06-logistics-domestic.md) | 30m |
+| Callback 統一處理 | [guides/22](./22-webhook-events-reference.md) | 20m |
+| 合計 | — | ~2h |
+
 ### 完整流程
 
 ```
