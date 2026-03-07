@@ -143,7 +143,7 @@ sequenceDiagram
 | 需要開發票 | [guides/04-invoice-b2c.md](./04-invoice-b2c.md) 或 [guides/05-invoice-b2b.md](./05-invoice-b2b.md) |
 | 需要出貨 | [guides/06-logistics-domestic.md](./06-logistics-domestic.md) |
 | 全部都要（收款+發票+出貨） | [guides/11-cross-service-scenarios.md](./11-cross-service-scenarios.md) |
-| 非 PHP 語言完整範例 (Go/Java/C#/TS/Kotlin/Ruby) | [guides/24-multi-language-integration.md](./24-multi-language-integration.md)（⚠️ 1,774 行，使用 AI Section Index 跳轉） |
+| 非 PHP 語言完整範例 (Go/Java/C#/TS/Kotlin/Ruby) | [guides/24-multi-language-integration.md](./24-multi-language-integration.md)（⚠️ 992 行，使用 AI Section Index 跳轉） |
 | 完整決策樹 | SKILL.md 步驟 2 |
 
 ## 按語言選讀路徑（非 PHP 開發者必讀）

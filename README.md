@@ -345,7 +345,9 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 
 - 僅支援新台幣（TWD）
 - references/ URL 索引需要網路連線才能即時讀取最新 API 規格
-- OpenAI GPTs 無法直接讀取 references/ 檔案（透過 Web Search 替代）
+- OpenAI GPTs 無法直接讀取 references/ 檔案（透過 Web Search 替代，可靠性略低於 web_fetch 直讀）
+- 若綠界改版 `developers.ecpay.com.tw` URL 結構，references/ 內的 URL 可能需要更新（見 CONTRIBUTING.md §維護指引的 URL 失效回退策略）
+- 綠界新增全新 API 端點時，需維護者手動將 URL 補入 references/，新增前 AI 可直接搜尋 `developers.ecpay.com.tw` 作為替代
 - 電子票證無公開測試帳號（需向綠界客服申請）
 - AI 翻譯品質可能因模型與語言組合而異，生成的程式碼片段應經人工驗證
 

@@ -255,7 +255,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
 > guides/13、14、24 有 AI Section Index（行號索引），若只需單一語言可用 offset/limit 讀取特定行範圍。
 > AES vs CMV 對比表見 guides/14 line 79-163。
-> guides/24 有約 910 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
+> guides/24 有約 992 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
 >
 > **SNAPSHOT 說明**：guides/ 中的參數欄位名稱、型態、必填規則通常穩定（改動機率 < 5%）。
 > 需要即時查閱的情況：API 回傳不符預期、或需確認最新業務驗證規則（如金額範圍）時。
@@ -557,7 +557,15 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 ├── 2. 讀取該檔案，找到相關章節的 URL
 │      例：## 付款方式 / 信用卡一次付清 → https://developers.ecpay.com.tw/2866.md
 ├── 3. 使用 web_fetch 工具讀取該 URL（取得官方最新規格）
-└── 4. 結合 guides/ 的整合知識 + 即時規格內容回答開發者
+│      ├── 成功 → 進入步驟 4
+│      ├── 404 / 連線失敗 → 嘗試 web_fetch https://developers.ecpay.com.tw 首頁搜尋對應主題
+│      │      └── 仍失敗 → 以 guides/ 內容備援，但必須告知開發者並附上 reference URL
+│      └── 回傳內容缺少參數表 → 告知開發者建議手動開啟該 URL 確認
+├── 4. 結合 guides/ 的整合知識 + 即時規格內容回答開發者
+└── 5. 開發者問到 references/ 未收錄的 API？
+       → 直接 web_fetch https://developers.ecpay.com.tw 搜尋該功能
+       → 若找到，回答並建議維護者將 URL 補入 references/
+       → 若找不到，告知開發者聯繫綠界客服 (02-2655-1775) 確認
 ```
 
 #### 各 AI 平台即時讀取工具
@@ -569,8 +577,10 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 | OpenAI GPTs | Web Search / 瀏覽 | 啟用「Web Search」後直接瀏覽 URL |
 | OpenClaw | `web_fetch` | 同上 |
 
-> ⚠️ **web_fetch 失敗時的備援**：若 web_fetch 逾時、回傳 404 或連線失敗，以 guides/ 內容作為備援回答，
-> 但**必須告知開發者**：「此規格來自本地快取版，可能非最新，建議手動確認」並提供對應的 reference URL 供開發者自行查閱。
+> ⚠️ **web_fetch 失敗時的備援**：若 web_fetch 逾時、回傳 404 或連線失敗：
+> 1. 先嘗試 web_fetch `https://developers.ecpay.com.tw` 首頁，搜尋對應 API 主題的替代 URL
+> 2. 仍失敗時，以 guides/ 內容作為備援回答，但**必須告知開發者**：「此規格來自 SNAPSHOT（{日期}），可能非最新，建議手動確認」
+> 3. **必須附上**對應的 reference 檔案路徑和原始 URL，供開發者自行查閱或回報失效
 
 > 💡 **guides/ 與 references/ 的分工**：
 > - **guides/** = **如何做**（整合邏輯、流程、注意事項、範例程式碼）— 靜態知識庫
