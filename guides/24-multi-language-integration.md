@@ -529,6 +529,8 @@ java -cp .:gson-2.11.0.jar EcpayDemo
 dotnet run
 ```
 
+> **C# HttpClient 注意**：`HttpClient` 應宣告為 `static readonly` 或透過 `IHttpClientFactory`（.NET 5+）注入，避免重複建立導致 socket exhaustion。
+
 ---
 
 ## TypeScript 整合指引

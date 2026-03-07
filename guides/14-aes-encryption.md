@@ -367,7 +367,7 @@ export { aesEncrypt, aesDecrypt };
 
 ### Java
 
-> **JSON 序列化注意**：Java 的 `HashMap` 不保證 key 順序，必須使用 `LinkedHashMap` 保序。
+> **JSON 序列化注意**：Java 的 `HashMap` 不保證 key 順序，必須使用 `LinkedHashMap` 保序（`LinkedHashMap` 遍歷順序穩定但略慢於 `HashMap`；此處必須保序，無替代方案）。
 > 使用 `GsonBuilder().disableHtmlEscaping()` 避免 `<`, `>`, `&` 被轉義為 `\uXXXX`。
 
 ```java

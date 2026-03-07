@@ -72,6 +72,8 @@ $factory = new Factory([
 | 查詢物流訂單 | `/Helper/QueryLogisticsTradeInfo/V5` | URL-encoded |
 | 取得門市清單 | `/Helper/GetStoreList` | JSON |
 
+> **冷鏈物流**：部分超商（統一超商、全家）支援冷凍/冷藏配送。相關規格（如 `LogisticsSubType` 冷凍參數）需向綠界確認帳號是否已開通，詳見 `references/Logistics/物流整合API技術文件.md` 查詢官方最新支援說明。
+
 ## 物流商支援表
 
 | 代碼 | 物流商 | 類型 | 說明 |

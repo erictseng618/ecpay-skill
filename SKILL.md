@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.14"
+version: "2.15"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
@@ -230,6 +230,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | 處理 Callback / Webhook | guides/22（各服務 callback 回應格式彙總）|
 | 測試帳號是什麼 | guides/00 §測試帳號 |
 | 上線前檢查 / 切換正式環境 | guides/16 |
+| 日交易 > 1,000 筆 / 高併發 / Rate Limiting | guides/23 §Rate Limiting + §Callback 佇列 |
 | ECPG 404 / Domain 打錯 | guides/02 端點表（ecpg vs ecpayment）+ guides/16 §ECPG |
 | AES-JSON 雙層錯誤檢查 | guides/21 §TransCode vs RtnCode + guides/04 §AES 請求格式 |
 | 物流退貨 | guides/06 逆物流 / guides/07 逆物流 |
@@ -241,7 +242,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **不可混用** CMV 的 `ecpayUrlEncode` 和 AES 的 `aesUrlEncode`（兩者邏輯不同，見 guides/14 對比表）
 - **不可假設所有 API 回應都是 JSON**（AIO 回 HTML/URL-encoded/pipe-separated）
 - **不可在前端或版本控制中暴露** HashKey/HashIV
-- **不可將 ATM RtnCode=2 或 CVS RtnCode=10100073 視為錯誤**（代表等待付款中）
+- **不可將 ATM RtnCode=2 或 CVS RtnCode=10100073 視為錯誤**（代表取號成功，消費者尚未付款）
 - **不可僅依賴 guides/ 中的參數表生成 API 呼叫程式碼**（guides/ 所有參數表和端點表標記為 SNAPSHOT，僅供整合流程理解。生成程式碼前**必須**從 references/ 即時 web_fetch 官方最新規格確認端點路徑和參數定義）
 - **生成程式碼時必須標註資料來源**：在程式碼註解中標明參數值取自 SNAPSHOT 或 web_fetch（例如 `// Source: web_fetch references/Payment/... 2026-03-06`），方便開發者日後驗證
 - **不可將 ECPG 所有端點都打向 ecpg domain**（交易類走 `ecpayment`，Token 類走 `ecpg`）
@@ -595,4 +596,4 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 
 ## 更新紀錄
 
-> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.14）
+> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.15）

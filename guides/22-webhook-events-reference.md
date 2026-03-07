@@ -18,7 +18,7 @@
 
 | 服務 | 你必須回應的格式 | Content-Type | 回錯會如何 |
 |------|----------------|-------------|-----------|
-| AIO 金流（ReturnURL） | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次 |
+| AIO 金流（ReturnURL） | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次（持續天數有上限，重試停止後需手動補查） |
 | AIO 金流（PaymentInfoURL / PeriodReturnURL） | `1\|OK`（純文字） | text/plain | 同上 |
 | ECPG 站內付 | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
 | 信用卡幕後授權 | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
@@ -44,7 +44,7 @@
 
 | 服務 | URL 欄位名 | 觸發時機 | 認證方式 | 必須回應 | 重試機制 |
 |------|-----------|---------|---------|---------|---------|
-| AIO 金流 | ReturnURL | 付款完成 | CheckMacValue (**SHA256**) | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次 |
+| AIO 金流 | ReturnURL | 付款完成 | CheckMacValue (**SHA256**) | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次（持續天數有上限，重試停止後需手動補查） |
 | AIO 金流 | PaymentInfoURL | ATM/CVS/BARCODE 取號完成 | CheckMacValue (SHA256) | `1\|OK` | 同上 |
 | AIO 金流 | PeriodReturnURL | 定期定額每期扣款 | CheckMacValue (SHA256) | `1\|OK` | 同上 |
 | AIO 金流 | — | BNPL 無卡分期申請結果 | CheckMacValue (SHA256) | `1\|OK` | 同上 |

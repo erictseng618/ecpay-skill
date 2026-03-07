@@ -67,6 +67,11 @@ ECPay 官方僅提供 PHP SDK。其他語言需自行實作：
 
 ## 三大 HTTP 協議模式
 
+> **不確定該用哪個協議？**
+> - 使用 **AIO 金流**（消費者跳轉綠界頁面）→ CMV-SHA256
+> - 使用 **ECPG / 發票 / 全方位物流 / 跨境物流 / 電子票證**（AES-JSON API）→ AES-JSON
+> - 使用 **國內物流**（超商/宅配傳統 API）→ CMV-MD5
+
 ECPay API 分為三個協議模式，認證方式和請求格式完全不同：
 
 | 模式 | 認證方式 | Content-Type | 適用服務 | 難度 |
@@ -74,6 +79,10 @@ ECPay API 分為三個協議模式，認證方式和請求格式完全不同：
 | **CMV-SHA256** | CheckMacValue SHA256 | application/x-www-form-urlencoded | AIO 金流 | ★★☆ |
 | **AES-JSON** | AES-128-CBC | application/json | ECPG / 發票 / v2 物流 / 幕後 / 跨境 / 票券 | ★★★ |
 | **CMV-MD5** | CheckMacValue MD5 | application/x-www-form-urlencoded | 國內物流 | ★★☆ |
+
+> ⚠️ **ECPG 開發者必看**：ECPG 使用**兩個不同的 domain**，混淆必定 404。
+> Token / 建立交易 → `ecpg(-stage).ecpay.com.tw` ｜ 查詢 / 請退款 → `ecpayment(-stage).ecpay.com.tw`
+> 詳見 [guides/02 §端點 URL 一覽](./02-payment-ecpg.md)。
 
 > **PHP 開發者**：SDK 已封裝所有協議細節，可直接使用 Factory Service，無需關心模式差異。
 > **非 PHP 開發者**：請先讀 [guides/20-http-protocol-reference.md](./20-http-protocol-reference.md) 了解各模式的請求/回應格式差異。
@@ -231,8 +240,18 @@ func main() {
 
 > 電子票證（E-Ticket）測試帳號非公開，需聯繫綠界客服申請。
 
-> **⚠️ 重要**：金流、物流、發票使用**不同的** MerchantID 和 HashKey/HashIV。
-> 切勿混用不同服務的憑證，否則會收到加密驗證失敗。
+> ## ⚠️ 帳號混用是最常見的初始化錯誤
+>
+> **金流、物流、電子發票各自使用不同的 MerchantID + HashKey + HashIV。混用會導致所有 CheckMacValue 驗證失敗。**
+>
+> | 服務 | 測試 MerchantID |
+> |------|:-------------:|
+> | 金流（AIO/ECPG） | 3002607 |
+> | 電子發票 | 2000132 |
+> | 物流 B2C/宅配 | 2000132 |
+> | 物流 C2C | 2000933 |
+>
+> 完整帳號詳見 [SKILL.md §測試帳號](../SKILL.md)。
 
 ### 測試信用卡
 
@@ -279,6 +298,12 @@ func main() {
 > 1. HashKey 或 HashIV 複製錯誤（多了空格、大小寫錯）
 > 2. URL encode 規則因語言而異（見下方範例中的 `ecpayUrlEncode`）
 > 3. 參數排序必須不區分大小寫
+>
+> **四步驟快速排查（無需跳頁）**：
+> 1. 用 guides/13 測試向量驗證你的 `generateCheckMacValue()` 函式本身是否正確
+> 2. 確認測試帳號的 HashKey/HashIV 無多餘空格，且使用對應服務的帳號（金流/物流/發票各自不同）
+> 3. 確認參數排序不區分大小寫字母序（a-z），且排除 `CheckMacValue` 欄位本身
+> 4. 確認你沒有對 URL 中已 encode 的字元做二次 encode
 >
 > 如果遇到驗證失敗，直接看 [guides/15 四步驟排查法](./15-troubleshooting.md)。
 > 驗算工具：[guides/13 測試向量](./13-checkmacvalue.md) 可驗證你的實作是否正確。
@@ -633,6 +658,15 @@ MerchantID=3002607&MerchantTradeNo=Test1234567890&RtnCode=1&RtnMsg=Succeeded&Tra
 ### ReturnURL 需要公開 URL
 
 ECPay 的 ReturnURL 是 server-to-server 回呼，你的本地伺服器需要一個公開 URL。
+
+### 本地開發方案對比
+
+| | 方案 A：SimulatePaid + QueryTradeInfo | 方案 B：ngrok 接收真實 Callback |
+|---|---|---|
+| **適用** | 首次快速驗證建單邏輯 | 測試完整的付款 → 通知 → 業務邏輯流程 |
+| **複雜度** | ★☆☆（最簡單，無需 ngrok） | ★★☆（需安裝 ngrok） |
+| **測試 ReturnURL** | ❌ 不測試（需另外驗證） | ✅ 完整模擬 |
+| **建議時機** | 開發初期驗證 API 串接 | 正式上線前完整測試 |
 
 **方案 1：使用 ngrok 接收 Callback（選擇性）**
 

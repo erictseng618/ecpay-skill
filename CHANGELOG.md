@@ -1,8 +1,32 @@
 # ECPay Skill 更新紀錄
 
+## v2.15 — 2026-03-07
+
+多輪代理深度審核全面修正（六代理並行評估）：2 CRITICAL + 5 HIGH + 10 MEDIUM + 6 LOW：
+
+- **CRITICAL**：guides/00 新增 ECPG 雙 Domain 警告（三大協議表後高亮提示）
+- **CRITICAL**：guides/00 嵌入 CheckMacValue 四步驟排查摘要（新手不需跳頁）
+- **HIGH**：guides/00 新增服務→協議快速判斷（AIO/ECPG/發票→對應協議）
+- **HIGH**：guides/00 升格測試帳號混用警告為獨立區塊（含四服務 MerchantID 對照表）
+- **HIGH**：guides/00 本地開發方案新增「對比表」（SimulatePaid vs ngrok 優缺點）
+- **MEDIUM**：SKILL.md ATM/CVS 術語修正（「等待付款中」→「取號成功，消費者尚未付款」）
+- **MEDIUM**：guides/22 AIO 重試說明補充「持續天數有上限，重試停止後需手動補查」
+- **MEDIUM**：guides/23 對帳檔下載補充 Rate Limit 建議（≤7 天範圍、≥1 分鐘間隔）
+- **MEDIUM**：guides/04 GetIssueByRelateNo 端點標記改為「建議改用 GetIssueList」
+- **MEDIUM**：guides/06 新增冷鏈物流開通確認說明
+- **MEDIUM**：guides/09 補充 NotifyURL Callback 格式說明（AES 解密 + 回 `1|OK`）
+- **MEDIUM**：OPENAI_SETUP.md 補充版本號標示（v2.15）
+- **MEDIUM**：guides/23 監控告警閾值補充「依業務 SLA 調整」說明
+- **MEDIUM**：SKILL.md 快速查詢表補充 guides/23 高流量/Rate Limiting 入口
+- **MEDIUM**：test-vectors/README.md 補充 UTF-8 中文測試建議說明
+- **LOW**：guides/14 Java `LinkedHashMap` 補充性能說明（保序必要，無替代方案）
+- **LOW**：guides/24 C# 補充 `HttpClient` singleton 最佳實踐說明
+- **LOW**：guides/16 環境切換步驟 3 補充「有無 Feature Flag 分支說明」
+- **LOW**：CHANGELOG.md 「六代理」術語改為「多輪代理深度審核（六代理並行評估）」
+
 ## v2.14 — 2026-03-07
 
-六代理第二輪深度審核全面修正（2 CRITICAL + 3 HIGH + 12 MEDIUM + 4 LOW）：
+多輪代理深度審核全面修正（六代理並行評估）（2 CRITICAL + 3 HIGH + 12 MEDIUM + 4 LOW）：
 
 - **CRITICAL**：SKILL_OPENAI.md 版本號 v2.12→v2.13（漏同步）
 - **CRITICAL**：SKILL.md 版本號記錄 v2.12→v2.13（第 598 行）
@@ -24,7 +48,7 @@
 
 ## v2.13 — 2026-03-07
 
-六代理深度審核全面修正（3 CRITICAL + 8 HIGH + 9 MEDIUM + 6 LOW）：
+多輪代理深度審核全面修正（六代理並行評估）（3 CRITICAL + 8 HIGH + 9 MEDIUM + 6 LOW）：
 
 - **CRITICAL**：修正 CLAUDE.md 中 guides/24 行數（1,775→900）和版本號（v2.1→v2.12）
 - **CRITICAL**：guides/09 補充 Ecticket 無 PHP SDK 範例的說明及替代方案

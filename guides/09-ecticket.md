@@ -49,6 +49,11 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 | 正式環境 | `https://ecticket.ecpay.com.tw` |
 | 回應結構 | 三層 JSON（TransCode → 解密 Data → RtnCode） |
 | 測試帳號 | 需向綠界客服個別申請（無公開測試帳號） |
+| NotifyURL 回應格式 | 收到核退通知後，回應純字串 `1\|OK`（text/plain）|
+
+> **核退通知（NotifyURL）**：電子票證退款/核退時，ECPay 會 POST 通知你的 NotifyURL。
+> 驗證方式：AES 解密 Data 欄位（與發送 API 相同的 HashKey/HashIV）。
+> 必須回應純字串 `1\|OK`，否則約每 2 小時重試。詳見 [guides/22 §Callback 總覽表](./22-webhook-events-reference.md)。
 
 ## 模式選擇決策樹
 

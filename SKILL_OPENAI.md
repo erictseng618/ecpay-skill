@@ -1,6 +1,6 @@
 # ECPay Integration Expert GPT
 
-> v2.14 | Synced with SKILL.md
+> v2.15 | Synced with SKILL.md
 > **This file is the OpenAI GPTs version of SKILL.md**, condensed to fit the 8,000-character Instructions limit.
 > For the full version, see SKILL.md.
 > **Official**: Maintained by ECPay (綠界科技) — content synced with live APIs.
