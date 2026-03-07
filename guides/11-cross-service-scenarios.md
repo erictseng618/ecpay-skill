@@ -149,57 +149,19 @@ ECPAY_LOGISTICS_HASH_IV=v77hoKGq4kWxNNIS
 
 ### 步驟 1：建立定期定額
 
-> 參考：`scripts/SDK_PHP/example/Payment/Aio/CreatePeriodicOrder.php`
+必填欄位：`PeriodAmount`、`PeriodType`（D/W/M/Y）、`Frequency`、`ExecTimes`、`PeriodReturnURL`。
 
-```php
-$input = [
-    'MerchantID'       => '3002607',
-    'MerchantTradeNo'  => 'SUB' . time(),
-    'MerchantTradeDate'=> date('Y/m/d H:i:s'),
-    'PaymentType'      => 'aio',
-    'TotalAmount'      => 499,
-    'TradeDesc'        => '月訂閱方案',
-    'ItemName'         => 'Pro 月訂閱',
-    'ReturnURL'        => 'https://你的網站/ecpay/payment-notify',
-    'ChoosePayment'    => 'Credit',
-    'EncryptType'      => 1,
-    'PeriodAmount'     => 499,
-    'PeriodType'       => 'M',
-    'Frequency'        => 1,
-    'ExecTimes'        => 12,
-    'PeriodReturnURL'  => 'https://你的網站/ecpay/period-notify',
-];
-```
+> 完整 PHP 範例請參考：`scripts/SDK_PHP/example/Payment/Aio/CreatePeriodicOrder.php`
 
 ### 步驟 3-4：每期通知 + 開票
 
-```php
-// PeriodReturnURL handler
-$result = $checkoutResponse->get($_POST);
-
-if ($result['RtnCode'] === '1') {
-    // 本期授權成功，開立發票
-    issueMonthlyInvoice($result['MerchantTradeNo'], 499);
-}
-```
+PeriodReturnURL 接收每期授權結果：`RtnCode=1` 表示本期授權成功，此時呼叫發票開立 API（見場景一步驟 3）。
 
 ### 步驟 5：失敗處理
 
-> 參考：`scripts/SDK_PHP/example/Payment/Aio/CreditCardPeriodAction.php`
+Action 欄位：`ReAuth`（重新授權）或 `Cancel`（取消訂閱）。連續 6 次授權失敗會自動取消。
 
-```php
-// 重新授權
-$input = [
-    'MerchantID'      => '3002607',
-    'MerchantTradeNo' => '訂閱訂單編號',
-    'Action'          => 'ReAuth',
-    'TimeStamp'       => time(),
-];
-// 或取消
-$input['Action'] = 'Cancel';
-```
-
-**注意**：連續 6 次授權失敗會自動取消。
+> 完整 PHP 範例請參考：`scripts/SDK_PHP/example/Payment/Aio/CreditCardPeriodAction.php`
 
 ## 場景三：綁卡快速付款（ECPG + 發票）
 
@@ -221,26 +183,9 @@ $input['Action'] = 'Cancel';
 
 ### 步驟 2：扣款
 
-> 參考：`scripts/SDK_PHP/example/Payment/Ecpg/CreatePaymentWithCardID.php`
+必填欄位：`BindCardID`（綁卡後取得）、`OrderInfo.MerchantTradeNo`、`OrderInfo.TotalAmount`、`ConsumerInfo.MerchantMemberID`。資料需 AES-JSON 加密（見 [guides/14](./14-aes-encryption.md)）。
 
-```php
-$input['Data'] = [
-    'MerchantID' => '3002607',
-    'BindCardID' => '之前綁卡取得的ID',
-    'OrderInfo'  => [
-        'MerchantTradeNo' => 'PAY' . time(),
-        'TotalAmount'     => 350,
-        'TradeDesc'       => '快速結帳',
-        'ItemName'        => '外送餐點',
-        'ReturnURL'       => 'https://你的網站/ecpay/notify',
-        'MerchantTradeDate'=> date('Y/m/d H:i:s'),
-    ],
-    'ConsumerInfo' => [
-        'MerchantMemberID' => 'member001',
-        'Email' => 'user@example.com',
-    ],
-];
-```
+> 完整 PHP 範例請參考：`scripts/SDK_PHP/example/Payment/Ecpg/CreatePaymentWithCardID.php`
 
 ### 步驟 3：扣款成功後開票
 
@@ -263,66 +208,27 @@ $input['Data'] = [
 
 ### 步驟 1：退款
 
-> 參考：`scripts/SDK_PHP/example/Payment/Aio/Capture.php`
+呼叫 DoAction API，`Action=R` 退款，`Action=N` 取消授權。需提供 `MerchantTradeNo`、`TradeNo`（綠界交易編號）、`TotalAmount`。
 
-```php
-$input = [
-    'MerchantID'      => '3002607',
-    'MerchantTradeNo' => '原訂單編號',
-    'TradeNo'         => '綠界交易編號',
-    'Action'          => 'R',       // R=退款
-    'TotalAmount'     => 500,       // 退款金額
-];
-$response = $postService->post($input, 'https://payment-stage.ecpay.com.tw/CreditDetail/DoAction');
-```
+> 完整 PHP 範例請參考：`scripts/SDK_PHP/example/Payment/Aio/Capture.php`
 
 ### 步驟 2A：部分退款 → 折讓
 
-> 參考：`scripts/SDK_PHP/example/Invoice/B2C/Allowance.php`
+必填欄位：`InvoiceNo`、`InvoiceDate`、`AllowanceAmount`、`Items`（含 ItemSeq/ItemName/ItemCount/ItemWord/ItemPrice/ItemAmount）。
 
-```php
-$data = [
-    'MerchantID'      => '2000132',
-    'InvoiceNo'       => '原發票號碼',
-    'InvoiceDate'     => '原發票日期',
-    'AllowanceNotify' => 'E',
-    'NotifyMail'      => 'customer@example.com',
-    'AllowanceAmount' => 500,
-    'Items'           => [
-        ['ItemSeq' => 1, 'ItemName' => '退貨商品', 'ItemCount' => 1,
-         'ItemWord' => '件', 'ItemPrice' => 500, 'ItemAmount' => 500],
-    ],
-];
-```
+> 完整 PHP 範例請參考：`scripts/SDK_PHP/example/Invoice/B2C/Allowance.php`
 
 ### 步驟 2B：全額退款 → 作廢
 
-> 參考：`scripts/SDK_PHP/example/Invoice/B2C/Invalid.php`
+必填欄位：`InvoiceNo`、`InvoiceDate`、`Reason`。
 
-```php
-$data = [
-    'MerchantID'  => '2000132',
-    'InvoiceNo'   => '原發票號碼',
-    'InvoiceDate' => '原發票日期',
-    'Reason'      => '全額退貨',
-];
-```
+> 完整 PHP 範例請參考：`scripts/SDK_PHP/example/Invoice/B2C/Invalid.php`
 
 ### 步驟 3：物流退貨
 
-> 參考：`scripts/SDK_PHP/example/Logistics/Domestic/ReturnFamiCvs.php` 或 `ReturnHome.php`
+必填欄位：`GoodsAmount`、`ServiceType`（超商類型代碼）、`SenderName`、`ServerReplyURL`。
 
-超商退貨：
-```php
-$input = [
-    'MerchantID'     => '2000132',
-    'GoodsAmount'    => 500,
-    'ServiceType'    => '4',
-    'SenderName'     => '退貨人',
-    'ServerReplyURL' => 'https://你的網站/ecpay/return-notify',
-];
-$response = $postService->post($input, 'https://logistics-stage.ecpay.com.tw/express/ReturnCVS');
-```
+> 完整 PHP 範例請參考：`scripts/SDK_PHP/example/Logistics/Domestic/ReturnFamiCvs.php`（超商）或 `scripts/SDK_PHP/example/Logistics/Domestic/ReturnHome.php`（宅配）
 
 ## 跨服務帳號對照
 
