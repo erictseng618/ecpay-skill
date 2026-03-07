@@ -1,5 +1,33 @@
 # ECPay Skill 更新紀錄
 
+## v2.18 — 2026-03-07
+
+> 八代理深度審核全數修正（4 CRITICAL DX + 11 AI Section Index + 過度設計精簡 + 企業級補強）
+
+### CRITICAL 修正
+- **guides/00**：帳號混用警告提前至測試帳號標題上方（DX 體驗）
+- **guides/00**：ReturnURL 10 秒超時警告加入 Quick Start 路徑
+- **guides/00**：AES-JSON 雙層狀態碼（TransCode + RtnCode）警告加入 E2E 範例入口
+- **SKILL.md**：版本號 v2.15 → v2.17（延遲版本號修正）
+- **README.md**：版本號 v2.16 → v2.17
+
+### HIGH 修正
+- **guides/13 AI Section Index**：10 語言行號系統性 +1 偏差修正（TypeScript 至 Ruby）、Test vectors +4 修正
+- **guides/24 AI Section Index**：7 語言行號修正（Java +2, C# +2, TypeScript +4, Kotlin +4, Ruby +4, Swift +4, Rust +4）
+- **guides/11**：場景二至四完整 PHP 程式碼精簡（-114 行），改為指向 scripts/SDK_PHP/ 真實路徑
+- **guides/00**：Callback 回應格式對照表加入新手路徑
+- **guides/00**：非 PHP 開發者 guides/20 推薦閱讀提醒
+- **guides/00**：測試信用卡號補充
+
+### MEDIUM 修正
+- **SKILL_OPENAI.md**：補充國內物流（CMV-MD5）Callback 格式 `1|OK`
+- **OPENAI_SETUP.md**：Conversation Starters 由 5 個精簡為 4 個
+- **OPENAI_SETUP.md**：Knowledge Files 上限提醒（20/20 已滿）
+- **guides/23**：補充 Rate Limiting reference 引用
+- **guides/05**：B2B 發票兩種模式（交換/存證）差異說明
+- **CONTRIBUTING.md**：API 版本演進處理指引
+- **.github/workflows**：新增 validate-references.yml（每週 URL 可達性驗證）
+
 ## v2.17 — 2026-03-07
 
 七代理第二輪深度審核全數修正（1 CRITICAL + 3 HIGH + 1 MEDIUM）：

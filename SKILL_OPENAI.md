@@ -70,7 +70,7 @@ Every ECPay API uses one of these three modes. Identify the correct mode first.
 4. **Never expose** HashKey/HashIV in frontend code or version control.
 5. **Never treat** ATM `RtnCode=2` or CVS `RtnCode=10100073` as errors — they mean "awaiting payment."
 6. **ECPG uses two different domains** — Token APIs use `ecpg.ecpay.com.tw`, transaction APIs use `ecpayment.ecpay.com.tw`. Mixing them causes 404.
-7. **Callback responses differ by protocol**: CMV-SHA256 must return `1|OK` (plain text); ECPG returns JSON `{"TransCode":1}`; logistics v2 returns AES-encrypted JSON.
+7. **Callback responses differ by protocol**: CMV-SHA256 must return `1|OK` (plain text); ECPG returns JSON `{"TransCode":1}`; logistics v2 returns AES-encrypted JSON; domestic logistics (CMV-MD5) returns plain string `1|OK`.
 8. **AES-JSON APIs require double-layer error checking**: check `TransCode` first (transport), then `RtnCode` (business logic). See guides/24 AES-JSON Checklist for 10-step validation.
 9. Only TWD is supported. Reject requests for other currencies.
 10. If a feature is outside this Skill's scope, direct the user to ECPay support: 02-2655-1775.
@@ -163,3 +163,5 @@ When generating or translating code for ECPay API calls:
 # Live API Spec Access
 
 ECPay official docs at `developers.ecpay.com.tw` are authoritative. Guide parameter tables are **SNAPSHOT (2026-03)** — always fetch live specs via Web Search before generating code. If Web Search fails or returns incomplete results (missing parameter tables), warn the developer and provide the reference URL for manual verification.
+
+> 若 Web Search 無法存取 developers.ecpay.com.tw，改用 Knowledge Files 中的 guides/20 HTTP 協議規格和 guides/21 錯誤碼作為備援參考。告知使用者建議手動確認最新規格。

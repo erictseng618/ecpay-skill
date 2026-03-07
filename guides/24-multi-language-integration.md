@@ -2,10 +2,10 @@
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用，行號為近似值）
 Go E2E: line 100-447 (CMV: 102-239, AES: 239-447)
-Java 差異指南: line 450-492 | C# 差異指南: line 494-532
-TypeScript: line 534-591
-Kotlin 差異指南: line 594-634 | Ruby 差異指南: line 636-675
-Swift 差異指南: line 677-715 | Rust 差異指南: line 717-755
+Java 差異指南: line 452-492 | C# 差異指南: line 496-534
+TypeScript: line 538-594
+Kotlin 差異指南: line 598-636 | Ruby 差異指南: line 640-677
+Swift 差異指南: line 681-717 | Rust 差異指南: line 721-758
 Mobile App: line 758-794 | 非 PHP CMV Checklist: line 796-815
 非 PHP AES-JSON Checklist: line 816-833
 E2E 組裝步驟: line 835-846 | C/C++ 注意事項: line 848-893
@@ -19,13 +19,13 @@ E2E 組裝步驟: line 835-846 | C/C++ 注意事項: line 848-893
 | 語言 | CMV-SHA256 (AIO) | AES-JSON (發票) | 類型 | 行號範圍 |
 |------|:-:|:-:|:-:|---------|
 | **Go** | ✅ Web Server | ✅ B2C 發票 | 完整 E2E | line 100-447 |
-| **Java** | ✅ | ✅ | 差異指南 | line 450-492 |
-| **C#** | ✅ | ✅ | 差異指南 | line 494-532 |
-| **TypeScript** | → Node.js | → Node.js | 型別定義 | line 534-591 |
-| **Kotlin** | ✅ | ✅ | 差異指南 | line 594-634 |
-| **Ruby** | ✅ | ✅ | 差異指南 | line 636-675 |
-| **Swift** | ✅ | ✅ | 差異指南 | line 677-715 |
-| **Rust** | ✅ | ✅ | 差異指南 | line 717-755 |
+| **Java** | ✅ | ✅ | 差異指南 | line 452-492 |
+| **C#** | ✅ | ✅ | 差異指南 | line 496-534 |
+| **TypeScript** | → Node.js | → Node.js | 型別定義 | line 538-594 |
+| **Kotlin** | ✅ | ✅ | 差異指南 | line 598-636 |
+| **Ruby** | ✅ | ✅ | 差異指南 | line 640-677 |
+| **Swift** | ✅ | ✅ | 差異指南 | line 681-717 |
+| **Rust** | ✅ | ✅ | 差異指南 | line 721-758 |
 | **Python** | ✅ | ✅ | 完整 E2E | → [guides/00](./00-getting-started.md) §Quick Start |
 | **Node.js** | ✅ | ✅ | 完整 E2E | → [guides/00](./00-getting-started.md) §Quick Start |
 | **Mobile App** | — | — | iOS + Android 指引 | line 758-794 |

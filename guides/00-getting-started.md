@@ -231,6 +231,10 @@ func main() {
 
 > CheckMacValue 完整實作見 [guides/13 §Go](./13-checkmacvalue.md)。AES 加解密見 [guides/14 §Go](./14-aes-encryption.md)。
 
+> ⚠️ **CRITICAL：帳號不可混用**
+> 金流 / 物流 / 電子發票各自使用完全不同的 MerchantID + HashKey + HashIV。
+> 混用 = CheckMacValue 驗證永遠失敗。請確認你的服務使用下表正確的帳號。
+
 ## 測試帳號
 
 測試帳號一覽表（含 MerchantID、HashKey、HashIV、加密方式）見 [SKILL.md §測試帳號](../SKILL.md)。
@@ -393,6 +397,10 @@ echo $autoSubmitFormService->generate(
 4. 消費者被導回你的網站
 
 ### 步驟 2：處理付款結果（ReturnURL）
+
+> ⚠️ **ReturnURL 必須在 10 秒內回應 `1|OK`**
+> 耗時操作（發信、開發票、更新庫存）必須非同步處理，不可在 ReturnURL handler 中同步等待。
+> 超時 = 綠界視為失敗並重試。
 
 > 原始範例：`scripts/SDK_PHP/example/Payment/Aio/GetCheckoutResponse.php`
 
@@ -720,6 +728,11 @@ ECPay 的 ReturnURL 是 server-to-server 回呼，你的本地伺服器需要一
 ---
 
 ## AES-JSON 端到端範例（非 PHP 語言必讀）
+
+> ⚠️ **AES-JSON 服務有兩層狀態碼，兩層都必須檢查**
+> - `TransCode=1`：傳輸層成功（API 呼叫成功）
+> - `RtnCode=1`：業務層成功（交易/開票成功）
+> 只檢查 TransCode=1 不代表交易成功，必須解密回應後再驗證 RtnCode=1。
 
 > **⚠️ 以下為 AES-JSON 範例**（用於 ECPG/發票/物流 v2/幕後授權/跨境物流/電子票證）。
 > 如果你只需要 AIO 金流（CMV-SHA256），上方的 Quick Start 已足夠，可跳過此區段。

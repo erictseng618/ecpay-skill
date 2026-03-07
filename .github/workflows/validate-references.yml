@@ -1,0 +1,32 @@
+name: Validate Reference URLs
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # 每週一 UTC 02:00
+  workflow_dispatch:       # 支援手動觸發
+
+jobs:
+  check-urls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract and check URLs from references
+        run: |
+          echo "Checking URLs in references/ directory..."
+          FAILED=0
+          while IFS= read -r url; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>/dev/null || echo "000")
+            if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
+              echo "FAIL [$STATUS] $url"
+              FAILED=$((FAILED + 1))
+            fi
+          done < <(grep -oh 'https://[^)\">\s]*ecpay[^)\">\s]*' references/**/*.md | sort -u)
+
+          echo "---"
+          if [ $FAILED -gt 0 ]; then
+            echo "WARNING: $FAILED URL(s) may be unreachable. Please verify manually."
+            exit 0  # 非阻斷性，只警告
+          else
+            echo "All checked URLs are reachable."
+          fi

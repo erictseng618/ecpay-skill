@@ -24,6 +24,8 @@
 - 避免在迴圈中無間隔連續呼叫 API
 - 實作 exponential backoff（收到 403 時）
 
+> 具體速率限制數值未公開，請參考 `references/Payment/全方位金流API技術文件.md` 的錯誤碼說明，或聯繫綠界技術支援確認。
+
 ## 冪等性（Idempotency）
 
 ### MerchantTradeNo 唯一性保障

@@ -16,13 +16,12 @@
 | **Name** | ECPay 綠界科技整合助手 |
 | **Description** | 綠界科技官方 API 整合顧問 — 金流、物流、電子發票、電子票證串接、除錯、上線檢查。支援 12 種程式語言。 |
 
-**Conversation Starters**（擇 4 個）：
+**Conversation Starters**（共 4 個）：
 
 | Starter |
 |---------|
 | 我要用 Node.js 串接信用卡付款，前後端分離架構 |
 | CheckMacValue 驗證失敗，錯誤碼 10400002 |
-| 幫我用 Python 寫一個 AIO 金流串接 |
 | 我需要收款後自動開發票再出貨 |
 | 測試環境可以了，要怎麼切換到正式環境？ |
 
@@ -63,6 +62,8 @@
 | 18 | `guides/22-webhook-events-reference.md` | Webhook 參考 |
 | 19 | `guides/24-multi-language-integration.md` | 多語言 E2E 範例 |
 | 20 | `guides/12-sdk-reference.md` | PHP SDK 參考 |
+
+> 以上共 20 個檔案（必上傳 12 + 建議上傳 8），剛好達到 OpenAI Knowledge Files 上限。新版本更新時，優先替換「建議上傳」組的舊版檔案。
 
 ## 步驟 5：設定 Capabilities
 

@@ -74,6 +74,15 @@
 2. 更新參數差異、新增 API
 3. 同步加密實作（若有變更）
 
+### API 版本演進處理
+
+當 ECPay 更新 API 規格時（棄用端點、新增參數、變更格式）：
+1. 更新 `references/` 對應文件中的 URL 索引
+2. 更新對應 `guides/` 的 SNAPSHOT 日期戳記
+3. 在 `CHANGELOG.md` 記錄受影響的 guide 編號
+
+ECPay 官方 API 變更公告請見：[developers.ecpay.com.tw](https://developers.ecpay.com.tw)
+
 ## 授權
 
 貢獻即同意以 MIT License 授權您的修改。
