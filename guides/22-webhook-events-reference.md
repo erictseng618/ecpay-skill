@@ -12,6 +12,20 @@
 > **⚠️ 認證方式依服務而異**：金流 AIO → SHA256，國內物流 → **MD5**，ECPG / 發票 / 物流 v2 / 票證 → AES 解密（無 CheckMacValue）。
 > 錯用演算法（如把國內物流當 SHA256 計算）會導致所有 callback 驗證永遠失敗。
 
+## ⚡ Callback 回應格式快速核查卡
+
+> 回應格式錯誤 → ECPay 持續重試通知（AIO 每 5-15 分鐘、最多 4 次/天），可能導致重複入帳。
+
+| 服務 | 你的 Callback URL | 必須回應的格式 | 錯誤後果 |
+|------|-----------------|--------------|---------|
+| AIO 金流 | ReturnURL | `1\|OK` | 重試通知 |
+| ECPG 站內付 | OrderResultURL | `{ "TransCode": 1 }` | 重試通知 |
+| 國內物流 | ServerReplyURL | `1\|OK` | 重試通知 |
+| 全方位 / 跨境物流 | ServerReplyURL | AES 加密 JSON | 重試通知 |
+| 電子票證 | NotifyURL | `1\|OK` | 重試通知 |
+
+**重要**：確認你的回應 HTTP Status 為 **200**，否則 ECPay 視為失敗。
+
 ## ⚠️ Callback 回應格式速查（跨服務整合必讀）
 
 **各服務要求不同的回應格式，回應錯誤會導致綠界持續重送。**
@@ -685,6 +699,23 @@ WHERE payment_notifications.rtn_code != '1';  -- 已成功的不覆蓋
 INSERT INTO logistics_callbacks (allpay_logistics_id, rtn_code, merchant_trade_no, logistics_type, logistics_sub_type, raw_payload)
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (allpay_logistics_id, rtn_code) DO NOTHING;
+```
+
+> 上方範例為 PostgreSQL 語法（`$1` 佔位符 + `ON CONFLICT`）。其他資料庫等價寫法：
+
+#### MySQL 等價寫法
+
+```sql
+INSERT INTO payment_notifications (merchant_trade_no, status, received_at)
+VALUES ('MN20240301001', 'paid', NOW())
+ON DUPLICATE KEY UPDATE status = VALUES(status);
+```
+
+#### SQLite 等價寫法
+
+```sql
+INSERT OR IGNORE INTO payment_notifications (merchant_trade_no, status, received_at)
+VALUES ('MN20240301001', 'paid', datetime('now'));
 ```
 
 ### Node.js 冪等 Callback Handler

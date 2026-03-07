@@ -154,6 +154,13 @@ MerchantID=3002607&MerchantTradeNo=TEST20260305001&MerchantTradeDate=2026%2f03%2
 
 解密（回應）：Base64 decode → AES-128-CBC 解密 → URL decode → JSON parse
 
+> ⚠️ **AES-JSON 的 URL Encode 規則與 CMV 不同**
+>
+> - **CMV（SHA256/MD5）**：`urlencode()` 標準編碼，空格→`+`，再替換為 `%20`
+> - **AES-JSON**：請求體為 JSON，**不做 URL Encode**；Data 欄位內的業務 JSON 需 URL Encode 後再 AES 加密；回應 Body 解密後需 URL Decode
+>
+> 若在 AES-JSON 請求中套用 CMV 的 URL Encode 邏輯，AES 解密將失敗。詳見 [guides/14 §AES vs CMV URL Encode 對比表](./14-aes-encryption.md)。
+
 詳細演算法與 12 語言實作見 [guides/14-aes-encryption.md](./14-aes-encryption.md)。
 
 #### 原始 HTTP 請求範例（B2C 發票開立）

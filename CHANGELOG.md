@@ -1,5 +1,38 @@
 # ECPay Skill 更新紀錄
 
+## v2.20 — 2026-03-07
+
+> 十代理深度審核全數修正（6 CRITICAL + 7 HIGH + 8 MEDIUM + 4 LOW）
+
+### CRITICAL 修正
+- **SKILL.md**：版本號 v2.19 → v2.20（同步更新）
+- **README.md**：補入 v2.18、v2.19 缺失更新記錄條目，更新版本重點至 v2.20
+- **guides/24**：AI Section Index 全 17 個區段行號從「近似值」改為精確行號（2026-03-07 校準）
+- **guides/13**：全 12 種語言補統一「⚠️ 語言特有陷阱」標頭，同步更新 AI Section Index
+- **guides/09**：Ecticket 無官方 PHP 範例說明強化為獨立 blockquote，補充 Invoice/B2C 替代方案；新建 `scripts/SDK_PHP/example/Ecticket/README.md`
+- **guides/22**：頂部新增「Callback 回應格式快速核查卡」（防止 3 種格式混淆導致 ECPay 無窮重試）
+
+### HIGH 修正
+- **README.md**：「v2.19 重點」段落更新為「v2.20 重點」
+- **guides/01**：新增「ReturnURL Handler 效能核查清單」（10 秒超時防護 5 項 checklist）
+- **guides/02**：頂部新增 ECPG 雙 Domain 速查卡（Token API vs 交易/查詢 API domain 分離警告）
+- **guides/20**：AES-JSON 協議區段補充「AES URL Encode 與 CMV 不同」警告
+- **guides/14**：測試向量後補充「跨語言一致性驗證」指引（Python→Go、Node.js→Java 交叉驗證）
+- **guides/03**：幕後授權無官方 SDK 範例聲明強化為明確 blockquote
+- **guides/17**：POS 使用 TCP/IP 無 SDK 範例聲明 | **guides/18**：直播收款手寫範例非官方 SDK 聲明
+
+### MEDIUM 修正
+- **guides/13 + guides/14**：Rust/Swift/C/C++ 各補充推薦加密庫說明
+- **guides/22**：補充 MySQL `ON DUPLICATE KEY UPDATE` 和 SQLite `INSERT OR IGNORE` 冪等性 SQL
+- **guides/21**：新增錯誤碼快速查找 ASCII 決策樹（數字錯誤碼 / AES-JSON 雙層碼 / ErrorMessage 分流）
+- **SECURITY.md**：timing-safe 比較獨立為「必須項」章節，含 7 語言對照表
+- **guides/23**：Rate Limiting 200ms 數值標注「社群觀察建議值，非 ECPay 官方公告」+ CMV/AES 協議差異說明
+- **guides/12**：補充目標讀者（PHP SDK 使用者）+ 非 PHP / 不用 SDK 開發者跳過指引
+
+### LOW 修正
+- **guides/10**：新增「何時選用購物車外掛」決策表（已用主流平台 / 自訂開發 / 高度客製化 3 情境）
+- **guides/11**：新增本指南與各 Service Guide 關係說明及建議閱讀順序（先全局後細節）
+
 ## v2.19 — 2026-03-07
 
 > 九代理深度審核全數修正（版本號同步 + 5 HIGH + 2 MEDIUM）

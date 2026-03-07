@@ -2,6 +2,15 @@
 
 # 站內付 2.0 ECPG 完整指南
 
+> ⚠️ **ECPG 使用兩個不同 Domain — 打錯立得 HTTP 404**
+>
+> | API 類別 | 測試 Domain | 正式 Domain |
+> |---------|------------|------------|
+> | Token 取得 API | `ecpg-stage.ecpay.com.tw` | `ecpg.ecpay.com.tw` |
+> | 交易 / 查詢 / 請款 / 退款 API | `ecpayment-stage.ecpay.com.tw` | `ecpayment.ecpay.com.tw` |
+>
+> 先確認 Domain 再開始撰寫程式碼。
+
 ## 概述
 
 ECPG（站內付 2.0）讓付款體驗嵌入你自己的頁面，消費者不需要跳轉到綠界。使用 AES 加密和 JSON 格式。適合需要自訂付款 UI 或綁卡功能的場景。

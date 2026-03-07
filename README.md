@@ -2,7 +2,7 @@
 
 > **綠界科技官方出品** — 由 ECPay 團隊開發與維護，內容與 API 同步更新。
 
-**當前版本：v2.19** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
+**當前版本：v2.20** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
 
 ### 前置需求
 
@@ -296,7 +296,7 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 
 > 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)
 
-**v2.17 重點**：七代理第二輪交叉驗證 — ECPG Callback 端點名稱修正（CRITICAL）、SKILL.md/SKILL_OPENAI.md section 參照修正、OPENAI_SETUP.md 版本同步。
+**v2.20 重點**：十代理深度審核全數修正 — 6 CRITICAL（版本號同步、AI Index 精確化、Callback 核查卡、12語言陷阱標頭、Ecticket 說明強化）+ 7 HIGH + 8 MEDIUM + 4 LOW，全面補強 DX、多語言加密、企業級安全與資源引用完整性。
 
 | 日期 | 版本 | 變更摘要 |
 |------|------|---------|
@@ -311,6 +311,9 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 | 2026-03-07 | v2.15 | 七代理第三輪審核：ECPG 雙 Domain 警告強化、CheckMacValue 摘要嵌入、本地開發對比表 |
 | 2026-03-07 | v2.16 | 七代理全面審核：Callback 格式速查、SKILL_OPENAI 完整索引、語言陷阱表、版本同步修正 |
 | 2026-03-07 | v2.17 | 七代理交叉驗證：ECPG Callback 端點修正（CRITICAL）、section 參照修正、版本同步 |
+| 2026-03-07 | v2.18 | 八代理深度審核全數修正（4 CRITICAL DX + 11 AI Section Index + 過度設計精簡 + 企業級補強） |
+| 2026-03-07 | v2.19 | 九代理深度審核全數修正（版本號同步 + 5 HIGH + 2 MEDIUM） |
+| 2026-03-07 | v2.20 | 十代理深度審核全數修正（6 CRITICAL + 7 HIGH + 8 MEDIUM + 4 LOW，DX/多語言/企業安全全面補強） |
 
 ## 相關資源
 

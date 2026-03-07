@@ -1,6 +1,11 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 >
-> **適用對象**：PHP 開發者。非 PHP 開發者請直接參考 [guides/20 HTTP 協議參考](./20-http-protocol-reference.md) 了解 API 細節。
+> **目標讀者**：使用 ECPay 官方 PHP SDK（Composer 安裝）的 PHP 開發者。
+>
+> **非 PHP 開發者**：本指南可跳過，改讀 [guides/20 HTTP 協議參考](./20-http-protocol-reference.md) 直接實作 HTTP 請求。
+>
+> **PHP 開發者（不用 SDK）**：本指南可跳過，直接參考 [scripts/SDK_PHP/example/](../scripts/SDK_PHP/example/) 中的 134 個 PHP 範例。
+>
 > **API 規格來源**：`references/` 目錄包含所有服務的官方 API 文件 URL 索引，SDK Service 與 API 端點的對應請參閱各 reference 檔案。
 
 # PHP SDK 完整參考

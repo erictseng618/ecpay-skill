@@ -614,6 +614,8 @@ func AesDecrypt(cipherText, hashKey, hashIv string) (map[string]interface{}, err
 
 ### C
 
+> **C/C++ 推薦庫**：OpenSSL EVP 介面（`EVP_aes_128_cbc()`）
+
 > :lock: 此實作在 `free()` 前使用 `OPENSSL_cleanse()` 清除敏感資料，防止記憶體殘留。
 
 > :warning: 本實作使用 OpenSSL EVP 介面。若您使用 OpenSSL 3.0+，請確認未使用已 deprecated 的低階 AES API（如 `AES_set_encrypt_key`）。
@@ -768,6 +770,8 @@ char* ecpay_aes_decrypt(const char* cipher_text, const char* hash_key, const cha
 
 ### C++
 
+> **C/C++ 推薦庫**：OpenSSL EVP 介面（`EVP_aes_128_cbc()`）
+
 > :warning: 本實作使用 OpenSSL EVP 介面。若您使用 OpenSSL 3.0+，請確認未使用已 deprecated 的低階 AES API（如 `AES_set_encrypt_key`）。
 
 ```cpp
@@ -921,6 +925,8 @@ std::string ecpayAesDecrypt(const std::string& cipherText,
 
 ### Rust
 
+> **Rust 推薦庫**：`aes` + `cbc` + `pkcs7` (RustCrypto 生態)
+
 > **JSON 序列化注意**：`serde_json` 使用 struct 欄位定義順序（穩定）。
 > 若使用 `serde_json::Map`，key 會按字母序排列。
 > 預設不轉義 HTML 字元，預設產生 compact JSON（不含多餘空格）。
@@ -984,6 +990,8 @@ serde_json = "1"
 ---
 
 ### Swift
+
+> **Swift 推薦庫**：`CommonCrypto`（內建，使用 `CCCrypt`）；`CryptoKit` 僅適用於 AES-GCM，**不支援** ECPay 所需的 AES-CBC 模式。
 
 > **為何不用 CryptoKit？** CryptoKit（iOS 13+）不直接支援 AES-CBC with PKCS7 padding。
 > CryptoKit 的 `AES.GCM` 使用 GCM 模式，而 ECPay 要求 CBC 模式。
@@ -1291,6 +1299,17 @@ Step 2 URL encode：`%7B%22Name%22%3A%22test%21%2A%27%28%29%7Evalue%22%7D`
 > **關鍵陷阱**：PHP `urlencode()` 不編碼 `-`、`_`、`.`（它們是 safe characters）。
 > 各語言的 URL encode 函式必須保持一致行為，否則加密結果不同導致 ECPay 解密失敗。
 > 此向量可偵測白名單遺漏問題（如 C++ 的 `isalnum` 不含這三個字元）。
+
+### 跨語言一致性驗證
+
+> 若你的系統中有多個語言服務需要互相驗證 AES 加密結果，請使用以下測試向量確認互操作性。
+
+用上方測試向量驗證：
+1. **Python 加密 → Go 解密**：Python 的 `encrypt()` 輸出應能被 Go 的 `decrypt()` 正確還原
+2. **Node.js 加密 → Java 解密**：同上原則
+3. 若互相解密失敗，通常是 **PKCS7 Padding** 或 **Base64 編碼格式**不一致
+
+快速診斷：比較各語言加密後的 Base64 長度——相同明文/金鑰的 Base64 長度必須完全相同。
 
 ## 常見錯誤
 

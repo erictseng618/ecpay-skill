@@ -6,6 +6,8 @@
 > **本指南為初步整合指引**，提供 POS 串接的概念說明和官方文件索引。
 > POS 刷卡機為硬體設備，需搭配特定通訊協議，詳細技術規格見
 > `references/Payment/刷卡機POS串接規格.md`。
+>
+> **注意**：POS 串接使用 TCP/IP 協議，非 HTTP API，`scripts/SDK_PHP/example/` 目錄中無對應範例。請參照 `references/Payment/刷卡機POS串接規格.md` 的協議規格自行實作。
 
 ## 概述
 

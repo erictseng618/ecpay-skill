@@ -19,8 +19,7 @@
 
 > **大多數開發者不需要幕後 API**。如果你的使用者會在網頁/App 上操作，請使用 [AIO](./01-payment-aio.md) 或 [ECPG](./02-payment-ecpg.md)。
 
-> **透明度說明**：PHP SDK 官方範例中不包含幕後授權的獨立範例。
-> 本指南中的程式碼片段基於 ECPG SDK 模式改寫，並參考官方 API 技術文件 [references/Payment/信用卡幕後授權API技術文件.md](../references/Payment/信用卡幕後授權API技術文件.md) 驗證。
+> **注意**：本指南所有 PHP 程式碼範例為依據官方 API 文件手寫，未包含在 `scripts/SDK_PHP/example/` 官方範例中。程式碼已參照 `references/Payment/信用卡幕後授權API技術文件.md` 驗證，但建議在測試環境完整驗證後再部署正式環境。
 
 ## 前置需求
 

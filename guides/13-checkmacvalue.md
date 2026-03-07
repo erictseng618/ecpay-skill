@@ -1,11 +1,11 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 103-154 | Node.js: line 155-212 | TypeScript: line 213-277
-Java: line 278-338 | C#: line 339-416 | Go: line 417-490
-C: line 491-653 | C++: line 654-770 | Rust: line 771-846
-Swift: line 847-925 | Kotlin: line 926-983 | Ruby: line 984-1033
-Test vectors: line 1034-1145
+Python: line 103-157 | Node.js: line 158-219 | TypeScript: line 220-287
+Java: line 288-352 | C#: line 353-434 | Go: line 435-511
+C: line 512-680 | C++: line 681-803 | Rust: line 804-884
+Swift: line 885-969 | Kotlin: line 970-1030 | Ruby: line 1031-1080
+Test vectors: line 1081-1192
 -->
 
 # CheckMacValue 完整解說
@@ -102,6 +102,9 @@ SDK 已自動處理 CheckMacValue：
 
 ### Python
 
+> ⚠️ **Python 特有陷阱**
+> - `quote_plus()` 不編碼 `~`，需手動替換 `~` → `%7e`（PHP `urlencode('~')` 輸出 `%7E`）
+
 ```python
 import hashlib
 import hmac
@@ -153,6 +156,10 @@ def verify_check_mac_value(
 ---
 
 ### Node.js
+
+> ⚠️ **Node.js 特有陷阱**
+> - `encodeURIComponent` 不編碼 `!'()*`，需額外替換 `%20→+`、`~→%7e`、`'→%27`
+> - 不可直接用 `==` 比較，需用 `crypto.timingSafeEqual`（長度不同時須獨立判斷）
 
 ```javascript
 const crypto = require('crypto');
@@ -211,6 +218,9 @@ module.exports = { ecpayUrlEncode, generateCheckMacValue, verifyCheckMacValue };
 ---
 
 ### TypeScript
+
+> ⚠️ **TypeScript 特有陷阱**
+> - 與 Node.js 相同：`encodeURIComponent` 不編碼 `!'()*`，需額外替換 `%20→+`、`~→%7e`、`'→%27`
 
 ```typescript
 import crypto from 'crypto';
@@ -277,6 +287,10 @@ export type { EcpayParams, HashMethod };
 
 ### Java
 
+> ⚠️ **Java 特有陷阱**
+> - `URLEncoder.encode` 將空格編碼為 `+`（與 PHP 一致），但部分 JVM 不編碼 `~`，需手動補 `~→%7e`
+> - JDK 8 的 `URLEncoder.encode(s, "UTF-8")` 與 JDK 10+ 的 `URLEncoder.encode(s, StandardCharsets.UTF_8)` 行為相同，但後者在舊版本無法編譯
+
 ```java
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -337,6 +351,10 @@ public class EcpayCheckMacValue {
 ---
 
 ### C#
+
+> ⚠️ **C# 特有陷阱**
+> - `.NET Framework` 的 `HttpUtility.UrlEncode` 不編碼 `'`（單引號），`.NET 6+` 會編碼為 `%27`，需用 `.Replace("'", "%27")` 同時相容兩版本
+> - `.NET Core` 需額外安裝 `Microsoft.AspNetCore.WebUtilities`，或改用 `System.Net.WebUtility.UrlEncode()`
 
 ```csharp
 using System;
@@ -416,6 +434,9 @@ public static class EcpayCheckMacValue
 
 ### Go
 
+> ⚠️ **Go 特有陷阱**
+> - `url.QueryEscape` 將空格編碼為 `+`（與 PHP 一致），但不編碼 `~`，需手動補 `~→%7e`
+
 ```go
 package ecpay
 
@@ -489,6 +510,12 @@ func VerifyCheckMacValue(
 ---
 
 ### C
+
+> ⚠️ **C 特有陷阱**
+> - `curl_easy_escape()` 將空格編碼為 `%20`，需替換為 `+`
+> - OpenSSL 3.0+ 已將 `SHA256()`/`MD5()` 標記為 deprecated，建議改用 EVP 介面
+
+> **推薦庫**：OpenSSL 1.1+（`HMAC()` / `EVP` 介面）— 大多數 Linux 環境已預裝
 
 ```c
 #include <openssl/sha.h>
@@ -653,6 +680,12 @@ int verify_check_mac_value(
 
 ### C++
 
+> ⚠️ **C++ 特有陷阱**
+> - 手動 URL encode 時需確認 `~` 被編碼為 `%7e`（直接輸出不編碼的話結果錯誤）
+> - OpenSSL 3.0+ 已將 `SHA256()`/`MD5()` 標記為 deprecated，建議改用 EVP 介面
+
+> **推薦庫**：OpenSSL 1.1+（`HMAC()` / `EVP` 介面）— 大多數 Linux 環境已預裝
+
 ```cpp
 #include <openssl/sha.h>
 #include <openssl/md5.h>
@@ -770,6 +803,11 @@ bool verifyCheckMacValue(
 
 ### Rust
 
+> ⚠️ **Rust 特有陷阱**
+> - `urlencoding::encode()` 將空格編碼為 `%20`，需替換為 `+`；同時不編碼 `~`，需手動補 `~→%7e`
+
+> **推薦庫**：`hmac` + `sha2` (RustCrypto 生態) — `Cargo.toml` 加入 `hmac = "0.12"`, `sha2 = "0.10"`
+
 ```rust
 use sha2::{Sha256, Digest};
 use md5;
@@ -845,6 +883,12 @@ subtle = "2.5"
 ---
 
 ### Swift
+
+> ⚠️ **Swift 特有陷阱**
+> - `addingPercentEncoding()` 將空格編碼為 `%20`，需替換為 `+`
+> - 需使用明確白名單（`CharacterSet`）確保 `~` 等字元被正確編碼
+
+> **推薦庫**：iOS 13+ 使用 `CryptoKit`；若需支援更早版本，改用 `CommonCrypto`（已包含在系統框架，無需額外安裝）
 
 ```swift
 import Foundation
@@ -924,6 +968,9 @@ func verifyCheckMacValue(
 ---
 
 ### Kotlin
+
+> ⚠️ **Kotlin 特有陷阱**
+> - `URLEncoder.encode` 行為與 Java 相同（空格→`+`），但部分 JVM 不編碼 `~`，需手動補 `~→%7e`
 
 ```kotlin
 import java.net.URLEncoder

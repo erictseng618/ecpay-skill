@@ -354,6 +354,18 @@ echo '1|OK';  // 必須回應
 - 重送機制：每 5-15 分鐘重送，每天最多 4 次
 - **10 秒超時**：耗時操作（開發票、建物流單、發通知信）需放入非同步佇列，見 [guides/23](./23-performance-scaling.md) §Webhook 佇列架構
 
+#### ReturnURL Handler 效能核查清單
+
+> ECPay 要求 ReturnURL 必須在 **10 秒內**回應 `1|OK`，逾時視為失敗並重試。
+
+- [ ] Handler 執行時間 < 1 秒（保留 9 秒餘量）
+- [ ] 無外部 HTTP 呼叫（若必要，設定 timeout ≤ 3 秒）
+- [ ] 資料庫操作僅 INSERT/UPDATE（避免複雜 JOIN 查詢）
+- [ ] 耗時操作（發信、開發票）放入非同步佇列，非同步處理
+- [ ] 先回應 `1|OK`，再執行後續業務邏輯
+
+詳細效能設計見 [guides/23 §效能調校](./23-performance-scaling.md)。
+
 ## ATM/CVS/BARCODE 取號通知（PaymentInfoURL）
 
 ATM/CVS/BARCODE 付款是**非同步流程**：建立訂單 → 取得繳費資訊 → 消費者去繳費 → 付款完成通知。

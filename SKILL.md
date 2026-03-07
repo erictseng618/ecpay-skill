@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.19"
+version: "2.20"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
@@ -596,4 +596,4 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 
 ## 更新紀錄
 
-> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.17）
+> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.20）
