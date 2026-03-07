@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.17"
+version: "2.19"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、

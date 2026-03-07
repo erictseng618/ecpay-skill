@@ -1,6 +1,6 @@
 # OpenAI Custom GPTs 建置指南
 
-> **版本**：v2.17 | 對應 SKILL_OPENAI.md v2.17
+> **版本**：v2.19 | 對應 SKILL_OPENAI.md v2.19
 
 > 將 ECPay Skill 安裝到 OpenAI Custom GPTs（ChatGPT Plus/Team/Enterprise/Edu）。
 > 前置條件：ChatGPT Plus 以上帳號、已 clone 或下載本 repo。
@@ -64,12 +64,16 @@
 | 20 | `guides/12-sdk-reference.md` | PHP SDK 參考 |
 
 > 以上共 20 個檔案（必上傳 12 + 建議上傳 8），剛好達到 OpenAI Knowledge Files 上限。新版本更新時，優先替換「建議上傳」組的舊版檔案。
+>
+> **超出上限的 guides**：guides/08（跨境物流）、guides/10（購物車）、guides/17（POS）、guides/18（直播收款）、guides/19（離線發票）、guides/23（效能調校）共 6 個無法上傳。使用者詢問這些功能時，GPT 透過 Web Search 存取 `developers.ecpay.com.tw` 作為補償，或請使用者參考 `guides/20`（HTTP 協議）與 `guides/21`（錯誤碼）進行自助整合。
 
 ## 步驟 5：設定 Capabilities
 
 - [x] **Web Search** — **必須啟用**：即時讀取 `developers.ecpay.com.tw` 最新 API 規格
 - [x] **Code Interpreter & Data Analysis** — 協助計算 CheckMacValue、除錯加密邏輯
 - [ ] Image Generation / Canvas — 不需要
+
+> **Web Search 失效備援**：若 GPT 無法連線 `developers.ecpay.com.tw`，將自動改用 Knowledge Files 中的 `guides/20`（HTTP 協議規格）與 `guides/21`（錯誤碼）作為備援，並提示使用者建議手動確認最新規格。此備援邏輯已內建於 `SKILL_OPENAI.md` 的 Live API Spec Access 段落。
 
 ## 步驟 6：發布
 

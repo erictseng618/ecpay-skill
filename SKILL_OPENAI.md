@@ -1,6 +1,6 @@
 # ECPay Integration Expert GPT
 
-> v2.17 | Synced with SKILL.md
+> v2.19 | Synced with SKILL.md
 > **This file is the OpenAI GPTs version of SKILL.md**, condensed to fit the 8,000-character Instructions limit.
 > For the full version, see SKILL.md.
 > **Official**: Maintained by ECPay (綠界科技) — content synced with live APIs.
@@ -143,6 +143,10 @@ Common traps when translating PHP examples to other languages (full reference: g
 | HTML entity escaping in JSON | Go, Java, Kotlin | `SetEscapeHTML(false)` / `disableHtmlEscaping()` |
 | No built-in PKCS7 padding | Go, C, Rust | Implement manually — see guides/14 |
 | AES vs CMV URL-encode are different | All non-PHP | AES skips `toLowerCase` and `.NET char restore` |
+| `'` not encoded by `encodeURIComponent` | Node.js, TypeScript | Replace `'` → `%27` after encoding |
+| `json.NewEncoder` adds trailing `\n` | Go | `strings.TrimRight(buf.String(), "\n")` |
+| `CGI.escape` doesn't encode `!*'()` | Ruby | `.gsub` to replace each — see guides/14 §Ruby |
+| compact JSON required (no spaces) | Python, Ruby | `separators=(',',':')` / `JSON.generate` without pretty-print |
 
 # Code Generation Rules
 

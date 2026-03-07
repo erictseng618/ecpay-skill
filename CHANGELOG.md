@@ -1,5 +1,22 @@
 # ECPay Skill 更新紀錄
 
+## v2.19 — 2026-03-07
+
+> 九代理深度審核全數修正（版本號同步 + 5 HIGH + 2 MEDIUM）
+
+### CRITICAL 修正
+- **全入口文件**：版本號 v2.17 → v2.19（README.md、SKILL.md、SKILL_OPENAI.md、OPENAI_SETUP.md 與 CHANGELOG 最新版同步）
+
+### HIGH 修正
+- **guides/00**：「開發環境設定」標題後立即加入三服務帳號混用早期警告，確保開發者在看第一行程式碼前即知悉帳號獨立原則（DX 改善）
+- **guides/24**：C/C++ 整合注意事項補充 AIO CMV-SHA256 最小 libcurl POST 骨架，結合 guides/13 §C 加密函式，完整 E2E 流程首次可見
+- **SKILL_OPENAI.md**：Language-Specific Traps 新增 4 項（Node.js/TS `'`→`%27`、Go `json.NewEncoder` 尾部 `\n`、Ruby `CGI.escape` 不編碼 `!*'()`、Python/Ruby compact JSON 無空白）
+- **CONTRIBUTING.md**：新增「版本相容性承諾」段落（同系列向下相容、棄用警告機制、主版本升級通知方式）
+- **OPENAI_SETUP.md**：補充 Web Search 失效備援說明及 Knowledge Files 超限（7 個 guides 無法上傳）的補償機制說明
+
+### MEDIUM 修正
+- **OPENAI_SETUP.md**：明確列出超出 20 檔上限的 guides 清單（08、10、17、18、19、23），說明 Web Search 作為補償管道
+
 ## v2.18 — 2026-03-07
 
 > 八代理深度審核全數修正（4 CRITICAL DX + 11 AI Section Index + 過度設計精簡 + 企業級補強）

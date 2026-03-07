@@ -883,6 +883,77 @@ add_executable(ecpay_cpp main.cpp)
 target_link_libraries(ecpay_cpp cpr::cpr nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto)
 ```
 
+### AIO CMV-SHA256 最小 POST 骨架（C + libcurl）
+
+> 以下展示如何將 [guides/13 §C](./13-checkmacvalue.md) 的加密函式與 libcurl 組合成完整 AIO API 呼叫。
+> `generate_check_mac_value()` 與 `ecpay_url_encode()` 完整實作見 guides/13 §C。
+
+```c
+/* ECPay AIO CMV-SHA256 最小 POST 骨架（C + libcurl）
+   建置：gcc main.c ecpay_cmv.c -lcurl -lssl -lcrypto -o ecpay_demo
+   generate_check_mac_value() 完整實作見 guides/13 §C */
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <curl/curl.h>
+
+/* 來自 guides/13 §C 的函式宣告 */
+char *ecpay_url_encode(CURL *curl, const char *source);
+char *generate_check_mac_value(const char *merchant_id,
+    const char *hash_key, const char *hash_iv,
+    const char **keys, const char **vals, int n);
+
+int main(void) {
+    char trade_no[24];
+    snprintf(trade_no, sizeof(trade_no), "C%ld", (long)time(NULL));
+
+    /* 1. 參數（依 ASCII 不分大小寫排序） */
+    const char *keys[] = {
+        "ChoosePayment", "EncryptType", "ItemName",
+        "MerchantID",    "MerchantTradeDate", "MerchantTradeNo",
+        "PaymentType",   "ReturnURL", "TotalAmount", "TradeDesc"
+    };
+    const char *vals[] = {
+        "ALL", "1", "測試商品",
+        "3002607", "2026/01/01 00:00:00", trade_no,
+        "aio", "https://example.com/notify", "100", "test"
+        /* ⚠️ 正式環境從環境變數讀取 MerchantID / HashKey / HashIV */
+    };
+    int n = 10;
+
+    /* 2. 計算 CheckMacValue（guides/13 §C 實作） */
+    char *cmv = generate_check_mac_value(
+        "3002607", "pwFHCqoQZGmho4w6", "EkRm7iFT261dpevs",
+        keys, vals, n);
+
+    /* 3. 組裝 form-urlencoded POST body */
+    char body[2048] = "";
+    for (int i = 0; i < n; i++) {
+        char buf[256];
+        snprintf(buf, sizeof(buf), "%s%s=%s", i ? "&" : "", keys[i], vals[i]);
+        strncat(body, buf, sizeof(body) - strlen(body) - 1);
+    }
+    snprintf(body + strlen(body), sizeof(body) - strlen(body),
+             "&CheckMacValue=%s", cmv);
+    free(cmv);
+
+    /* 4. libcurl POST（ECPay 回傳含自動送出 <form> 的 HTML 付款頁面） */
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL,
+        "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5");
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
+    CURLcode rc = curl_easy_perform(curl);
+    if (rc != CURLE_OK)
+        fprintf(stderr, "curl error: %s\n", curl_easy_strerror(rc));
+    curl_easy_cleanup(curl);
+    return rc == CURLE_OK ? 0 : 1;
+}
+```
+
+> **ReturnURL Callback**：ECPay 伺服器交易完成後會 POST 至 `ReturnURL`，你的 C 伺服器（或其他語言）必須回應純字串 `1|OK`（無 HTML、無 BOM）。見 [guides/22 §CMV-SHA256 Callback](./22-webhook-events-reference.md)。
+
 ### 已有加密實作參考
 
 - CheckMacValue（SHA256/MD5）：[guides/13-checkmacvalue.md](./13-checkmacvalue.md) C/C++ 區段

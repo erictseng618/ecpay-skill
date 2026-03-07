@@ -83,6 +83,13 @@
 
 ECPay 官方 API 變更公告請見：[developers.ecpay.com.tw](https://developers.ecpay.com.tw)
 
+## 版本相容性承諾
+
+- **v2.x（當前系列）**：同系列版本保持向下相容，不移除現有 guide 結構或加密函式介面
+- **棄用警告**：若 ECPay 官方廢棄某 API 端點，對應 guide 頂部將標注 `⚠️ 已棄用（官方公告：YYYY-MM）`，並維持至少一個版本的過渡說明
+- **主版本升級**（如 v3.x）：提前在 `CHANGELOG.md` 及 `guides/00` 頂部列出破壞性變更清單，讓開發者有足夠時間準備遷移
+- ECPay API 官方棄用公告請見 [developers.ecpay.com.tw](https://developers.ecpay.com.tw)
+
 ## 授權
 
 貢獻即同意以 MIT License 授權您的修改。
