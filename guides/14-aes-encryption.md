@@ -3,9 +3,9 @@
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
 Python: line 217-263 | Node.js: line 264-312 | TypeScript: line 313-367
 Java: line 368-446 | C#: line 447-508 | Go: line 509-614
-C: line 615-768 | C++: line 769-921 | Rust: line 922-985
-Swift: line 986-1060 | Kotlin: line 1061-1109 | Ruby: line 1110-1159
-Test vectors: line 1160-1294 | 常見錯誤: line 1295-1325
+C: line 615-770 | C++: line 771-925 | Rust: line 926-991
+Swift: line 992-1068 | Kotlin: line 1069-1117 | Ruby: line 1118-1167
+Test vectors: line 1168-1313 | 常見錯誤: line 1314-1345
 -->
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
