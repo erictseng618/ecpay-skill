@@ -1,5 +1,20 @@
 # ECPay Skill 更新紀錄
 
+## v2.16 — 2026-03-07
+
+七代理全面審核修正（2 CRITICAL + 4 HIGH + 4 MEDIUM + 5 LOW）：
+
+- **CRITICAL**：guides/00 新增「Callback 回應格式速查表」（AIO 回 `1|OK`、ECPG 回 JSON、全方位物流回 AES 加密 JSON），預防開發者格式錯誤導致無限重試迴圈
+- **HIGH**：SKILL_OPENAI.md Knowledge Files 改為完整表格（補齊 guides/12、17、18、19、23 五個缺項）
+- **HIGH**：SKILL_OPENAI.md 新增「Language-Specific Traps」速查表（8 項關鍵語言陷阱，含修復方式）
+- **HIGH**：guides/24 強化 Python/Node.js 開發者除錯必讀警告（明確標示 guides/13-14 為除錯前置條件）
+- **MEDIUM**：OPENAI_SETUP.md 版本號修正 v2.14 → v2.16（與其他入口文件同步）
+- **MEDIUM**：guides/15 症狀速查表 RtnCode=2 / 10100073 改標為「✅ 正常業務狀態」，消除開發者誤判
+- **MEDIUM**：guides/19 PHP 範例標注來源（基於 references/ API 技術文件，SDK 無獨立 example 檔案）
+- **MEDIUM**：SKILL.md 語言陷阱速查表行號參考改為相對位置（`line 79-163` → `§各語言 URL encode 對比`，防漂移）
+- **LOW**：.github/ISSUE_TEMPLATE 新增 bug.md（一般問題回報）和 feature-request.md（功能建議）
+- **LOW**：SKILL.md 語言陷阱速查表行號參考防漂移修正（L1）
+
 ## v2.15 — 2026-03-07
 
 多輪代理深度審核全面修正（六代理並行評估）：2 CRITICAL + 5 HIGH + 10 MEDIUM + 6 LOW：

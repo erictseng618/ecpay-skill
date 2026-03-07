@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.15"
+version: "2.16"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
@@ -306,7 +306,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 ### 語言特定陷阱（速查）
 
-> 完整的 AES URL encode 對比表見 guides/14 line 79-163。完整的 CheckMacValue 實作見 guides/13。
+> 完整的 AES URL encode 對比表見 guides/14 §各語言 URL encode 對比。完整的 CheckMacValue 實作見 guides/13。
 
 | 類別 | 陷阱 | 影響語言 | 解法 |
 |------|------|---------|------|

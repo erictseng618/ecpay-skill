@@ -70,6 +70,8 @@
 
 在離線前預先取得足夠的發票號碼：
 
+> 注：以下 PHP 範例基於 `references/Invoice/離線電子發票API技術文件.md` 撰寫，官方 PHP SDK 未提供離線發票的獨立 example 檔案。生成程式碼前請 web_fetch 上述 reference 取得最新參數規格。
+
 ```php
 $factory = new Factory([
     'hashKey' => getenv('ECPAY_INVOICE_HASH_KEY'),

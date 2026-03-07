@@ -2,7 +2,7 @@
 
 > **綠界科技官方出品** — 由 ECPay 團隊開發與維護，內容與 API 同步更新。
 
-**當前版本：v2.15** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
+**當前版本：v2.16** | [更新紀錄](#更新紀錄) | [完整 CHANGELOG](./CHANGELOG.md)
 
 ### 前置需求
 
@@ -296,7 +296,7 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 
 > 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)
 
-**v2.14 重點**：六代理第二輪審核 — DX 摩擦修正、callback 重試說明補全、入口文件同步、guides/13/15/22 品質提升。
+**v2.16 重點**：七代理全面審核 — Callback 格式陷阱補強、SKILL_OPENAI.md Knowledge Files 完整索引、語言陷阱速查表、版本同步修正。
 
 | 日期 | 版本 | 變更摘要 |
 |------|------|---------|
@@ -308,6 +308,8 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 | 2026-03-06 | v2.12 | 八代理 Review Board：DX 強化、過度設計精簡、串接完整性補強、新手友善路徑 |
 | 2026-03-07 | v2.13 | 六代理深度審核：ECPG 雙 Domain 預警、AES-JSON Checklist、應用層安全、行號校準 |
 | 2026-03-07 | v2.14 | 六代理第二輪審核：DX 摩擦修正、callback 重試說明、入口文件同步、guides/13/15/22 品質提升 |
+| 2026-03-07 | v2.15 | 七代理第三輪審核：ECPG 雙 Domain 警告強化、CheckMacValue 摘要嵌入、本地開發對比表 |
+| 2026-03-07 | v2.16 | 七代理全面審核：Callback 格式速查、SKILL_OPENAI 完整索引、語言陷阱表、版本同步修正 |
 
 ## 相關資源
 

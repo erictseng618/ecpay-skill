@@ -49,6 +49,8 @@ E2E 組裝步驟: line 835-846 | C/C++ 注意事項: line 848-893
 > - AES-JSON 發票完整範例：guides/00 §AES-JSON 端到端範例
 > - CheckMacValue 完整實作：guides/13 §Python / §Node.js
 > - AES 加密/解密完整實作：guides/14 §Python / §Node.js
+>
+> ⚠️ **遇到加密問題需要自行除錯時，必須讀 [guides/13](./13-checkmacvalue.md)（CheckMacValue 完整實作 + 測試向量）和 [guides/14](./14-aes-encryption.md)（AES 完整實作 + 常見錯誤）**，Quick Start 範例不含完整的錯誤排查函式。
 
 **前置條件**：
 - 已讀 [guides/20-http-protocol-reference.md](./20-http-protocol-reference.md)（HTTP 協議規格）

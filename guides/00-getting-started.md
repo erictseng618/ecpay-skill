@@ -286,7 +286,18 @@ func main() {
   │  (ClientBackURL)                    │                   │
 ```
 
-> **要點**：ReturnURL 是 Server-to-Server 通知，不是瀏覽器重導。你的 Server 收到後必須回應 `1|OK`。
+> **要點**：ReturnURL 是 Server-to-Server 通知，不是瀏覽器重導。你的 Server 收到後必須回應正確格式。
+>
+> ⚠️ **不同服務的 Callback 回應格式不同，回應格式錯誤會導致綠界無限重試**：
+>
+> | 服務 | Callback 端點 | 你的伺服器必須回應 |
+> |------|------------|----------------|
+> | AIO 金流（CMV-SHA256） | ReturnURL | 純字串 `1\|OK`（無 HTML、無 BOM） |
+> | ECPG 站內付（AES-JSON） | ServerReplyURL | JSON `{"TransCode": 1}` |
+> | 全方位/跨境物流（AES-JSON v2） | ServerReplyURL | AES 加密 JSON（見 guides/07） |
+> | 國內物流（CMV-MD5） | ServerReplyURL | `1\|OK` |
+>
+> 完整各服務 Callback 格式見 [guides/22-webhook-events-reference.md](./22-webhook-events-reference.md)。
 
 ## 五分鐘跑通第一筆交易
 

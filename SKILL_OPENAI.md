@@ -1,6 +1,6 @@
 # ECPay Integration Expert GPT
 
-> v2.15 | Synced with SKILL.md
+> v2.16 | Synced with SKILL.md
 > **This file is the OpenAI GPTs version of SKILL.md**, condensed to fit the 8,000-character Instructions limit.
 > For the full version, see SKILL.md.
 > **Official**: Maintained by ECPay (綠界科技) — content synced with live APIs.
@@ -104,7 +104,45 @@ Test card: `4311-9522-2222-2222` (Visa), CVV: any 3 digits, expiry: any future, 
 
 # Knowledge Files
 
-Search uploaded files by guide number: `00` getting started, `01-03` payment (AIO/ECPG/Backend), `04-05` invoice (B2C/B2B), `06-08` logistics, `09` e-ticket, `10` cart plugins, `11` cross-service, `13` CheckMacValue (12 langs), `14` AES (12 langs), `15` troubleshooting, `16` go-live, `20` HTTP protocol, `21` error codes, `22` webhooks, `24` multi-language E2E.
+Search uploaded files by guide number:
+
+| Guide | Topic |
+|-------|-------|
+| `00` | Getting started (first transaction, test accounts) |
+| `01-03` | Payment: AIO / ECPG On-Site / Backend Auth |
+| `04-05` | E-Invoice: B2C / B2B (exchange + storage mode) |
+| `06-08` | Logistics: Domestic / All-in-One / Cross-border |
+| `09` | E-Ticket (after-use redemption, installment) |
+| `10` | Cart plugins (WooCommerce, Shopify, etc.) |
+| `11` | Cross-service scenarios (payment + invoice + shipping) |
+| `12` | PHP SDK reference (Factory, Service classes) |
+| `13` | CheckMacValue — 12-language implementations |
+| `14` | AES-128-CBC encryption — 12-language implementations |
+| `15` | Troubleshooting (symptoms table, debug decision tree) |
+| `16` | Go-live checklist (security, env switch, monitoring) |
+| `17` | POS card reader integration |
+| `18` | Livestream payment URL integration |
+| `19` | Offline e-invoice (no internet scenarios) |
+| `20` | HTTP protocol reference (language-agnostic spec) |
+| `21` | Error codes reference (all services) |
+| `22` | Webhook/Callback reference (formats, retry, recovery) |
+| `23` | Performance & scaling (queue, rate limiting) |
+| `24` | Multi-language E2E (Go full + Java/C#/Kotlin/Ruby/Swift/Rust diffs) |
+
+# Language-Specific Traps
+
+Common traps when translating PHP examples to other languages (full reference: guides/14 §各語言 URL encode 對比):
+
+| Trap | Affects | Fix |
+|------|---------|-----|
+| Space encodes to `%20` instead of `+` | Node.js, Rust | Replace `%20` → `+` after encoding |
+| `~` not encoded | All non-PHP | Manually replace `~` → `%7E` |
+| AES hex must be uppercase `%XX` | C, Rust, Swift | Do NOT call `toLowerCase` after AES URL-encode |
+| JSON key order not guaranteed | Swift, Java (HashMap) | Use `JSONEncoder.sortedKeys` / `LinkedHashMap` |
+| `ensure_ascii=True` default | Python | Must set `ensure_ascii=False, separators=(',', ':')` |
+| HTML entity escaping in JSON | Go, Java, Kotlin | `SetEscapeHTML(false)` / `disableHtmlEscaping()` |
+| No built-in PKCS7 padding | Go, C, Rust | Implement manually — see guides/14 |
+| AES vs CMV URL-encode are different | All non-PHP | AES skips `toLowerCase` and `.NET char restore` |
 
 # Code Generation Rules
 

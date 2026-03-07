@@ -15,8 +15,8 @@
 | HTTP 403 Forbidden | API 速率限制，需等 30 分鐘 | [§3](#3-http-403-forbidden) |
 | 付款頁面空白 | 使用了 iframe（AIO 不支援） | [§6](#6-iframe-交易失敗) |
 | LINE/FB 內無法交易 | WebView 安全限制 | [§4](#4-ios-linefacebook-無法交易) |
-| RtnCode=2 | **不是錯誤** — ATM 取號成功 | [§9](#9-atm-取號-rtncode2-不是錯誤) |
-| RtnCode=10100073 | **不是錯誤** — CVS/BARCODE 取號成功 | [§10](#10-cvsbarcode-取號-rtncode10100073-不是錯誤) |
+| ✅ RtnCode=2 | **正常業務狀態** — ATM 取號成功（消費者尚未繳費，需等待） | [§9](#9-atm-取號-rtncode2-不是錯誤) |
+| ✅ RtnCode=10100073 | **正常業務狀態** — CVS/BARCODE 取號成功（消費者尚未繳費，需等待） | [§10](#10-cvsbarcode-取號-rtncode10100073-不是錯誤) |
 | HTTP 404 Not Found | ECPG 雙 Domain 搞混（ecpg vs ecpayment） | [§14](#14-ecpg-404-雙-domain-錯誤) |
 | AES 解密失敗 / TransCode≠1 | Key/IV 長度非 16 bytes、URL encode 順序錯 | [§13](#13-aes-解密失敗) |
 | MerchantTradeNo 重複 | 訂單編號已存在 | [§12](#12-merchanttradeno-重複) |
