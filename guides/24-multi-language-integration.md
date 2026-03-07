@@ -60,19 +60,19 @@ E2E 組裝步驟: line 839-850 | C/C++ 注意事項: line 852-968
 
 ## HTTP Client 推薦表
 
-| 語言 | 推薦 Client | 最低版本 | 安裝命令 | Timeout 設定 | 重試建議 |
-|------|------------|---------|---------|-------------|---------|
-| Go | net/http (stdlib) | Go 1.21+ | — | `client.Timeout = 30 * time.Second` | 自行實作或用 hashicorp/go-retryablehttp |
-| Java | java.net.http.HttpClient | JDK 11+ | — | `connectTimeout(Duration.ofSeconds(30))` | 自行實作 exponential backoff |
-| C# | HttpClient | .NET 6+ | — | `Timeout = TimeSpan.FromSeconds(30)` | 用 Polly NuGet 套件 |
-| Node.js | built-in fetch / axios | Node 18+ / axios 1.7+ | `npm install axios` | `signal: AbortSignal.timeout(30000)` | axios-retry |
-| Python | httpx (async) / requests (sync) | httpx 0.27+ / requests 2.32+ | `pip install httpx` | `timeout=30.0` | tenacity |
-| Rust | reqwest | 0.12+ | `cargo add reqwest` | `timeout(Duration::from_secs(30))` | 自行實作或 reqwest-retry |
-| Swift | URLSession | iOS 13+ / macOS 10.15+ | — | `timeoutIntervalForRequest = 30` | 自行實作 |
-| Kotlin | OkHttp | 4.12+ | `implementation("com.squareup.okhttp3:okhttp:4.12.0")` | `callTimeout(30, TimeUnit.SECONDS)` | 自行實作 |
-| Ruby | Net::HTTP (stdlib) | Ruby 3.0+ | — | `open_timeout = 30; read_timeout = 30` | 用 retryable gem |
-| C | libcurl | 8.0+ | 系統套件管理器 | `CURLOPT_TIMEOUT 30L` | 自行實作 |
-| C++ | cpr | 1.10+ | `vcpkg install cpr` 或 CMake FetchContent | `cpr::Timeout{30000}` | 自行實作 |
+| 語言 | 推薦 Client | 最低版本 | 安裝命令 | Timeout 設定 |
+|------|------------|---------|---------|-------------|
+| Go | net/http (stdlib) | Go 1.21+ | — | `client.Timeout = 30 * time.Second` |
+| Java | java.net.http.HttpClient | JDK 11+ | — | `connectTimeout(Duration.ofSeconds(30))` |
+| C# | HttpClient | .NET 6+ | — | `Timeout = TimeSpan.FromSeconds(30)` |
+| Node.js | built-in fetch / axios | Node 18+ / axios 1.7+ | `npm install axios` | `signal: AbortSignal.timeout(30000)` |
+| Python | httpx (async) / requests (sync) | httpx 0.27+ / requests 2.32+ | `pip install httpx` | `timeout=30.0` |
+| Rust | reqwest | 0.12+ | `cargo add reqwest` | `timeout(Duration::from_secs(30))` |
+| Swift | URLSession | iOS 13+ / macOS 10.15+ | — | `timeoutIntervalForRequest = 30` |
+| Kotlin | OkHttp | 4.12+ | `implementation("com.squareup.okhttp3:okhttp:4.12.0")` | `callTimeout(30, TimeUnit.SECONDS)` |
+| Ruby | Net::HTTP (stdlib) | Ruby 3.0+ | — | `open_timeout = 30; read_timeout = 30` |
+| C | libcurl | 8.0+ | 系統套件管理器 | `CURLOPT_TIMEOUT 30L` |
+| C++ | cpr | 1.10+ | `vcpkg install cpr` 或 CMake FetchContent | `cpr::Timeout{30000}` |
 
 > **所有語言共通**：ECPay API 收到 403 表示觸發限流，需等待約 30 分鐘。建議 API 呼叫間隔至少 200ms。
 

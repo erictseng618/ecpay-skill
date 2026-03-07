@@ -45,4 +45,8 @@
 
 不涵蓋：ECPay 平台本身的漏洞（請透過 techsupport@ecpay.com.tw 通報）。
 
+## 已知問題
+
+- **PHP SDK `CheckMacValueService::verify()`**：官方 SDK 使用 `===` 比較 CheckMacValue，未使用 `hash_equals()`，存在 timing attack 風險。建議在 callback 驗證中自行使用 `hash_equals()` 替代。
+
 詳細貢獻指南見 [CONTRIBUTING.md](./CONTRIBUTING.md)。

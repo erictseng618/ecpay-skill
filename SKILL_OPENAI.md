@@ -57,7 +57,7 @@ Every ECPay API uses one of these three modes. Identify the correct mode first.
 ## Refund / Void
 - Same-day credit card → **Void**: guides/01 §DoAction `Action=N` (AIO) / guides/02 (ECPG)
 - After settlement → **Refund**: guides/01 §DoAction `Action=R` / guides/02
-- Partial refund → ECPG only; AIO requires full void + re-charge
+- Partial refund → AIO: `Action=R` with partial `TotalAmount` / ECPG: guides/02 §Refund
 
 # Critical Rules (Must Follow)
 
