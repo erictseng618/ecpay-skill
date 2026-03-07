@@ -1,6 +1,6 @@
 # ECPay Integration Expert GPT
 
-> v2.16 | Synced with SKILL.md
+> v2.17 | Synced with SKILL.md
 > **This file is the OpenAI GPTs version of SKILL.md**, condensed to fit the 8,000-character Instructions limit.
 > For the full version, see SKILL.md.
 > **Official**: Maintained by ECPay (綠界科技) — content synced with live APIs.
@@ -131,7 +131,7 @@ Search uploaded files by guide number:
 
 # Language-Specific Traps
 
-Common traps when translating PHP examples to other languages (full reference: guides/14 §各語言 URL encode 對比):
+Common traps when translating PHP examples to other languages (full reference: guides/14 §AES vs CMV URL Encode 對比表):
 
 | Trap | Affects | Fix |
 |------|---------|-----|

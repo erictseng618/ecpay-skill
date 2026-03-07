@@ -1,5 +1,15 @@
 # ECPay Skill 更新紀錄
 
+## v2.17 — 2026-03-07
+
+七代理第二輪深度審核全數修正（1 CRITICAL + 3 HIGH + 1 MEDIUM）：
+
+- **CRITICAL**：guides/00 Callback 速查表 ECPG 端點名稱錯誤修正（`ServerReplyURL` → `OrderResultURL`，依 guides/22 L52 實證）
+- **HIGH**：SKILL.md L309 section 參照修正（`§各語言 URL encode 對比` → `§AES vs CMV URL Encode 對比表`，第一輪引入的錯誤）
+- **HIGH**：SKILL.md L316 section 參照修正（`§各語言 aesUrlEncode` → `各語言 AES 實作章節`，該 section 不存在）
+- **HIGH**：OPENAI_SETUP.md 版本號同步（`v2.15` → `v2.16`，漏同步）
+- **MEDIUM**：SKILL_OPENAI.md L134 section 參照修正（`§各語言 URL encode 對比` → `§AES vs CMV URL Encode 對比表`，與 SKILL.md L309 同源）
+
 ## v2.16 — 2026-03-07
 
 七代理全面審核修正（2 CRITICAL + 4 HIGH + 4 MEDIUM + 5 LOW）：

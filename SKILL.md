@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.16"
+version: "2.17"
 description: >
   綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
   BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
@@ -306,14 +306,14 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 ### 語言特定陷阱（速查）
 
-> 完整的 AES URL encode 對比表見 guides/14 §各語言 URL encode 對比。完整的 CheckMacValue 實作見 guides/13。
+> 完整的 AES URL encode 對比表見 guides/14 §AES vs CMV URL Encode 對比表。完整的 CheckMacValue 實作見 guides/13。
 
 | 類別 | 陷阱 | 影響語言 | 解法 |
 |------|------|---------|------|
 | **URL encode** | `encodeURIComponent` 空格→%20 | Node.js, Rust | 替換為 + |
 | **URL encode** | `~` 不被編碼 | 全部非 PHP | 手動替換 `~` → `%7E`（大寫；CMV 後續 toLowerCase 無影響，AES 必須大寫） |
 | **CMV URL encode** | `'` 不被 `encodeURIComponent` 編碼 | Node.js/TS | 替換 `'` → `%27`（PHP `urlencode("'")` = `%27`） |
-| **AES URL encode** | `!*'()` 部分字元未編碼 | Node.js/TS（全 5 字元）、Java/Kotlin（`*`）、C#（`!*'`）、Rust/Swift（依 crate/API 而異） | 見 guides/14 §各語言 aesUrlEncode（Python/Go 原生已編碼；Ruby 需 `.gsub` 補齊） |
+| **AES URL encode** | `!*'()` 部分字元未編碼 | Node.js/TS（全 5 字元）、Java/Kotlin（`*`）、C#（`!*'`）、Rust/Swift（依 crate/API 而異） | 見 guides/14 各語言 AES 實作章節（Python/Go 原生已編碼；Ruby 需 `.gsub` 補齊） |
 | **JSON 序列化** | HTML entity 轉義 | Go, Java, Kotlin | `SetEscapeHTML(false)` / `disableHtmlEscaping()` |
 | **JSON 序列化** | `ensure_ascii=True` 預設 | Python | 必須 `ensure_ascii=False, separators=(',', ':')` |
 | **JSON 序列化** | key 順序不保證 | Swift, Java (HashMap) | 用 `JSONEncoder+.sortedKeys` / `LinkedHashMap` |

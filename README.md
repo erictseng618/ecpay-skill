@@ -296,7 +296,7 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 
 > 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)
 
-**v2.16 重點**：七代理全面審核 — Callback 格式陷阱補強、SKILL_OPENAI.md Knowledge Files 完整索引、語言陷阱速查表、版本同步修正。
+**v2.17 重點**：七代理第二輪交叉驗證 — ECPG Callback 端點名稱修正（CRITICAL）、SKILL.md/SKILL_OPENAI.md section 參照修正、OPENAI_SETUP.md 版本同步。
 
 | 日期 | 版本 | 變更摘要 |
 |------|------|---------|
@@ -310,6 +310,7 @@ A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw`
 | 2026-03-07 | v2.14 | 六代理第二輪審核：DX 摩擦修正、callback 重試說明、入口文件同步、guides/13/15/22 品質提升 |
 | 2026-03-07 | v2.15 | 七代理第三輪審核：ECPG 雙 Domain 警告強化、CheckMacValue 摘要嵌入、本地開發對比表 |
 | 2026-03-07 | v2.16 | 七代理全面審核：Callback 格式速查、SKILL_OPENAI 完整索引、語言陷阱表、版本同步修正 |
+| 2026-03-07 | v2.17 | 七代理交叉驗證：ECPG Callback 端點修正（CRITICAL）、section 參照修正、版本同步 |
 
 ## 相關資源
 

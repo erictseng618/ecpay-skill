@@ -293,7 +293,7 @@ func main() {
 > | 服務 | Callback 端點 | 你的伺服器必須回應 |
 > |------|------------|----------------|
 > | AIO 金流（CMV-SHA256） | ReturnURL | 純字串 `1\|OK`（無 HTML、無 BOM） |
-> | ECPG 站內付（AES-JSON） | ServerReplyURL | JSON `{"TransCode": 1}` |
+> | ECPG 站內付（AES-JSON） | OrderResultURL | JSON `{"TransCode": 1}` |
 > | 全方位/跨境物流（AES-JSON v2） | ServerReplyURL | AES 加密 JSON（見 guides/07） |
 > | 國內物流（CMV-MD5） | ServerReplyURL | `1\|OK` |
 >
