@@ -1,0 +1,15 @@
+---
+description: 串接綠界電子票證（演唱會、電影票、餐券、遊樂園等虛擬票證）
+---
+
+使用者需要串接綠界電子票證。請依以下步驟引導：
+
+1. 讀取 `guides/09-ecticket.md` 了解電子票證整合流程
+2. ⚠️ **重要限制**：電子票證無公開測試帳號，需向綠界客服申請
+   - 聯繫方式：(02)2655-1775 或 techsupport@ecpay.com.tw
+3. 根據商務模式選擇：
+   - 純發行-使用後核銷 → `references/Ecticket/純發行-使用後核銷API技術文件.md`
+   - 價金保管-使用後核銷 → `references/Ecticket/價金保管-使用後核銷API技術文件.md`
+   - 價金保管-分期核銷 → `references/Ecticket/價金保管-分期核銷API技術文件.md`
+4. 電子票證使用 AES-JSON 協議，加密實作參考 `guides/14-aes-encryption.md`
+5. **生成程式碼前**，從 `references/Ecticket/` 對應檔案 web_fetch 最新 API 規格

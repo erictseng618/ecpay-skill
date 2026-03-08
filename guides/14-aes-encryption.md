@@ -3,9 +3,9 @@
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
 Python: line 217-263 | Node.js: line 264-312 | TypeScript: line 313-367
 Java: line 368-446 | C#: line 447-508 | Go: line 509-614
-C: line 615-770 | C++: line 771-925 | Rust: line 926-991
-Swift: line 992-1068 | Kotlin: line 1069-1117 | Ruby: line 1118-1167
-Test vectors: line 1168-1313 | 常見錯誤: line 1314-1345
+C: line 615-771 | C++: line 772-926 | Rust: line 927-992
+Swift: line 993-1069 | Kotlin: line 1070-1118 | Ruby: line 1119-1168
+Test vectors: line 1169-1314 | 常見錯誤: line 1315-1346
 -->
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
@@ -621,6 +621,7 @@ func AesDecrypt(cipherText, hashKey, hashIv string) (map[string]interface{}, err
 > :warning: 本實作使用 OpenSSL EVP 介面。若您使用 OpenSSL 3.0+，請確認未使用已 deprecated 的低階 AES API（如 `AES_set_encrypt_key`）。
 
 > ⚠️ 此實作依賴 guides/13 §C 的 `str_replace()` 輔助函式。完整可編譯程式碼需合併兩份檔案的 C 區段。
+> 函式原型：`char* str_replace(const char *str, const char *from, const char *to);`（回傳 `malloc` 分配的新字串，呼叫端需 `free`）
 
 ```c
 #include <openssl/evp.h>

@@ -12,34 +12,19 @@
 > **⚠️ 認證方式依服務而異**：金流 AIO → SHA256，國內物流 → **MD5**，ECPG / 發票 / 物流 v2 / 票證 → AES 解密（無 CheckMacValue）。
 > 錯用演算法（如把國內物流當 SHA256 計算）會導致所有 callback 驗證永遠失敗。
 
-## ⚡ Callback 回應格式快速核查卡
+## ⚡ Callback 回應格式速查（跨服務整合必讀）
 
-> 回應格式錯誤 → ECPay 持續重試通知（AIO 每 5-15 分鐘、最多 4 次/天），可能導致重複入帳。
+> **各服務要求不同的回應格式，回應錯誤會導致綠界持續重送。** 確認你的回應 HTTP Status 為 **200**，否則 ECPay 視為失敗。
 
-| 服務 | 你的 Callback URL | 必須回應的格式 | 錯誤後果 |
-|------|-----------------|--------------|---------|
-| AIO 金流 | ReturnURL | `1\|OK` | 重試通知 |
-| ECPG 站內付 | OrderResultURL | `{ "TransCode": 1 }` | 重試通知 |
-| 國內物流 | ServerReplyURL | `1\|OK` | 重試通知 |
-| 全方位 / 跨境物流 | ServerReplyURL | AES 加密 JSON | 重試通知 |
-| 電子票證 | NotifyURL | `1\|OK` | 重試通知 |
-
-**重要**：確認你的回應 HTTP Status 為 **200**，否則 ECPay 視為失敗。
-
-## ⚠️ Callback 回應格式速查（跨服務整合必讀）
-
-**各服務要求不同的回應格式，回應錯誤會導致綠界持續重送。**
-
-| 服務 | 你必須回應的格式 | Content-Type | 回錯會如何 |
-|------|----------------|-------------|-----------|
-| AIO 金流（ReturnURL） | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次（持續天數有上限，重試停止後需手動補查） |
-| AIO 金流（PaymentInfoURL / PeriodReturnURL） | `1\|OK`（純文字） | text/plain | 同上 |
-| ECPG 站內付 | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
-| 信用卡幕後授權 | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
-| 非信用卡幕後取號 | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次 |
-| 國內物流 | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
-| 全方位 / 跨境物流 | AES 加密 JSON 三層結構 | application/json | 約每 2 小時重試 |
-| 電子票證 | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
+| 服務 | 你的 Callback URL | 必須回應的格式 | Content-Type | 錯誤後果 |
+|------|-----------------|--------------|-------------|---------|
+| AIO 金流（ReturnURL / PaymentInfoURL / PeriodReturnURL） | ReturnURL | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次（持續天數有上限，重試停止後需手動補查） |
+| ECPG 站內付 | OrderResultURL | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
+| 信用卡幕後授權 | OrderResultURL | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
+| 非信用卡幕後取號 | ReturnURL | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次 |
+| 國內物流 | ServerReplyURL | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
+| 全方位 / 跨境物流 | ServerReplyURL | AES 加密 JSON 三層結構 | application/json | 約每 2 小時重試 |
+| 電子票證 | NotifyURL | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
 
 > **跨服務整合注意**：如果你同時使用金流 + 發票 + 物流，建議為各服務使用**不同的 callback URL**，
 > 各自回應對應的正確格式。在同一 URL 判斷服務類型雖可行但容易出錯。

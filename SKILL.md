@@ -54,7 +54,7 @@ metadata:
 
 必須確認：
 - 需要哪些服務？（金流/物流/發票/票證）
-- 技術棧？（PHP/Node.js/Python/Java/C#/Go/C/C++/Rust/Swift/Kotlin/Ruby）
+- 技術棧？（PHP/Node.js/TypeScript/Python/Java/C#/Go/C/C++/Rust/Swift/Kotlin/Ruby）
 - 前台 vs 純後台？
 - 特殊需求？（定期定額/分期/綁卡/跨境）
 
@@ -214,7 +214,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 |------|---------------------|------------|
 | 串接金流（收款、查詢、退款、Callback） | `/ecpay-pay` | guides/01, 02, 03, 22 |
 | 串接電子發票 | `/ecpay-invoice` | guides/04, 05, 19 |
-| 串接物流 / 電子票證 | `/ecpay-logistics` | guides/06, 07, 08, 09 |
+| 串接物流（國內/全方位/跨境） | `/ecpay-logistics` | guides/06, 07, 08 |
+| 串接電子票證 | `/ecpay-ecticket` | guides/09 |
 | 除錯 + 加密驗證 | `/ecpay-debug` | guides/13, 14, 15, 21 |
 | 上線前檢查 | `/ecpay-go-live` | guides/16 |
 
@@ -248,7 +249,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **不可僅依賴 guides/ 中的參數表生成 API 呼叫程式碼**（guides/ 所有參數表和端點表標記為 SNAPSHOT，僅供整合流程理解。生成程式碼前**必須**從 references/ 即時 web_fetch 官方最新規格確認端點路徑和參數定義）
 - **生成程式碼時必須標註資料來源**：在程式碼註解中標明參數值取自 SNAPSHOT 或 web_fetch（例如 `// Source: web_fetch references/Payment/... 2026-03-06`），方便開發者日後驗證
 - **不可將 ECPG 所有端點都打向 ecpg domain**（交易類走 `ecpayment`，Token 類走 `ecpg`）
-- **不可省略 Callback 回應**：CMV-SHA256 回 `1|OK`、ECPG 回 JSON `{ "TransCode": 1 }`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）
+- **不可省略 Callback 回應**：CMV-SHA256 回 `1|OK`、ECPG 回 JSON `{ "TransCode": 1 }`、國內物流 CMV-MD5 回 `1|OK`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）、電子票證回 `1|OK`
 - **AES-JSON API 必須做雙層錯誤檢查**：先查 `TransCode`（傳輸層），再查 `RtnCode`（業務層）。僅 `TransCode == 1` 且 `RtnCode` 為成功值時交易才真正成功（詳見 [guides/21](./guides/21-error-codes-reference.md) §TransCode vs RtnCode）
 - **不可使用 TWD 以外的幣別**（ECPay 僅支援新台幣）
 - **超出範圍**：若功能不在本 Skill 覆蓋範圍或需要未支援的語言，告知使用者聯繫綠界客服 (02-2655-1775) 或參考最接近的語言實作翻譯
@@ -310,30 +311,15 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 ### 語言特定陷阱（速查）
 
-> 完整的 AES URL encode 對比表見 guides/14 §AES vs CMV URL Encode 對比表。完整的 CheckMacValue 實作見 guides/13。
+> 完整對照表見 [guides/13](./guides/13-checkmacvalue.md)、[guides/14](./guides/14-aes-encryption.md)、[guides/24 §JSON 序列化全語言對照](./guides/24-multi-language-integration.md)。
 
-| 類別 | 陷阱 | 影響語言 | 解法 |
-|------|------|---------|------|
-| **URL encode** | `encodeURIComponent` 空格→%20 | Node.js, Rust | 替換為 + |
-| **URL encode** | `~` 不被編碼 | 全部非 PHP | 手動替換 `~` → `%7E`（大寫；CMV 後續 toLowerCase 無影響，AES 必須大寫） |
-| **CMV URL encode** | `'` 不被 `encodeURIComponent` 編碼 | Node.js/TS | 替換 `'` → `%27`（PHP `urlencode("'")` = `%27`） |
-| **AES URL encode** | `!*'()` 部分字元未編碼 | Node.js/TS（全 5 字元）、Java/Kotlin（`*`）、C#（`!*'`）、Rust/Swift（依 crate/API 而異） | 見 guides/14 各語言 AES 實作章節（Python/Go 原生已編碼；Ruby 需 `.gsub` 補齊） |
-| **JSON 序列化** | HTML entity 轉義 | Go, Java, Kotlin | `SetEscapeHTML(false)` / `disableHtmlEscaping()` |
-| **JSON 序列化** | `ensure_ascii=True` 預設 | Python | 必須 `ensure_ascii=False, separators=(',', ':')` |
-| **JSON 序列化** | key 順序不保證 | Swift, Java (HashMap) | 用 `JSONEncoder+.sortedKeys` / `LinkedHashMap` |
-| **加密** | 無內建 PKCS7 | Go | 手動實作 padding |
-| **加密** | Key/IV 長度 | C/C++ | 明確截取前 16 bytes |
-| **URL encode** | AES 與 CMV 的 URL encode 邏輯混用 | 全部非 PHP | AES 不做 `toLowerCase` 和 `.NET 字元還原`，見 guides/14 §AES vs CMV 對比表 |
-| **比較** | 非 timing-safe | 全部 | 見 guides/13 各語言 timing-safe 函式 |
-| **AES URL encode** | hex 大小寫必須大寫 | C, Rust, Swift | PHP `urlencode` 輸出大寫 hex（`%7E`、`%2A`），AES 不做 `toLowerCase`，大小寫影響密文 |
-| **URL encode** | `isalnum` 對 signed char 為未定義行為 | C++ | `static_cast<unsigned char>(c)` 後再呼叫 `isalnum` |
-| **AES URL encode** | `CGI.escape` 不編碼 `!*'()` | Ruby | 需 `.gsub` 手動替換（見 guides/14 §Ruby） |
-| **JSON 序列化** | `json.NewEncoder` 輸出含尾部 `\n` | Go | `strings.TrimRight(buf.String(), "\n")` 去除 |
-| **AES padding** | PKCS7 padding 需手動實作 | Go, C, Rust | 見 guides/14 各語言 AES 實作 |
-| **AES hex 大小寫** | `urlencode` 輸出大寫 hex，AES 不做 toLowerCase | C, Rust, Swift | 確保 `%XX` 為大寫（見 guides/14 §hex 大小寫） |
-| **JSON 序列化** | compact JSON 無空白 | Python, Ruby | `separators=(',',':')` / `JSON.generate` 無美化 |
+**翻譯 PHP 為其他語言時，最關鍵的三個陷阱**：
 
-> 完整差異對照見 [guides/13](./guides/13-checkmacvalue.md)、[guides/14](./guides/14-aes-encryption.md)、[guides/24 §JSON 序列化全語言對照](./guides/24-multi-language-integration.md)。
+1. **AES vs CMV URL-encode 邏輯不同**（全非 PHP 語言）— AES 不做 `toLowerCase` 和 `.NET 字元還原`，見 guides/14 §AES vs CMV 對比表
+2. **空格編碼為 `%20` 而非 `+`**（Node.js, Rust）— 編碼後替換 `%20` → `+`
+3. **`~` 未被編碼**（全非 PHP 語言）— 手動替換 `~` → `%7E`
+
+> 其他陷阱（PKCS7 padding、JSON key 順序、compact JSON、`'` 編碼、HTML 轉義、hex 大小寫、timing-safe 比較）：見 guides/14 各語言章節。
 
 ## 快速參考
 
@@ -483,62 +469,9 @@ composer require "ecpay/sdk:^4.0"
 
 ### 官方 API 文件索引（references/）
 
-#### 完整檔案清單
+> 完整索引（19 檔案 × 431 個 URL × 對應 Guide 映射）見 [references/README.md](./references/README.md)。
 
-**Payment（金流）— 8 files, 174 URLs**
-
-| 服務 | 檔案 | 對應 Guide |
-|------|------|-----------|
-| 全方位金流 AIO | references/Payment/全方位金流API技術文件.md | guides/01 |
-| 站內付 2.0 (Web) | references/Payment/站內付2.0API技術文件Web.md | guides/02 |
-| 站內付 2.0 (App) | references/Payment/站內付2.0API技術文件App.md | guides/02 |
-| 信用卡幕後授權 | references/Payment/信用卡幕後授權API技術文件.md | guides/03 |
-| 非信用卡幕後取號 | references/Payment/非信用卡幕後取號API技術文件.md | guides/03 |
-| POS 刷卡機 | references/Payment/刷卡機POS串接規格.md | guides/17 |
-| 直播收款 | references/Payment/直播主收款網址串接技術文件.md | guides/18 |
-| Shopify 專用 | references/Payment/Shopify專用金流API技術文件.md | guides/10 |
-
-**Invoice（電子發票）— 4 files, 119 URLs**
-
-| 服務 | 檔案 | 對應 Guide |
-|------|------|-----------|
-| B2C 電子發票 | references/Invoice/B2C電子發票介接技術文件.md | guides/04 |
-| B2B 電子發票（存證模式） | references/Invoice/B2B電子發票API技術文件_存證模式.md | guides/05 |
-| B2B 電子發票（交換模式） | references/Invoice/B2B電子發票API技術文件_交換模式.md | guides/05 |
-| 離線電子發票 | references/Invoice/離線電子發票API技術文件.md | guides/19 |
-
-**Logistics（物流）— 3 files, 76 URLs**
-
-| 服務 | 檔案 | 對應 Guide |
-|------|------|-----------|
-| 國內物流整合 | references/Logistics/物流整合API技術文件.md | guides/06 |
-| 全方位物流 | references/Logistics/全方位物流服務API技術文件.md | guides/07 |
-| 跨境物流 | references/Logistics/綠界科技跨境物流API技術文件.md | guides/08 |
-
-**Ecticket（電子票證）— 3 files, 57 URLs**
-
-| 服務 | 檔案 | 對應 Guide |
-|------|------|-----------|
-| 純發行-使用後核銷 | references/Ecticket/純發行-使用後核銷API技術文件.md | guides/09 |
-| 價金保管-使用後核銷 | references/Ecticket/價金保管-使用後核銷API技術文件.md | guides/09 |
-| 價金保管-分期核銷 | references/Ecticket/價金保管-分期核銷API技術文件.md | guides/09 |
-
-**Cart（購物車）— 1 file, 5 URLs**
-
-| 服務 | 檔案 | 對應 Guide |
-|------|------|-----------|
-| 購物車設定說明 | references/Cart/購物車設定說明.md | guides/10 |
-
-#### 統計
-
-| 目錄 | 檔案數 | URL 數 |
-|------|-------|--------|
-| references/Payment/ | 8 | 174 |
-| references/Invoice/ | 4 | 119 |
-| references/Logistics/ | 3 | 76 |
-| references/Ecticket/ | 3 | 57 |
-| references/Cart/ | 1 | 5 |
-| **合計** | **19** | **431** |
+references/ 包含 5 大類 API 文件：Payment（8 檔, 174 URLs）、Invoice（4 檔, 119 URLs）、Logistics（3 檔, 76 URLs）、Ecticket（3 檔, 57 URLs）、Cart（1 檔, 5 URLs）。每個檔案收錄官方 API 技術文件的章節 URL 索引，搭配 web_fetch 即時讀取最新規格。
 
 ### ⚠️ AI 必讀：API 規格即時查閱機制
 
@@ -601,16 +534,7 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 
 ### PHP 範例（scripts/SDK_PHP/example/）
 
-| 目錄 | 範例數 |
-|------|-------|
-| Payment/Aio/ | 20 |
-| Payment/Ecpg/（含 8 個 GetToken 子目錄 + 1 個僅含 .html 的子目錄） | 24 |
-| Invoice/B2C/ | 19 |
-| Invoice/B2B/ | 23 |
-| Logistics/Domestic/ | 24 |
-| Logistics/AllInOne/（含 B2C/C2C/Home 子目錄） | 16 |
-| Logistics/CrossBorder/ | 8 |
-| **合計** | **134** |
+> 共 134 個驗證過的 PHP 範例，涵蓋 Payment（44）、Invoice（42）、Logistics（48）。詳細目錄見 `scripts/SDK_PHP/example/`。
 
 ## 維護指引
 

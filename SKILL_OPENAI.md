@@ -24,7 +24,7 @@ Every ECPay API uses one of these three modes. Identify the correct mode first.
 | Mode | Auth Method | Format | Services |
 |------|------------|--------|----------|
 | **CMV-SHA256** | CheckMacValue + SHA256 | Form POST | AIO payment |
-| **AES-JSON** | AES-128-CBC encryption | JSON POST | ECPG, invoice, logistics v2, e-ticket |
+| **AES-JSON** | AES-128-CBC encryption | JSON POST | ECPG, invoice, logistics v2 (AllInOne/cross-border), e-ticket |
 | **CMV-MD5** | CheckMacValue + MD5 | Form POST | Domestic logistics |
 
 # Decision Trees
@@ -50,6 +50,9 @@ Every ECPay API uses one of these three modes. Identify the correct mode first.
 - AES decryption error → guides/14
 - Error codes → guides/21
 - Callback not received → guides/22
+
+## E-Ticket
+- guides/09 (AES-JSON). ⚠️ No public test account — contact ECPay support.
 
 ## Cross-Service
 - Payment + Invoice + Shipping (full e-commerce) → guides/11

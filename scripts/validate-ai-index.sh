@@ -8,11 +8,21 @@ TMPFILE=$(mktemp)
 check_line() {
   local file="$1" label="$2" expected_line="$3"
   actual=$(sed -n "${expected_line}p" "$file")
-  if ! echo "$actual" | grep -q "^#"; then
-    echo "FAIL: $file line $expected_line ($label)"
-    echo "  Expected: heading (^#)"
-    echo "  Actual:   $actual"
-    echo "1" >> "$TMPFILE"
+  # End-of-range lines point to the last content line, not a heading
+  if echo "$label" | grep -q "(end)"; then
+    if [ -z "$actual" ]; then
+      echo "FAIL: $file line $expected_line ($label)"
+      echo "  Expected: non-empty content line"
+      echo "  Actual:   (empty)"
+      echo "1" >> "$TMPFILE"
+    fi
+  else
+    if ! echo "$actual" | grep -q "^#"; then
+      echo "FAIL: $file line $expected_line ($label)"
+      echo "  Expected: heading (^#)"
+      echo "  Actual:   $actual"
+      echo "1" >> "$TMPFILE"
+    fi
   fi
 }
 
@@ -27,15 +37,19 @@ for file in guides/13-checkmacvalue.md guides/14-aes-encryption.md guides/24-mul
   echo "  Checking $file..."
 
   # 提取 AI Section Index 區塊（HTML 註解內的行）
-  # 格式範例: "Go E2E: line 63 | Java E2E: line 412 | C# E2E: line 675"
+  # 支援格式: "Go E2E: line 63" 或 "Python: line 103-157"
   sed -n '/<!-- AI Section Index/,/-->/p' "$file" | \
-    grep -oE '[A-Za-z0-9#/.+_ -]+: line [0-9]+' | \
+    grep -oE '[A-Za-z0-9#/.+_ -]+: line [0-9]+([-][0-9]+)?' | \
     while IFS= read -r entry; do
       # 用最後一個 ": line" 來分隔 label 和行號
-      label=$(echo "$entry" | sed 's/: line [0-9]*$//')
-      linenum=$(echo "$entry" | grep -oE '[0-9]+$')
-      if [ -n "$linenum" ]; then
-        check_line "$file" "$label" "$linenum"
+      label=$(echo "$entry" | sed 's/: line [0-9].*$//')
+      linenum_start=$(echo "$entry" | grep -oE 'line [0-9]+' | head -1 | grep -oE '[0-9]+')
+      linenum_end=$(echo "$entry" | grep -oE 'line [0-9]+-[0-9]+' | grep -oE '[0-9]+$')
+      if [ -n "$linenum_start" ]; then
+        check_line "$file" "$label (start)" "$linenum_start"
+      fi
+      if [ -n "$linenum_end" ]; then
+        check_line "$file" "$label (end)" "$linenum_end"
       fi
     done
 done
