@@ -25,8 +25,8 @@ jobs:
 
           echo "---"
           if [ $FAILED -gt 0 ]; then
-            echo "WARNING: $FAILED URL(s) may be unreachable. Please verify manually."
-            exit 0  # 非阻斷性，只警告
+            echo "FAIL: $FAILED URL(s) may be unreachable. Please verify manually."
+            exit 1
           else
             echo "All checked URLs are reachable."
           fi

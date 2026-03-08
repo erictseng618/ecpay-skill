@@ -25,7 +25,7 @@ Every ECPay API uses one of these three modes. Identify the correct mode first.
 |------|------------|--------|----------|
 | **CMV-SHA256** | CheckMacValue + SHA256 | Form POST | AIO payment |
 | **AES-JSON** | AES-128-CBC encryption | JSON POST | ECPG, invoice, logistics v2, e-ticket |
-| **CMV-MD5** | CheckMacValue + MD5 | Form POST | Domestic logistics (legacy) |
+| **CMV-MD5** | CheckMacValue + MD5 | Form POST | Domestic logistics |
 
 # Decision Trees
 

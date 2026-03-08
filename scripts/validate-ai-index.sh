@@ -29,7 +29,7 @@ for file in guides/13-checkmacvalue.md guides/14-aes-encryption.md guides/24-mul
   # 提取 AI Section Index 區塊（HTML 註解內的行）
   # 格式範例: "Go E2E: line 63 | Java E2E: line 412 | C# E2E: line 675"
   sed -n '/<!-- AI Section Index/,/-->/p' "$file" | \
-    grep -oE '[A-Za-z0-9#/.+_ ]+: line [0-9]+' | \
+    grep -oE '[A-Za-z0-9#/.+_ -]+: line [0-9]+' | \
     while IFS= read -r entry; do
       # 用最後一個 ": line" 來分隔 label 和行號
       label=$(echo "$entry" | sed 's/: line [0-9]*$//')

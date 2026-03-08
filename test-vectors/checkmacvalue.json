@@ -55,6 +55,7 @@
         "ItemName": "Test~Product",
         "TotalAmount": "200"
       },
+      "expected": "CEEAE01D2F9A8E74D4AC0DCE7735B046D73F35A5EC99558A31A2EE03159DA1C9",
       "note": "驗證各語言 ~ → %7E 替換。ecpayUrlEncode 會將 ~ 編碼為 %7e，再經 toLowerCase 保持小寫"
     }
   ]

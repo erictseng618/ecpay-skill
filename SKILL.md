@@ -21,6 +21,8 @@ metadata:
   platforms:
     - claude-code
     - github-copilot
+    - cursor
+    - windsurf
     - openclaw
     - openai-gpts
 ---
@@ -205,7 +207,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 #### 快速指令（跨平台）
 
 > **Claude Code**：將 `commands/` 內的 `.md` 檔複製到專案 `.claude/commands/` 即可使用 `/ecpay-*` 指令。
-> **OpenAI GPTs**：已預設 5 個 Conversation Starters（見 OPENAI_SETUP.md），最多 4 個按鈕。
+> **OpenAI GPTs**：已預設 4 個 Conversation Starters（見 OPENAI_SETUP.md），最多 4 個按鈕。
 > **Copilot CLI / OpenClaw**：無原生指令機制，直接用自然語言描述需求，AI 透過上方決策樹自動導航。
 
 | 情境 | Claude Code `/` 指令 | 對應 guide |
@@ -255,7 +257,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
 > guides/13、14、24 有 AI Section Index（行號索引），若只需單一語言可用 offset/limit 讀取特定行範圍。
 > AES vs CMV 對比表見 guides/14 line 79-163。
-> guides/24 有約 992 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
+> guides/24 有約 785 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
 >
 > **SNAPSHOT 說明**：guides/ 中的參數欄位名稱、型態、必填規則通常穩定（改動機率 < 5%）。
 > 需要即時查閱的情況：API 回傳不符預期、或需確認最新業務驗證規則（如金額範圍）時。
@@ -290,6 +292,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - 提供測試環境帳號（見下方快速參考）
 - 引導使用模擬付款功能
 - 提醒上線前切換帳號
+- 使用 [test-vectors/checkmacvalue.json](./test-vectors/checkmacvalue.json) 驗證 CheckMacValue 實作正確性
+- 使用 [test-vectors/aes-encryption.json](./test-vectors/aes-encryption.json) 驗證 AES 加密實作正確性
 
 ### 步驟 5：上線檢查
 
@@ -393,7 +397,7 @@ composer require "ecpay/sdk:^4.0"
 
 ### 重要提醒
 
-- ReturnURL 必須回應純字串 `1|OK`
+- ReturnURL 必須回應純字串 `1|OK`（僅限 AIO/CMV-SHA256 協議；ECPG/AES-JSON 的回應格式不同，見 [guides/22](./guides/22-webhook-events-reference.md)）
 - TLS 1.2 必須
 - 不支援 iframe（使用 ECPG 或新視窗）
 - HashKey/HashIV 禁止放前端或版本控制
@@ -401,6 +405,14 @@ composer require "ecpay/sdk:^4.0"
 - 3D Secure 2.0：已於 2025/8 起強制實施
 - ChoosePayment=ALL 可用 IgnorePayment 排除特定付款方式
 - Postback URL 使用 FQDN 而非固定 IP
+
+### 已知限制
+
+- 僅支援新台幣（TWD）交易
+- references/ URL 索引需要網路連線才能即時讀取最新 API 規格
+- OpenAI GPTs 無法直接讀取 references/ 檔案（透過 Web Search 替代，可靠性略低於 web_fetch 直讀）
+- 電子票證無公開測試帳號（需向綠界客服申請）
+- AI 翻譯品質可能因模型與語言組合而異，生成的程式碼片段應經人工驗證
 
 ## 文件索引
 

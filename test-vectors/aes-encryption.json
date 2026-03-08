@@ -28,6 +28,7 @@
       "hashIV": "q9jcZX8Ib9LM8wYk",
       "plaintext_json": "{\"Name\":\"test!*'()~value\"}",
       "expected_url_encoded": "%7B%22Name%22%3A%22test%21%2A%27%28%29%7Evalue%22%7D",
+      "expected_base64": "uvI4yrErM37XNQkXGAgRgBuDOiJoVs72Xn/rum9Ejl1DSna4HyLSoY7764PmhTR7JXb9jJWLSjCGcZEDeFiABg==",
       "url_encode_expectations": {
         "!": "%21",
         "*": "%2A",
