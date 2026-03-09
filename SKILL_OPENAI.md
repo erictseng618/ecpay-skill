@@ -80,6 +80,9 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 11. **Never put system command keywords in ItemName/TradeDesc** (echo, python, cmd, wget, curl, ping, etc. ~40 keywords) — ECPay CDN WAF blocks the request entirely.
 12. **ItemName exceeding 400 chars gets truncated** — UTF-8 multibyte corruption → CheckMacValue mismatch → lost orders. Truncate before computing CMV.
 13. **ReturnURL/OrderResultURL only accept port 80/443** — dev servers on :3000/:8080 won't receive callbacks. Use ngrok or similar tunneling tools.
+14. **Callback HTTP response must be status 200** — returning 201/202/204 triggers ECPay retry even if body is correct (`1|OK`).
+15. **RtnCode is STRING, not integer** — all callbacks/queries return `"1"` not `1`. Use `RtnCode === '1'` or loose comparison, never strict `=== 1`.
+16. **ATM/CVS/Barcode have TWO callbacks** — first to `PaymentInfoURL` (取號成功, RtnCode=2 or 10100073), second to `ReturnURL` (付款成功, RtnCode=1). Must implement both endpoints.
 
 # Test Accounts
 

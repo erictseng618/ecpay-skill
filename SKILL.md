@@ -254,6 +254,9 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **ReturnURL / OrderResultURL 僅支援 port 80（HTTP）和 443（HTTPS）**：開發環境常用的 :3000、:5000、:8080 等非標準 port 無法收到 callback。本機開發需使用 ngrok 等工具轉發
 - **LINE / Facebook App 內建 WebView 會導致付款失敗**：WebView 無法正確 POST form 至綠界 → MerchantID is Null。需引導消費者用外部瀏覽器開啟付款連結
 - **ReturnURL、OrderResultURL、ClientBackURL 用途不同，不可設為同一網址**：ReturnURL = Server 端背景通知（須回 `1|OK`）；OrderResultURL = Client 端前景導轉（顯示給消費者）；ClientBackURL = 僅導回頁面（不帶任何付款結果）
+- **Callback 回應的 HTTP Status 必須是 200**：回傳 201、202、204 等非 200 狀態碼，綠界一律視為失敗並觸發重試。即使 body 正確（如 `1|OK`）也無效
+- **RtnCode 是字串（STRING），不是整數**：綠界所有 Callback 和查詢回應中的 `RtnCode` 為字串型態（如 `"1"`、`"2"`、`"10100073"`）。非 PHP 語言用 `RtnCode === 1`（strict equal）永遠為 false，必須用字串比較 `RtnCode === '1'` 或寬鬆比較 `RtnCode == 1`
+- **ATM / 超商代碼 / 條碼付款有兩個 Callback**：第一個通知到 `PaymentInfoURL`（取號成功，RtnCode=2 或 10100073），第二個通知到 `ReturnURL`（實際付款成功，RtnCode=1）。必須同時實作兩個端點，漏掉 PaymentInfoURL 會導致消費者拿不到繳費資訊
 
 > **AI 注意**：大多數請求只需載入 SKILL.md + 1-2 份 guide。
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
