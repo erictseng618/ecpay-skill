@@ -149,7 +149,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
   ⚠️ 連續扣款失敗 6 次將自動取消合約（不可恢復），需設定 PeriodReturnURL 接收通知（guides/01 §定期定額）
 
 「綠界信用卡分期付款怎麼串？C# ASP.NET」
-→ AI 生成含分期期數設定的 AIO 串接，說明 3/6/12/18/24 期的參數差異。
+→ AI 生成含分期期數設定的 AIO 串接，說明 3/6/12/18/24/30 期的參數差異。
   ⚠️ 可用期數依合約與發卡行而定；「消費者自費分期」需另向綠界申請啟用（guides/01）
 
 「想在我的網站加上 ECPay BNPL 先買後付，Ruby on Rails」

@@ -141,7 +141,9 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── Apple Pay → AIO（ChoosePayment=ApplePay）或 ECPG（讀 guides/01 或 guides/02）[預計 30m]
 ├── TWQR 行動支付 → AIO（ChoosePayment=TWQR）（讀 guides/01 §TWQR 範例）[預計 30m]
 ├── 微信支付 → AIO（ChoosePayment=WeiXin）（讀 guides/01 §微信支付範例）[預計 30m]
-├── 銀聯卡 → AIO（ChoosePayment=UnionPay）（讀 guides/01）[預計 30m]
+├── 銀聯卡
+│   ├── ECPG 站內付 → ChoosePaymentList="6"，UnionPayInfo（讀 guides/02）[預計 1h]
+│   └── AIO 信用卡頁面 → ChoosePayment=Credit，UnionPay=1（讀 guides/01 §信用卡一次付清參數）[預計 30m]
 ├── 非 PHP 語言完整範例 → 讀 guides/24-multi-language-integration.md（Go/Java/C#/TS/Kotlin/Ruby E2E + Mobile App）
 ├── 查詢訂單狀態 → AIO: guides/01 QueryTradeInfo 區段 / ECPG: guides/02 查詢區段
 ├── 下載對帳檔 → guides/01 對帳區段（注意 domain 為 vendor.ecpay.com.tw）

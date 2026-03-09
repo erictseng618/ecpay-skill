@@ -41,15 +41,15 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 - Apple Pay → AIO (`ChoosePayment=ApplePay`) or ECPG (guides/01 or guides/02)
 - TWQR mobile payment → AIO (`ChoosePayment=TWQR`) (guides/01 §TWQR)
 - WeChat Pay → AIO (`ChoosePayment=WeiXin`) (guides/01)
-- UnionPay → AIO (`ChoosePayment=UnionPay`) (guides/01)
+- UnionPay → ECPG (`ChoosePaymentList="6"`, guides/02) or AIO (`ChoosePayment=Credit`, `UnionPay=1`, guides/01)
 - Physical POS → guides/17 | Live streaming → guides/18 | Shopify → guides/10
 - Collection vs Gateway mode (same API) → SKILL.md §代收付 vs 新型閘道
 
 ## Logistics
 - Domestic CVS pickup / Home delivery → guides/06 (CMV-MD5)
 - All-in-One logistics (new, RWD page) → guides/07 (AES-JSON)
-- Cross-border (HK/MY/SG) → guides/08 (AES-JSON)
-- Query logistics status → Domestic: guides/06 §QueryLogisticsTradeInfo / All-in-One: guides/07 §QueryLogisticsTradeInfo
+- Cross-border → guides/08 (AES-JSON)
+- Query logistics status → Domestic: guides/06 §QueryLogisticsTradeInfo / All-in-One: guides/07 §QueryLogisticsTradeInfo / Cross-border: guides/08 §查詢
 
 ## E-Invoice
 - B2C → guides/04 | B2B → guides/05 | Offline POS → guides/19
