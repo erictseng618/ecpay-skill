@@ -388,14 +388,12 @@ composer require "ecpay/sdk:^4.0"
 
 ### 重要提醒
 
-- ReturnURL 必須回應純字串 `1|OK`（僅限 AIO/CMV-SHA256 協議；ECPG/AES-JSON 的回應格式不同，見 [guides/22](./guides/22-webhook-events-reference.md)）
 - TLS 1.2 必須
-- 不支援 iframe（使用 ECPG 或新視窗）
-- HashKey/HashIV 禁止放前端或版本控制
-- API 過頻觸發 403，等 30 分鐘（ECPay 未公開具體速率限制數值，建議間隔至少 200ms）
 - 3D Secure 2.0：已於 2025/8 起強制實施
 - ChoosePayment=ALL 可用 IgnorePayment 排除特定付款方式
 - Postback URL 使用 FQDN 而非固定 IP
+
+> 其餘關鍵規則（iframe 禁用、ReturnURL `1|OK` 格式、HashKey 禁前端、API 限速、port 限制等）詳見上方「AI 注意事項」段落。
 
 ### 介接注意事項 URL 速查表
 
