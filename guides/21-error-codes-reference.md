@@ -160,7 +160,7 @@ ECPG Callback 收到後需回應 JSON：
 | 1 | 授權成功 | 正常流程 |
 | 其他 | 授權失敗 | 檢查 RtnMsg，常見：卡號錯誤、額度不足、發卡行拒絕 |
 
-信用卡幕後授權的 Callback（ReturnURL）回應為 JSON `{ "TransCode": 1 }`（與 ECPG 相同）。非信用卡幕後取號的 Callback（ServerReplyURL）回應為 `1|OK`（與 AIO 相同）。
+信用卡幕後授權的 Callback（ReturnURL）回應為 JSON `{ "TransCode": 1 }`（與 ECPG 相同）。非信用卡幕後取號的 Callback（ReturnURL）回應為 `1|OK`（與 AIO 相同）。
 
 > **注意**：幕後授權的交易訊息代碼一覽表見官方附錄：
 > [references/Payment/信用卡幕後授權API技術文件.md](../references/Payment/信用卡幕後授權API技術文件.md)（附錄 / 交易訊息代碼一覽表）

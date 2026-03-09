@@ -25,7 +25,7 @@ python test-vectors/verify.py
 | 4 | 特殊字元 `~` | 各語言 `~` → `%7E` 替換 |
 | 5 | **空格處理** | `%20` vs `+` 陷阱（Node.js、Rust 預設產生 `%20`） |
 | 6 | **Callback 驗證** | 模擬收到付款通知，驗證 CMV 比對流程 |
-| 7 | **E-Ticket CMV** | 電子票證使用完全不同的公式：`SHA256(URL_encode(Key+JSON+IV))` |
+| 7 | **E-Ticket CMV** | 電子票證使用完全不同的公式：`SHA256(toLowerCase(URL_encode(Key+JSON+IV)))` |
 
 ### AES 加密/解密 (6 vectors)
 

@@ -265,13 +265,13 @@ $response = $postService->post($input, 'https://ecpayment-stage.ecpay.com.tw/1.0
 
 | 付款方式 | 建單後流程 |
 |---------|----------|
-| ATM | 取得虛擬帳號 → 消費者轉帳 → ServerReplyURL 通知 |
-| CVS（超商代碼）| 取得繳費代碼 → 消費者至超商繳費 → ServerReplyURL 通知 |
-| BARCODE（條碼）| 取得三段條碼 → 消費者至超商掃碼 → ServerReplyURL 通知 |
+| ATM | 取得虛擬帳號 → 消費者轉帳 → ReturnURL 通知 |
+| CVS（超商代碼）| 取得繳費代碼 → 消費者至超商繳費 → ReturnURL 通知 |
+| BARCODE（條碼）| 取得三段條碼 → 消費者至超商掃碼 → ReturnURL 通知 |
 
-### ServerReplyURL 回呼格式
+### ReturnURL 回呼格式
 
-與 AIO 的 ReturnURL 類似，綠界會 POST 付款結果到你指定的 ServerReplyURL。回呼包含：
+與 AIO 的 ReturnURL 相同，綠界會 POST 付款結果到你指定的 ReturnURL。回呼包含：
 - MerchantID、MerchantTradeNo
 - RtnCode（1=付款成功）
 - 付款方式相關欄位（BankCode/vAccount 或 PaymentNo 或 Barcode1~3）

@@ -263,7 +263,7 @@ try {
 電子票證的 CheckMacValue 計算方式與 AIO 金流不同。公式如下：
 
 ```
-CheckMacValue = SHA256( URLEncode( HashKey + Data明文 + HashIV ) )
+CheckMacValue = SHA256( toLowerCase( URLEncode( HashKey + Data明文 + HashIV ) ) )
 ```
 
 **計算步驟**：
@@ -277,7 +277,7 @@ CheckMacValue = SHA256( URLEncode( HashKey + Data明文 + HashIV ) )
 
 > ⚠️ **與 AIO 金流 CheckMacValue 的差異**：
 > - AIO 金流：將各參數依字母排序、以 `&` 串接、前後加 HashKey/HashIV → URLEncode → SHA256
-> - 電子票證：直接取 Data **JSON 明文整段**、前後加 HashKey/HashIV → URLEncode → SHA256
+> - 電子票證：直接取 Data **JSON 明文整段**、前後加 HashKey/HashIV → URLEncode → toLowerCase → SHA256
 >
 > 兩者 URLEncode 規則不同，不可混用。詳見官方附錄：[檢查碼機制](https://developers.ecpay.com.tw/29998.md)。
 
