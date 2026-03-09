@@ -6,6 +6,7 @@ Java: line 369-446 | C#: line 448-509 | Go: line 511-616
 C: line 617-775 | C++: line 776-930 | Rust: line 931-996
 Swift: line 997-1074 | Kotlin: line 1075-1123 | Ruby: line 1124-1173
 Test vectors: line 1174-1319 | 常見錯誤: line 1320-1351
+CI/自動化驗證: test-vectors/aes-encryption.json (6 vectors) + test-vectors/url-encode-comparison.json (4 vectors) + test-vectors/verify.py
 -->
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
@@ -15,6 +16,8 @@ Test vectors: line 1174-1319 | 常見錯誤: line 1320-1351
 ## 概述
 
 AES-128-CBC 加密用於 ECPG 站內付、電子發票、全方位物流、跨境物流。這些服務不使用 CheckMacValue，而是將業務資料 AES 加密後放入 Data 欄位。
+
+> 💡 **驗證你的實作**：完成後使用 [`test-vectors/aes-encryption.json`](../test-vectors/aes-encryption.json)（6 個向量）和 [`test-vectors/url-encode-comparison.json`](../test-vectors/url-encode-comparison.json)（4 個向量）驗證正確性，或執行 `python test-vectors/verify.py` 自動化驗證。
 
 ## AES 和 CheckMacValue 有什麼不同？
 

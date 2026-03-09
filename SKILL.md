@@ -258,6 +258,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **RtnCode 是字串（STRING），不是整數**：綠界所有 Callback 和查詢回應中的 `RtnCode` 為字串型態（如 `"1"`、`"2"`、`"10100073"`）。非 PHP 語言用 `RtnCode === 1`（strict equal）永遠為 false，必須用字串比較 `RtnCode === '1'` 或寬鬆比較 `RtnCode == 1`
 - **ATM / 超商代碼 / 條碼付款有兩個 Callback**：第一個通知到 `PaymentInfoURL`（取號成功，RtnCode=2 或 10100073），第二個通知到 `ReturnURL`（實際付款成功，RtnCode=1）。必須同時實作兩個端點，漏掉 PaymentInfoURL 會導致消費者拿不到繳費資訊
 - **加密/解密每一步都必須驗證**：(1) AES 加密前確認 JSON 序列化正確（key 順序、無 HTML escape）；(2) AES 解密後確認得到合法 JSON（非 null/空字串）；(3) Base64 必須使用**標準 alphabet**（`+/=`），不可使用 URL-safe alphabet（`-_`）；(4) 若啟用 `NeedExtraPaidInfo=Y`，Callback 額外回傳的欄位**全部**必須納入 CheckMacValue 驗證（非 PHP 語言手動計算時最易遺漏）
+- **DoAction（請款/退款/取消）僅適用於信用卡**：ATM、超商代碼、條碼付款為消費者臨櫃/轉帳付現，**不支援線上退款 API**。若開發者要求退款，必須先確認原交易的 `PaymentType` — 僅信用卡類（`Credit_CreditCard`）可呼叫 `/CreditDetail/DoAction`（Action=R），其他付款方式需透過綠界商家後台人工處理或聯繫客服
 
 > **AI 注意**：大多數請求只需載入 SKILL.md + 1-2 份 guide。
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。

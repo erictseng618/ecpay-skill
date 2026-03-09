@@ -64,6 +64,7 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 - Same-day credit card → **Void**: guides/01 §DoAction `Action=N` (AIO) / guides/02 (ECPG)
 - After settlement → **Refund**: guides/01 §DoAction `Action=R` / guides/02
 - Partial refund → AIO: `Action=R` with partial `TotalAmount` / ECPG: guides/02 §Refund
+- ⚠️ **DoAction is credit-card-only** — ATM/CVS/BARCODE payments cannot be refunded via API; handle via ECPay merchant dashboard or contact support
 
 # Critical Rules (Must Follow)
 

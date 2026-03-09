@@ -6,6 +6,7 @@ Java: line 288-352 | C#: line 353-434 | Go: line 435-511
 C: line 512-680 | C++: line 681-803 | Rust: line 804-884
 Swift: line 885-969 | Kotlin: line 970-1030 | Ruby: line 1031-1081
 Test vectors: line 1082-1193
+CI/自動化驗證: test-vectors/checkmacvalue.json (7 vectors) + test-vectors/verify.py
 -->
 
 # CheckMacValue 完整解說
@@ -15,6 +16,8 @@ Test vectors: line 1082-1193
 ## 概述
 
 CheckMacValue 是 ECPay 用於驗證請求/回應完整性的檢查碼。用於 AIO 金流和國內物流。非 PHP 開發者需要自行實作此機制。
+
+> 💡 **驗證你的實作**：完成後使用 [`test-vectors/checkmacvalue.json`](../test-vectors/checkmacvalue.json) 的 7 個測試向量驗證正確性，或執行 `python test-vectors/verify.py` 自動化驗證。
 
 ## 使用場景
 
