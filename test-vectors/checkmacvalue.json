@@ -100,8 +100,8 @@
       "hashIV": "q9jcZX8Ib9LM8wYk",
       "formula": "ecticket",
       "plaintext_json": "{\"MerchantID\":\"2000132\",\"BarCode\":\"/1234567\"}",
-      "expected": "69BB15D7B09B70BE38F210AE88D7DDF76E4E82CF904B8BC6BD502BB05B3BD8E9",
-      "note": "E-Ticket（電子票證）CMV 公式與 AIO 完全不同：SHA256(URL_encode(HashKey + JSON_string + HashIV))。不使用參數排序，不使用 .NET 字元替換。此向量驗證開發者沒有混用 AIO 的 CMV 公式"
+      "expected": "1DE6937BA37441FC14625CE1A54B4568838E9FC5EE2306CB9CBA9A9EE2B29448",
+      "note": "E-Ticket（電子票證）CMV 公式與 AIO 完全不同：SHA256(toLowerCase(URL_encode(HashKey + JSON_string + HashIV)))。不使用參數排序，不使用 .NET 字元替換，但需要 toLowerCase。此向量驗證開發者沒有混用 AIO 的 CMV 公式"
     }
   ]
 }

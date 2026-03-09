@@ -181,7 +181,7 @@ $response = $postService->post($input, 'https://ecpayment-stage.ecpay.com.tw/1.0
             → 解密取得繳費代碼
             → 將繳費代碼提供給消費者（Email/SMS/頁面顯示）
             → 消費者去 ATM/超商繳費
-            → 綠界 POST 付款結果到你的 ServerReplyURL
+            → 綠界 POST 付款結果到你的 ReturnURL
 ```
 
 ### 取號結果對照

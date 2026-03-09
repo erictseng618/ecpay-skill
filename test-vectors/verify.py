@@ -46,7 +46,7 @@ def calc_cmv(hash_key, hash_iv, params, method='SHA256'):
 # ====== E-Ticket CMV (different formula) ======
 def calc_ecticket_cmv(hash_key, hash_iv, json_string):
     raw = hash_key + json_string + hash_iv
-    encoded = aes_url_encode(raw)  # E-Ticket uses aesUrlEncode, not ecpayUrlEncode
+    encoded = aes_url_encode(raw).lower()  # E-Ticket: URLEncode → toLowerCase → SHA256 (per official docs)
     return hashlib.sha256(encoded.encode('utf-8')).hexdigest().upper()
 
 # ====== AES encrypt/decrypt ======
