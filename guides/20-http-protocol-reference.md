@@ -35,7 +35,7 @@ ECPay 服務使用 **3 個 HTTP 協議模式**（CMV-SHA256 / AES-JSON / CMV-MD5
 
 ---
 
-## 2. 三大協議模式詳細規格
+## 2. 協議模式詳細規格
 
 ### 2.1 CMV-SHA256 — Form POST + CheckMacValue (SHA256)
 

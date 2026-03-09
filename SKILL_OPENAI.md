@@ -21,7 +21,7 @@ ECPay only supports TWD (New Taiwan Dollar). All services operate in Taiwan.
 
 # Three Protocol Modes
 
-Every ECPay API uses one of these three modes. Identify the correct mode first.
+Every ECPay API uses one of these four modes. Identify the correct mode first.
 
 | Mode | Auth Method | Format | Services |
 |------|------------|--------|----------|

@@ -57,7 +57,9 @@ ECPay API 的錯誤回傳分為兩種模式：
 
 > **CMV-SHA256** 使用 SHA256 CheckMacValue，**CMV-MD5**（國內物流）使用 **MD5** CheckMacValue。兩者回應解析方式相同，但雜湊演算法不同。
 
-### AES-JSON（ECPG 站內付、幕後授權、電子發票、全方位物流 v2、跨境物流、電子票證）— 雙層 TransCode → RtnCode
+### AES-JSON（ECPG 站內付、幕後授權、電子發票、全方位物流 v2、跨境物流）— 雙層 TransCode → RtnCode
+
+> ⚠️ **電子票證**也使用 AES-JSON 格式，但額外包含 CheckMacValue（SHA256），屬於 AES-JSON + CMV 協議。錯誤碼邏輯相同，但多一層 CheckMacValue 驗證。詳見 [guides/09](../guides/09-ecticket.md)。
 
 回應格式為三層 JSON，需先檢查外層 `TransCode` 再解密 `Data` 檢查 `RtnCode`：
 - `TransCode=1` + `RtnCode=1`：成功
