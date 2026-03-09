@@ -44,6 +44,7 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 - Domestic CVS pickup / Home delivery → guides/06 (CMV-MD5)
 - All-in-One logistics (new, RWD page) → guides/07 (AES-JSON)
 - Cross-border (HK/MY/SG) → guides/08 (AES-JSON)
+- Query logistics status → Domestic: guides/06 §QueryLogisticsTradeInfo / All-in-One: guides/07 §QueryLogisticsTradeInfo
 
 ## E-Invoice
 - B2C → guides/04 | B2B → guides/05 | Offline POS → guides/19
@@ -64,7 +65,8 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 - Same-day credit card → **Void**: guides/01 §DoAction `Action=N` (AIO) / guides/02 (ECPG)
 - After settlement → **Refund**: guides/01 §DoAction `Action=R` / guides/02
 - Partial refund → AIO: `Action=R` with partial `TotalAmount` / ECPG: guides/02 §Refund
-- ⚠️ **DoAction is credit-card-only** — ATM/CVS/BARCODE payments cannot be refunded via API; handle via ECPay merchant dashboard or contact support
+- Non-credit-card (ATM/CVS/BARCODE) → ⚠️ No API refund — handle via ECPay merchant dashboard or contact support
+- Subscription cancel/pause → guides/01 §Periodic CreditCardPeriodAction
 
 # Critical Rules (Must Follow)
 
@@ -131,7 +133,7 @@ Other traps (PKCS7 padding, JSON key order, compact JSON, `'` encoding, HTML esc
 
 # Live API Spec Access
 
-ECPay official docs at `developers.ecpay.com.tw` are authoritative. Guide parameter tables are **SNAPSHOT (2026-03)** — always fetch live specs via Web Search before generating code.
+ECPay official docs at `developers.ecpay.com.tw` are authoritative. Guide parameter tables are **SNAPSHOT (2026-03)** — stable for initial development, but fetch live specs via Web Search when generating production code or debugging unexpected API behavior.
 
 **Web Search strategy**: Search `site:developers.ecpay.com.tw` + the API name in Chinese (e.g., `site:developers.ecpay.com.tw 信用卡一次付清`). If the specific URL from guides returns no results, broaden the search to `ECPay API {feature name}`.
 

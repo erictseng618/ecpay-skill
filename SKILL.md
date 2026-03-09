@@ -152,7 +152,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 │   ├── 超商取貨 → 國內物流 CVS（讀 guides/06-logistics-domestic.md）
 │   ├── 宅配 → 國內物流 HOME（讀 guides/06-logistics-domestic.md）
 │   └── 消費者自選 → 全方位物流（讀 guides/07-logistics-allinone.md）
-└── 海外 → 跨境物流（讀 guides/08-logistics-crossborder.md）
+├── 海外 → 跨境物流（讀 guides/08-logistics-crossborder.md）
+└── 查詢物流狀態 → 國內: guides/06 §查詢物流訂單 / 全方位: guides/07 §查詢物流訂單
 ```
 
 #### 電子發票決策樹
@@ -181,6 +182,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── 信用卡退款
 │   ├── AIO 訂單 → guides/01 DoAction（Action=R 退款 / Action=N 取消授權）
 │   └── ECPG 訂單 → guides/02 DoAction 區段
+├── 非信用卡（ATM/超商代碼/條碼）→ ⚠️ 不支援 API 退款，需透過綠界商家後台或聯繫客服
+├── 訂閱（定期定額）取消/暫停 → guides/01 §定期定額 CreditCardPeriodAction
 ├── 發票作廢 → guides/04 Invalid 區段（B2C）/ guides/05 Invalid 區段（B2B）
 ├── 發票折讓 → guides/04 Allowance 區段（B2C）/ guides/05 Allowance 區段（B2B）
 ├── 物流退貨 → guides/06 逆物流區段
@@ -242,7 +245,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **不可假設所有 API 回應都是 JSON**（AIO 回 HTML/URL-encoded/pipe-separated）
 - **不可在前端或版本控制中暴露** HashKey/HashIV
 - **不可將 ATM RtnCode=2 或 CVS RtnCode=10100073 視為錯誤**（代表取號成功，消費者尚未付款）
-- **不可僅依賴 guides/ 中的參數表生成 API 呼叫程式碼**（guides/ 所有參數表和端點表標記為 SNAPSHOT，僅供整合流程理解。生成程式碼前**必須**從 references/ 即時 web_fetch 官方最新規格確認端點路徑和參數定義）
+- **guides/ 參數表為 SNAPSHOT（2026-03）**：整合流程理解和初步開發可直接使用。**正式上線前應**從 references/ 即時 web_fetch 官方最新規格確認端點路徑和參數定義
 - **生成程式碼時必須標註資料來源**：在程式碼註解中標明參數值取自 SNAPSHOT 或 web_fetch（例如 `// Source: web_fetch references/Payment/... 2026-03-06`），方便開發者日後驗證
 - **不可將 ECPG 所有端點都打向 ecpg domain**（交易類走 `ecpayment`，Token 類走 `ecpg`）
 - **不可省略 Callback 回應**：CMV-SHA256 回 `1|OK`、ECPG 回 JSON `{ "TransCode": 1 }`、國內物流 CMV-MD5 回 `1|OK`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）、電子票證回 `1|OK`。**`1|OK` 常見錯誤格式**（會導致系統重發 4 次）：`"1|OK"`（含引號）、`1|ok`（小寫 ok）、`_OK`、`1OK`（缺分隔）、帶空白或換行
@@ -261,14 +264,14 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **DoAction（請款/退款/取消）僅適用於信用卡**：ATM、超商代碼、條碼付款為消費者臨櫃/轉帳付現，**不支援線上退款 API**。若開發者要求退款，必須先確認原交易的 `PaymentType` — 僅信用卡類（`Credit_CreditCard`）可呼叫 `/CreditDetail/DoAction`（Action=R），其他付款方式需透過綠界商家後台人工處理或聯繫客服
 
 > **AI 注意**：大多數請求只需載入 SKILL.md + 1-2 份 guide。
-> **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
+> **guides/ 參數表為 SNAPSHOT（2026-03）**，初步開發可直接使用。正式上線前應從 references/ 取得對應 URL 並 web_fetch 確認最新規格（見「API 規格即時查閱機制」段落）。
 > guides/13、14、24 有 AI Section Index（行號索引），若只需單一語言可用 offset/limit 讀取特定行範圍。
 > AES vs CMV 對比表見 guides/14 line 79-163。
 > guides/24 有約 785 行，建議使用 AI Section Index 的行號範圍只讀取目標語言的 E2E 區段。
 >
-> **SNAPSHOT 說明**：guides/ 中的參數欄位名稱、型態、必填規則通常穩定（改動機率 < 5%）。
-> 需要即時查閱的情況：API 回傳不符預期、或需確認最新業務驗證規則（如金額範圍）時。
-> **大多數情況下，guide 內容足以完成串接。**
+> **SNAPSHOT 優先級**：guides/ 參數表穩定度高（改動機率 < 5%），大多數情況下足以完成串接。
+> **必須 web_fetch 的情況**：(1) 正式上線前最終確認、(2) API 回傳不符預期、(3) 需確認最新業務規則（如金額範圍）。
+> **無需 web_fetch 的情況**：原型開發、學習串接流程、已知參數未變動時。
 
 ### 步驟 2.5：確認 HTTP 協議規格（非 PHP 語言必讀）
 
