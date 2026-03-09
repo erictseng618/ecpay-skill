@@ -263,6 +263,65 @@ ecpay-skill/
             └── Logistics/CrossBorder/ (8 個)
 ```
 
+## AI 查詢處理流程：guides/ 與 references/ 的參照順序
+
+AI 助手在回答開發者問題時，依循以下順序參照知識庫：
+
+### 第一層：SKILL.md 決策樹（路由）
+
+```
+開發者提問 → SKILL.md 決策樹分析需求
+  ├── 判斷服務類型（金流 / 物流 / 發票 / 票證）
+  ├── 判斷協議模式（CMV-SHA256 / AES-JSON / CMV-MD5）
+  └── 路由到對應的 guide + reference
+```
+
+### 第二層：guides/（靜態整合知識）
+
+```
+guides/XX-*.md  →  了解「怎麼做」
+  ├── 整合流程與架構邏輯
+  ├── 程式碼範例與常見陷阱
+  └── 參數表（標記為 SNAPSHOT，僅供理解用）
+```
+
+### 第三層：references/（即時 API 規格）
+
+```
+references/*/  →  取得「最新規格」
+  ├── 讀取 reference 檔案 → 找到對應 URL
+  ├── 使用平台工具存取 developers.ecpay.com.tw
+  └── 取得最新端點、參數定義、回應格式
+```
+
+### 完整查詢流程
+
+```
+1. SKILL.md 決策樹  ──→  判斷需求，路由到對應 guide
+2. guides/XX         ──→  讀取整合流程、架構邏輯、注意事項
+3. scripts/SDK_PHP/  ──→  讀取官方 PHP 範例作為翻譯基礎（需要產生程式碼時）
+4. references/       ──→  ⭐ 即時存取最新 API 規格（產生程式碼前必做）
+5. guides/13 或 14   ──→  加密實作參考（CheckMacValue 或 AES）
+6. test-vectors/     ──→  提供測試向量供驗證
+```
+
+> **核心原則**：`guides/` 告訴 AI「怎麼串接」，`references/` 告訴 AI「串接什麼」。
+> 產生 API 呼叫程式碼前，**必須**透過 `references/` 取得最新規格，不可僅依賴 `guides/` 中的 SNAPSHOT 參數表。
+
+### 各平台存取 references/ 的方式
+
+| 平台 | 存取工具 | 方式 |
+|------|---------|------|
+| Claude Code | `web_fetch` | 直接讀取 reference URL |
+| GitHub Copilot CLI | `web_fetch` / `fetch` | 直接讀取 reference URL |
+| Cursor | `@web` / Fetch MCP | 直接讀取 reference URL |
+| Windsurf | `@web` / `@docs` | 直接讀取 reference URL |
+| OpenClaw | `web_fetch` / `web_search` | 直接讀取 reference URL |
+| OpenAI GPTs | Web Search | 以 `site:developers.ecpay.com.tw` + API 名稱搜尋 |
+
+> **OpenAI GPTs 注意**：無法直接讀取 `references/` 中的 URL，改用 Web Search 搜尋官方文件。
+> 若 Web Search 無法取得結果，以 `guides/` SNAPSHOT 為備援並標示「此為 SNAPSHOT，可能非最新版本」。
+
 ## 測試環境快速參考
 
 > 完整測試帳號（MerchantID / HashKey / HashIV）、測試信用卡號、3D Secure 驗證碼等資訊，
