@@ -10,9 +10,9 @@ Three-layer knowledge system:
 - **`guides/`** (25 files, indexed 00-24) — Static integration knowledge with SNAPSHOT parameter tables. Provides process logic, caveats, code examples in 12 languages.
 - **`references/`** (19 files, 431 URLs) — Real-time API spec gateway. Each file contains organized URLs pointing to `developers.ecpay.com.tw`. AI uses `web_fetch` on these URLs to get the latest official parameter specs before generating code.
 
-The critical pattern: **guides/ tells you HOW to integrate; references/ gives you the CURRENT spec to integrate against.** When generating API code, always combine both — never rely on guides/ parameter snapshots alone.
+The critical pattern: **guides/ tells you HOW to integrate; references/ gives you the CURRENT spec to integrate against.** Guides are sufficient for prototyping and initial development (parameter stability >95%). For production deployment or when API behavior doesn't match expectations, use `web_fetch` on references/ URLs to verify the latest specs.
 
-### Three HTTP Protocol Modes
+### Four HTTP Protocol Modes
 
 | Mode | Auth | Format | Services |
 |------|------|--------|----------|
@@ -23,8 +23,9 @@ The critical pattern: **guides/ tells you HOW to integrate; references/ gives yo
 
 ### Supporting Files
 
+- **`SKILL_OPENAI.md`** — Condensed version of SKILL.md for OpenAI Custom GPTs (8K token limit). When both exist, SKILL_OPENAI.md takes precedence for GPT platforms.
 - **`commands/`** (6 files) — Claude Code slash commands. Navigation only, ≤20 lines each. Do not duplicate SKILL.md logic.
-- **`test-vectors/`** — Deterministic test vectors for CheckMacValue (SHA256/MD5) and AES encryption. Used to validate 12-language crypto implementations.
+- **`test-vectors/`** — Deterministic test vectors for CheckMacValue (SHA256/MD5), AES encryption, and URL encoding comparison. Run `python test-vectors/verify.py` (requires `pycryptodome`) to validate all 17 vectors.
 - **`scripts/SDK_PHP/`** — Official ECPay PHP SDK with 134 verified examples. Read-only reference; do not modify.
 
 ## Validation Commands
@@ -32,6 +33,9 @@ The critical pattern: **guides/ tells you HOW to integrate; references/ gives yo
 ```bash
 # Validate AI Section Index line numbers in guides/13, 14, 24
 bash scripts/validate-ai-index.sh
+
+# Verify all 17 test vectors (CheckMacValue, AES, URL encoding)
+pip install pycryptodome && python test-vectors/verify.py
 
 # Manually trigger URL check (also runs weekly via GitHub Actions)
 # Go to Actions tab → "Validate Reference URLs" → Run workflow
@@ -52,7 +56,7 @@ When changing the version number, update ALL of these:
 
 ### SNAPSHOT Timestamps
 
-Parameter tables in `guides/` are marked `SNAPSHOT 2026-XX`. When updating a guide's parameter content, update its SNAPSHOT date. AI is instructed to verify these against live specs via `references/` before generating code.
+Parameter tables in `guides/` are marked `SNAPSHOT 2026-XX`. When updating a guide's parameter content, update its SNAPSHOT date. AI is instructed to use guides/ for initial development and verify against live specs via `references/` before production deployment.
 
 ### AI Section Index
 
@@ -71,6 +75,15 @@ All crypto verification code **must** use timing-safe comparison functions. Neve
 | Java | `MessageDigest.isEqual()` |
 | C# | `CryptographicOperations.FixedTimeEquals()` |
 | Ruby | `Rack::Utils.secure_compare()` |
+
+### URL Encoding: Two Different Functions
+
+This is the #1 source of cross-language bugs. ECPay has two distinct URL encode flows:
+
+- **`ecpayUrlEncode`** (for CheckMacValue): `urlencode()` → `strtolower()` → `.NET replacements` — see guides/13
+- **`aesUrlEncode`** (for AES): `urlencode()` only (no .NET replacements, no lowercase) — see guides/14
+
+**Never mix them.** The authoritative source is `scripts/SDK_PHP/src/Services/UrlService.php`.
 
 ### references/ Files Format
 
