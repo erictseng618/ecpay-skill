@@ -149,13 +149,16 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 → AI 生成超商代碼取號 + Callback 處理，提醒 RtnCode=10100073 是正常取號成功（guides/01）
 
 「我的 SaaS 要用 ECPay 做定期定額訂閱扣款，Java Spring Boot」
-→ AI 生成 AIO 定期定額參數、首期交易、後續自動扣款的 Callback 處理（guides/01 §定期定額）
+→ AI 生成 AIO 定期定額參數、首期交易、後續自動扣款的 Callback 處理。
+  ⚠️ 連續扣款失敗 6 次將自動取消合約（不可恢復），需設定 PeriodReturnURL 接收通知（guides/01 §定期定額）
 
 「綠界信用卡分期付款怎麼串？C# ASP.NET」
-→ AI 生成含分期期數設定的 AIO 串接，說明 3/6/12/18/24 期的參數差異（guides/01）
+→ AI 生成含分期期數設定的 AIO 串接，說明 3/6/12/18/24 期的參數差異。
+  ⚠️ 可用期數依合約與發卡行而定；「消費者自費分期」需另向綠界申請啟用（guides/01）
 
 「想在我的網站加上 ECPay BNPL 先買後付，Ruby on Rails」
-→ AI 說明 BNPL 最低消費 3,000 元限制，生成 ChoosePayment=BNPL 的完整範例（guides/01）
+→ AI 說明 BNPL 限制，生成 ChoosePayment=BNPL 的完整範例。
+  ⚠️ 最低消費 3,000 元、需另向綠界申請啟用 BNPL 服務（guides/01）
 ```
 
 #### 金流 — ECPG 站內付 2.0
@@ -165,7 +168,8 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 → AI 推薦 ECPG 站內付，生成前端 Token + 後端建立交易的完整 TypeScript 程式碼（guides/02）
 
 「ECPay 站內付綁卡快速付款怎麼做？Vue + Express」
-→ AI 生成首次綁卡 + Token 儲存 + 後續免輸入卡號扣款的完整流程（guides/02 §綁卡）
+→ AI 生成首次綁卡 + Token 儲存 + 後續免輸入卡號扣款的完整流程。
+  ⚠️ 信用卡綁定僅限「代收付」合約模式，「新型閘道」模式不支援（guides/02 §綁卡）
 
 「我的 iOS App 要串接綠界信用卡付款」
 → AI 推薦 ECPG 站內付 App 方案，提醒 SDK 版本需求與雙 Domain 規則（guides/02 + guides/24）
@@ -175,7 +179,8 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 ```
 「後台自動扣款不需要消費者操作畫面，ECPay 怎麼做？Kotlin」
-→ AI 推薦幕後授權（Backend Auth），生成 AES 加密 + JSON POST 的完整範例（guides/03）
+→ ⚠️ 幕後授權需取得 PCI-DSS SAQ-D 認證，合規成本高，一般商家建議改用 ECPG 綁卡扣款。
+  AI 先確認開發者是否具備 PCI-DSS 資格，再決定推薦幕後授權或 ECPG 替代方案（guides/03）
 
 「怎麼用 Python 查詢綠界 AIO 訂單狀態？」
 → AI 生成 QueryTradeInfo API 呼叫 + 回應解析範例（guides/01 §QueryTradeInfo）
@@ -214,7 +219,8 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 ```
 「我們要用綠界做演唱會電子票券，Rust」
-→ AI 說明 AES-JSON + CMV 雙重驗證機制（與 AIO 公式不同），生成票券發行+核銷範例（guides/09）
+→ AI 說明 AES-JSON + CMV 雙重驗證機制（與 AIO 公式不同），生成票券發行+核銷範例。
+  ⚠️ 電子票證需向綠界獨立申請開通（非金流帳號自動包含），且使用獨立的 HashKey/HashIV（guides/09）
 ```
 
 #### 跨服務整合
@@ -257,7 +263,9 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 → AI 說明直播收款 URL 產生方式與限制（guides/18）
 
 「Apple Pay 可以用 ECPay 收嗎？Swift iOS App」
-→ AI 說明 AIO ChoosePayment=ApplePay 或 ECPG 方式，以及 Google Pay 透過 TWQR 支援（guides/01 / guides/02）
+→ AI 說明 AIO ChoosePayment=ApplePay 或 ECPG 方式，以及 Google Pay 透過 TWQR 支援。
+  ⚠️ Apple Pay 需：(1) Apple Developer Account + Payment Processing Certificate (2) 向綠界申請啟用
+  (3) 僅限 iOS 原生 SDK（不支援 WebView / Android）（guides/01 / guides/02）
 ```
 
 ## 涵蓋服務
