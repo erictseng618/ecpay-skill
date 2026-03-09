@@ -131,13 +131,17 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 │   ├── 信用卡 → 幕後授權（讀 guides/03）[預計 1h]
 │   └── ATM/超商 → 幕後取號（讀 guides/03）[預計 1h]
 ├── 訂閱制 → AIO 定期定額（讀 guides/01 §定期定額）[預計 45m]
+├── 信用卡分期 → AIO（ChoosePayment=Credit，CreditInstallment=3,6,12,18,24,30）（讀 guides/01 §分期範例）[預計 30m]
 ├── BNPL 先買後付 → AIO（ChoosePayment=BNPL，最低消費金額 3,000 元）（讀 guides/01）[預計 30m]
 ├── 綁卡快速付 → ECPG 綁卡（讀 guides/02 §綁卡付款流程）[預計 1h]
 ├── 實體門市刷卡 → POS 刷卡機（讀 guides/17）[預計 2h]
 ├── 直播電商收款 → 直播收款（讀 guides/18）[預計 1h]
 ├── Shopify → 購物車模組（讀 guides/10-cart-plugins.md #Shopify，API 規格見 references/Payment/Shopify專用金流API技術文件.md）
 ├── Mobile App（iOS/Android）→ ECPG 站內付（讀 guides/02-payment-ecpg.md + guides/24 Mobile App 區段）
-├── Apple Pay / Google Pay → AIO（ChoosePayment=ApplePay）或 ECPG。**注意：Google Pay 目前透過 TWQR 通路支援，非獨立支付方式**。讀 guides/01 或 guides/02
+├── Apple Pay → AIO（ChoosePayment=ApplePay）或 ECPG（讀 guides/01 或 guides/02）[預計 30m]
+├── Google Pay → AIO（透過 TWQR 通路，ChoosePayment=TWQR）（讀 guides/01 §TWQR 範例）[預計 30m]
+├── 微信支付 → AIO（ChoosePayment=WeiXin）（讀 guides/01 §微信支付範例）[預計 30m]
+├── 銀聯卡 → AIO（ChoosePayment=UnionPay）（讀 guides/01）[預計 30m]
 ├── 非 PHP 語言完整範例 → 讀 guides/24-multi-language-integration.md（Go/Java/C#/TS/Kotlin/Ruby E2E + Mobile App）
 ├── 查詢訂單狀態 → AIO: guides/01 QueryTradeInfo 區段 / ECPG: guides/02 查詢區段
 ├── 下載對帳檔 → guides/01 對帳區段（注意 domain 為 vendor.ecpay.com.tw）
