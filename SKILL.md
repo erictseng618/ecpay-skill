@@ -207,7 +207,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 > **Claude Code**：將 `commands/` 內的 `.md` 檔複製到專案 `.claude/commands/` 即可使用 `/ecpay-*` 指令。
 > **OpenAI GPTs**：已預設 4 個 Conversation Starters（見 OPENAI_SETUP.md），最多 4 個按鈕。
-> **Copilot CLI / OpenClaw**：無原生指令機制，直接用自然語言描述需求，AI 透過上方決策樹自動導航。
+> **Cursor / Windsurf**：無原生 slash 指令機制，直接用自然語言描述需求，AI 透過上方決策樹自動導航。
+> **Copilot CLI / OpenClaw**：同上，無原生指令機制，以自然語言導航。
 
 | 情境 | Claude Code `/` 指令 | 對應 guide |
 |------|---------------------|------------|
@@ -520,6 +521,8 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 | Claude Code | `web_fetch` | `web_fetch(url="https://developers.ecpay.com.tw/2866.md")` |
 | GitHub Copilot CLI | `web_fetch` / `fetch` | 同上 |
 | OpenAI GPTs | Web Search / 瀏覽 | 啟用「Web Search」後直接瀏覽 URL |
+| Cursor | `web_fetch` / `fetch` | 同上 |
+| Windsurf | `web_fetch` / `fetch` | 同上 |
 | OpenClaw | `web_fetch` | 同上 |
 
 > ⚠️ **web_fetch 失敗時的備援**：若 web_fetch 逾時、回傳 404 或連線失敗：

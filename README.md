@@ -10,7 +10,7 @@
 
 | 平台 | 需求 |
 |------|------|
-| Claude Code | Claude Pro / Team / Enterprise 訂閱 |
+| Claude Code | Claude Pro / Max / Team / Enterprise 訂閱 |
 | GitHub Copilot CLI | GitHub Copilot 訂閱 |
 | Cursor | Cursor Pro / Business 訂閱 |
 | Windsurf | Windsurf Pro / Teams 訂閱 |
@@ -57,7 +57,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.copilot/skills/ecpa
 
 **Cursor**
 ```bash
-# Cursor 使用專案根目錄的 .cursor/skills/ 或 rules 目錄
+# Cursor 使用專案根目錄的 .cursor/skills/ 目錄
 git clone https://github.com/erictseng618/ecpay-skill.git .cursor/skills/ecpay
 ```
 
