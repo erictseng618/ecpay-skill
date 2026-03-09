@@ -79,10 +79,11 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 10. If a feature is outside this Skill's scope, direct the user to ECPay support: 02-2655-1775.
 11. **Never put system command keywords in ItemName/TradeDesc** (echo, python, cmd, wget, curl, ping, etc. ~40 keywords) — ECPay CDN WAF blocks the request entirely.
 12. **ItemName exceeding 400 chars gets truncated** — UTF-8 multibyte corruption → CheckMacValue mismatch → lost orders. Truncate before computing CMV.
-13. **ReturnURL/OrderResultURL only accept port 80/443** — dev servers on :3000/:8080 won't receive callbacks. Use ngrok or similar tunneling tools.
+13. **ReturnURL/OrderResultURL only accept port 80/443** — dev servers on :3000/:8080 won't receive callbacks. Use ngrok or similar tunneling tools. Also **cannot be behind CDN** (CloudFlare, Akamai) — CDN alters source IP and may block non-browser requests.
 14. **Callback HTTP response must be status 200** — returning 201/202/204 triggers ECPay retry even if body is correct (`1|OK`).
 15. **RtnCode is STRING, not integer** — all callbacks/queries return `"1"` not `1`. Use `RtnCode === '1'` or loose comparison, never strict `=== 1`.
 16. **ATM/CVS/Barcode have TWO callbacks** — first to `PaymentInfoURL` (取號成功, RtnCode=2 or 10100073), second to `ReturnURL` (付款成功, RtnCode=1). Must implement both endpoints.
+17. **Validate every crypto step** — (1) Verify JSON serialization before AES encryption (key order, no HTML escape); (2) Verify AES decryption returns valid JSON (not null/empty); (3) Use standard Base64 alphabet (`+/=`), NOT URL-safe (`-_`); (4) If `NeedExtraPaidInfo=Y`, ALL extra callback fields MUST be included in CheckMacValue verification.
 
 # Test Accounts
 

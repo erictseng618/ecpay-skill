@@ -251,12 +251,13 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **超出範圍**：若功能不在本 Skill 覆蓋範圍或需要未支援的語言，告知使用者聯繫綠界客服 (02-2655-1775) 或參考最接近的語言實作翻譯
 - **不可在 ItemName / TradeDesc 中放入系統指令關鍵字**（echo、python、cmd、wget、curl、ping、net、telnet 等約 40 個），綠界 CDN WAF 會直接攔截請求，回傳非預期的錯誤頁面
 - **ItemName 超過 400 字元會被截斷**：截斷處的 UTF-8 多位元組字元會產生亂碼，導致綠界端計算的 CheckMacValue 與特店端不一致 → 掉單。建議送出前先截斷至安全長度再計算 CMV
-- **ReturnURL / OrderResultURL 僅支援 port 80（HTTP）和 443（HTTPS）**：開發環境常用的 :3000、:5000、:8080 等非標準 port 無法收到 callback。本機開發需使用 ngrok 等工具轉發
+- **ReturnURL / OrderResultURL 僅支援 port 80（HTTP）和 443（HTTPS）**：開發環境常用的 :3000、:5000、:8080 等非標準 port 無法收到 callback。本機開發需使用 ngrok 等工具轉發。**亦不可放在 CDN（CloudFlare、Akamai 等）後方**——CDN 會改變來源 IP 或攔截非瀏覽器請求，導致 callback 失敗
 - **LINE / Facebook App 內建 WebView 會導致付款失敗**：WebView 無法正確 POST form 至綠界 → MerchantID is Null。需引導消費者用外部瀏覽器開啟付款連結
 - **ReturnURL、OrderResultURL、ClientBackURL 用途不同，不可設為同一網址**：ReturnURL = Server 端背景通知（須回 `1|OK`）；OrderResultURL = Client 端前景導轉（顯示給消費者）；ClientBackURL = 僅導回頁面（不帶任何付款結果）
 - **Callback 回應的 HTTP Status 必須是 200**：回傳 201、202、204 等非 200 狀態碼，綠界一律視為失敗並觸發重試。即使 body 正確（如 `1|OK`）也無效
 - **RtnCode 是字串（STRING），不是整數**：綠界所有 Callback 和查詢回應中的 `RtnCode` 為字串型態（如 `"1"`、`"2"`、`"10100073"`）。非 PHP 語言用 `RtnCode === 1`（strict equal）永遠為 false，必須用字串比較 `RtnCode === '1'` 或寬鬆比較 `RtnCode == 1`
 - **ATM / 超商代碼 / 條碼付款有兩個 Callback**：第一個通知到 `PaymentInfoURL`（取號成功，RtnCode=2 或 10100073），第二個通知到 `ReturnURL`（實際付款成功，RtnCode=1）。必須同時實作兩個端點，漏掉 PaymentInfoURL 會導致消費者拿不到繳費資訊
+- **加密/解密每一步都必須驗證**：(1) AES 加密前確認 JSON 序列化正確（key 順序、無 HTML escape）；(2) AES 解密後確認得到合法 JSON（非 null/空字串）；(3) Base64 必須使用**標準 alphabet**（`+/=`），不可使用 URL-safe alphabet（`-_`）；(4) 若啟用 `NeedExtraPaidInfo=Y`，Callback 額外回傳的欄位**全部**必須納入 CheckMacValue 驗證（非 PHP 語言手動計算時最易遺漏）
 
 > **AI 注意**：大多數請求只需載入 SKILL.md + 1-2 份 guide。
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
@@ -287,7 +288,9 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 2. 讀取 `scripts/SDK_PHP/example/` 中對應的 PHP 範例
 3. **從 references/ 即時讀取對應 API 的最新規格**：讀取 reference 檔案 → 找到對應章節 URL → web_fetch 取得最新參數表，以確保端點路徑、參數名稱、必填規則、回應格式為最新
 4. **摘取 API 頁面中的所有 ⚠ 注意事項**：web_fetch 取得的頁面通常包含注意事項段落，必須在回覆或程式碼註解中主動告知開發者
-5. **首次串接某服務時**（本次對話中第一次涉及該服務），同時 web_fetch 該服務的「介接注意事項」頁面（見下方 [§介接注意事項 URL 速查表](#介接注意事項-url-速查表)），摘取所有關鍵限制告知開發者
+5. **注意不同付款方式/服務之間的語意差異**：相同參數名在不同服務中可能有不同單位（如 `StoreExpireDate` 在超商代碼=分鐘、條碼=天）、不同最低金額（BNPL ≥ 3000）、不同回傳值（`PaymentType` 回傳 `Credit_CreditCard` ≠ 送出的 `Credit`）、不同 Content-Type（金流=form-urlencoded、發票=json）。讀取 API 頁面時必須注意這些隱含差異
+6. **Timestamp 一律使用 Unix 秒數**（非毫秒）：JavaScript `Date.now()` 回傳毫秒，必須除以 1000 並取整
+7. **首次串接某服務時**（本次對話中第一次涉及該服務），同時 web_fetch 該服務的「介接注意事項」頁面（見下方 [§介接注意事項 URL 速查表](#介接注意事項-url-速查表)），摘取所有關鍵限制告知開發者
 6. 如果開發者不用 PHP，將範例翻譯為目標語言
 7. 翻譯時保留所有參數名、端點 URL、加密邏輯
 8. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
