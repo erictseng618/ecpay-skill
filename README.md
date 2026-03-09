@@ -97,7 +97,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 > 「用 ECPay AIO 串接信用卡付款，需要哪些步驟？」
 
-若 AI 回應中引用了 `guides/01`、提到 CheckMacValue 加密，且在需要最新規格時能依平台使用正確來源（OpenAI GPTs 會改用 Web Search 查 `developers.ecpay.com.tw`；其他支援 `references/` 的助手則會建議從 `references/` 取得最新規格），表示 Skill 運作正常。若 AI 僅給出通用建議而未提及 ECPay 特定步驟，請檢查 Skill 安裝路徑是否正確、資料夾內是否包含 `SKILL.md`。
+若 AI 回應中提到「CheckMacValue」或引用了 `guides/01`，表示 Skill 運作正常。若 AI 僅給出通用建議而未提及 ECPay 特定步驟，請檢查安裝路徑是否正確。
 
 ### 2. 使用
 
@@ -160,8 +160,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 - 決策樹自動推薦最適方案
 - 跨服務整合場景（收款 + 發票 + 出貨）
 - 內建除錯指南和上線檢查清單
-- 多輪多代理品質審查（DX、API 準確度、多語言、過度設計、企業基準、參考利用率）
-- **SNAPSHOT 防護機制**——guides/ 參數表標記為 SNAPSHOT，附來源路徑與禁令；支援 `references/` 的助手會即時讀取最新官方規格，OpenAI GPTs 則依 `SKILL_OPENAI.md` 改用 Web Search 查 `developers.ecpay.com.tw`
+- **即時規格更新**——AI 在產生程式碼前會透過 `references/` 即時讀取 `developers.ecpay.com.tw` 最新 API 規格，不依賴過期的靜態文件
 - **6 個 Claude Code 快速指令**（`/ecpay-pay`、`/ecpay-invoice`、`/ecpay-debug` 等）
 
 ### 維護工具
@@ -359,7 +358,7 @@ A：參考 guides/16 上線檢查清單，逐項替換 MerchantID、HashKey/Hash
 A：AI 基於 134 個官方驗證的 PHP 範例和 12 語言加密實作生成程式碼，品質高但仍建議人工驗證。特別是金額、加密邏輯、Callback 處理等關鍵路徑應搭配測試環境驗證。
 
 **Q：API 規格更新時，AI 會讀到最新的嗎？**
-A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw` 的 URL 索引，不是靜態規格副本。AI 被指示在需要具體參數規格時，透過各平台的網頁讀取工具（Claude Code / Copilot CLI / OpenClaw 使用 `web_fetch`；Cursor 使用 `@web`；Windsurf 使用 `@web` / `@docs`）即時讀取這些 URL 取得官方最新內容。guides/ 提供整合邏輯，references/ 提供即時規格，兩者結合確保回答始終反映最新 API 狀態。注意：OpenAI GPTs 無法使用 web_fetch，改以 Web Search 替代，可靠性略低。
+A：會。`references/` 目錄存放 431 個指向 `developers.ecpay.com.tw` 的 URL 索引（不是靜態副本），AI 會即時讀取最新官方規格。OpenAI GPTs 因平台限制改以 Web Search 替代。
 
 ## 相關資源
 
