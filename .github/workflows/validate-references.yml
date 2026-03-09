@@ -26,7 +26,7 @@ jobs:
               FAILED=$((FAILED + 1))
             elif [ "$STATUS" = "200" ]; then
               # Content validation: ensure the page is still an ECPay API doc
-              if ! grep -qiE 'ecpay|綠界|ECPay|API' "$TMPFILE"; then
+              if ! grep -qiE 'ecpay|綠界' "$TMPFILE"; then
                 echo "WARN [content-mismatch] $url (HTTP 200 but no ECPay/API content found)"
                 CONTENT_WARN=$((CONTENT_WARN + 1))
               fi

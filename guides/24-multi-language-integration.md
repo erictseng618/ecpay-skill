@@ -1,15 +1,15 @@
 > 對應 ECPay API 版本 | 最後更新：2026-03
 
-<!-- AI Section Index（精確行號，2026-03-07 校準）
-Go E2E: line 102-449 (CMV: 104-239, AES: 241-449)
-Java 差異指南: line 452-494 | C# 差異指南: line 496-536
-TypeScript: line 538-595
-Kotlin 差異指南: line 598-638 | Ruby 差異指南: line 640-679
-Swift 差異指南: line 681-719 | Rust 差異指南: line 721-760
-Mobile App: line 762-798 | 非 PHP CMV Checklist: line 800-819
-非 PHP AES-JSON Checklist: line 820-836
-E2E 組裝步驟: line 839-850 | C/C++ 注意事項: line 852-968
-跨語言測試: line 970-976 | Production 環境切換: line 978-984
+<!-- AI Section Index（精確行號，2026-03-09 校準）
+Go E2E: line 111-458 (CMV: 113-248, AES: 250-458)
+Java 差異指南: line 461-503 | C# 差異指南: line 505-545
+TypeScript: line 547-604
+Kotlin 差異指南: line 607-647 | Ruby 差異指南: line 649-688
+Swift 差異指南: line 690-728 | Rust 差異指南: line 730-769
+Mobile App: line 771-807 | 非 PHP CMV Checklist: line 809-828
+非 PHP AES-JSON Checklist: line 829-845
+E2E 組裝步驟: line 848-859 | C/C++ 注意事項: line 861-977
+跨語言測試: line 979-985 | Production 環境切換: line 987-993
 -->
 
 # 多語言整合完整指南
@@ -18,18 +18,18 @@ E2E 組裝步驟: line 839-850 | C/C++ 注意事項: line 852-968
 
 | 語言 | CMV-SHA256 (AIO) | AES-JSON (發票) | 類型 | 行號範圍 |
 |------|:-:|:-:|:-:|---------|
-| **Go** | ✅ Web Server | ✅ B2C 發票 | 完整 E2E | line 102-449 |
-| **Java** | ✅ | ✅ | 差異指南 | line 452-494 |
-| **C#** | ✅ | ✅ | 差異指南 | line 496-536 |
-| **TypeScript** | → Node.js | → Node.js | 型別定義 | line 538-595 |
-| **Kotlin** | ✅ | ✅ | 差異指南 | line 598-638 |
-| **Ruby** | ✅ | ✅ | 差異指南 | line 640-679 |
-| **Swift** | ✅ | ✅ | 差異指南 | line 681-719 |
-| **Rust** | ✅ | ✅ | 差異指南 | line 721-760 |
+| **Go** | ✅ Web Server | ✅ B2C 發票 | 完整 E2E | line 111-458 |
+| **Java** | ✅ | ✅ | 差異指南 | line 461-503 |
+| **C#** | ✅ | ✅ | 差異指南 | line 505-545 |
+| **TypeScript** | → Node.js | → Node.js | 型別定義 | line 547-604 |
+| **Kotlin** | ✅ | ✅ | 差異指南 | line 607-647 |
+| **Ruby** | ✅ | ✅ | 差異指南 | line 649-688 |
+| **Swift** | ✅ | ✅ | 差異指南 | line 690-728 |
+| **Rust** | ✅ | ✅ | 差異指南 | line 730-769 |
 | **Python** | ✅ | ✅ | 完整 E2E | → [guides/00](./00-getting-started.md) §Quick Start |
 | **Node.js** | ✅ | ✅ | 完整 E2E | → [guides/00](./00-getting-started.md) §Quick Start |
-| **Mobile App** | — | — | iOS + Android 指引 | line 762-798 |
-| **C/C++** | — | — | 整合注意事項 | line 852-968 |
+| **Mobile App** | — | — | iOS + Android 指引 | line 771-807 |
+| **C/C++** | — | — | 整合注意事項 | line 861-977 |
 
 > **只需看你的語言**：使用 AI Section Index 行號範圍只讀取對應區段，不需載入全文。
 > **只需加密函式？** → [guides/13 CheckMacValue](./13-checkmacvalue.md) 或 [guides/14 AES](./14-aes-encryption.md)（12 語言全覆蓋）。
