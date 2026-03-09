@@ -16,7 +16,7 @@ jobs:
           echo "Checking URLs in references/ directory..."
           FAILED=0
           while IFS= read -r url; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>/dev/null || echo "000")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 --retry-all-errors --max-time 10 "$url" 2>/dev/null || echo "000")
             if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
               echo "FAIL [$STATUS] $url"
               FAILED=$((FAILED + 1))
