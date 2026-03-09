@@ -133,21 +133,131 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 ### 3. 使用範例
 
+> 💡 **提示**：如果你同時安裝了多個支付服務的 Skill（如 TapPay、LinePay 等），
+> 請在提問時加上「**ECPay**」或「**綠界**」，確保 AI 使用正確的 Skill。
+
+#### 金流 — AIO 全方位金流
+
 ```
-「我要用 Node.js 串接信用卡付款，前後端分離架構」
-→ AI 推薦 ECPG 站內付，生成完整 TypeScript 程式碼
+「幫我用 Go 寫一個完整的 ECPay AIO 信用卡一次付清串接」
+→ AI 生成含 CheckMacValue 計算、表單送出、Callback 驗證的完整範例（guides/01）
 
-「CheckMacValue 驗證一直失敗，錯誤碼 10400002」
-→ AI 診斷加密流程，定位 URL encode 順序問題
+「我想用綠界 AIO 提供 ATM 虛擬帳號付款，Python Flask」
+→ AI 生成取號 + 輪詢/Callback 確認付款的完整流程（guides/01）
 
-「我需要收款後自動開發票再出貨，Python」
-→ AI 引導金流 + 發票 + 物流的跨服務串接流程
+「用 TypeScript 串接綠界超商代碼繳費」
+→ AI 生成超商代碼取號 + Callback 處理，提醒 RtnCode=10100073 是正常取號成功（guides/01）
 
-「測試環境可以用了，要怎麼切換到正式環境？」
-→ AI 逐項引導上線檢查清單
+「我的 SaaS 要用 ECPay 做定期定額訂閱扣款，Java Spring Boot」
+→ AI 生成 AIO 定期定額參數、首期交易、後續自動扣款的 Callback 處理（guides/01 §定期定額）
 
-「幫我用 Go 寫一個完整的 AIO 信用卡串接」
-→ AI 生成含 CheckMacValue 計算、表單送出、Callback 驗證的完整範例
+「綠界信用卡分期付款怎麼串？C# ASP.NET」
+→ AI 生成含分期期數設定的 AIO 串接，說明 3/6/12/18/24 期的參數差異（guides/01）
+
+「想在我的網站加上 ECPay BNPL 先買後付，Ruby on Rails」
+→ AI 說明 BNPL 最低消費 3,000 元限制，生成 ChoosePayment=BNPL 的完整範例（guides/01）
+```
+
+#### 金流 — ECPG 站內付 2.0
+
+```
+「我要用 Node.js 串接綠界信用卡付款，前後端分離 React 架構」
+→ AI 推薦 ECPG 站內付，生成前端 Token + 後端建立交易的完整 TypeScript 程式碼（guides/02）
+
+「ECPay 站內付綁卡快速付款怎麼做？Vue + Express」
+→ AI 生成首次綁卡 + Token 儲存 + 後續免輸入卡號扣款的完整流程（guides/02 §綁卡）
+
+「我的 iOS App 要串接綠界信用卡付款」
+→ AI 推薦 ECPG 站內付 App 方案，提醒 SDK 版本需求與雙 Domain 規則（guides/02 + guides/24）
+```
+
+#### 金流 — 幕後授權 / 查詢 / 退款
+
+```
+「後台自動扣款不需要消費者操作畫面，ECPay 怎麼做？Kotlin」
+→ AI 推薦幕後授權（Backend Auth），生成 AES 加密 + JSON POST 的完整範例（guides/03）
+
+「怎麼用 Python 查詢綠界 AIO 訂單狀態？」
+→ AI 生成 QueryTradeInfo API 呼叫 + 回應解析範例（guides/01 §QueryTradeInfo）
+
+「客戶要求退款，ECPay 信用卡退款怎麼串？Node.js」
+→ AI 區分當日取消（Action=N）vs 請退（Action=R），生成 DoAction 完整範例（guides/01 §DoAction）
+```
+
+#### 電子發票
+
+```
+「用 Python 串接綠界 B2C 電子發票開立」
+→ AI 生成 AES 加密 + 開立/作廢/折讓的完整流程（guides/04）
+
+「我們公司對公司交易，要用 ECPay 開 B2B 電子發票，Java」
+→ AI 說明交換模式 vs 存證模式差異，生成 B2B 發票開立範例（guides/05）
+
+「綠界發票折讓怎麼做？消費者部分退貨需要開折讓」
+→ AI 生成折讓 API 呼叫，說明折讓金額規則（guides/04 §Allowance）
+```
+
+#### 物流
+
+```
+「我要用 C# 串接 ECPay 超商取貨付款（7-11 / 全家）」
+→ AI 生成建立物流訂單 + 門市地圖選擇 + 物流狀態 Callback 的完整範例（guides/06）
+
+「用 Go 串接綠界宅配物流，需要列印託運單」
+→ AI 生成宅配訂單建立 + 列印託運單 URL 取得範例（guides/06）
+
+「ECPay 跨境物流怎麼串？要寄到香港和馬來西亞」
+→ AI 生成 AES-JSON 跨境物流 API 串接，說明支援國家與限制（guides/08）
+```
+
+#### 電子票證
+
+```
+「我們要用綠界做演唱會電子票券，Rust」
+→ AI 說明 AES-JSON + CMV 雙重驗證機制（與 AIO 公式不同），生成票券發行+核銷範例（guides/09）
+```
+
+#### 跨服務整合
+
+```
+「我需要用綠界做完整電商：收款後自動開發票再出貨，Python Django」
+→ AI 引導金流 + 發票 + 物流的跨服務串接流程，說明三組不同的 MerchantID/HashKey（guides/11）
+```
+
+#### 除錯與排查
+
+```
+「ECPay CheckMacValue 驗證一直失敗，錯誤碼 10400002」
+→ AI 診斷加密流程，定位 URL encode 順序問題，提供 test-vectors 驗證（guides/13 + guides/15）
+
+「綠界 AES 解密回來是亂碼，ECPG 站內付回呼解不開」
+→ AI 檢查 Padding、Key/IV 長度、URL encode 差異，定位 AES vs CMV encode 混用問題（guides/14）
+
+「ECPay Callback 一直收不到，我的 ReturnURL 設定正確啊」
+→ AI 排查防火牆、HTTPS 憑證、回應格式（1|OK vs JSON），提供 Callback 失敗恢復策略（guides/22）
+
+「綠界 ECPG 打 API 一直 404，Token 拿得到但建立交易失敗」
+→ AI 定位 ECPG 雙 Domain 問題：Token API 走 ecpg、交易 API 走 ecpayment（guides/02 + guides/15）
+```
+
+#### 上線與環境切換
+
+```
+「綠界測試環境都通了，要怎麼安全切換到正式環境？」
+→ AI 逐項引導上線檢查清單：替換 MerchantID/HashKey/HashIV、切換 Domain、驗證 Callback（guides/16）
+```
+
+#### 特殊場景
+
+```
+「門市要用 ECPay POS 刷卡機，怎麼串接？」
+→ AI 說明 POS 串接規格與硬體需求（guides/17）
+
+「直播賣東西想用綠界收款網址讓觀眾直接付款」
+→ AI 說明直播收款 URL 產生方式與限制（guides/18）
+
+「Apple Pay 可以用 ECPay 收嗎？Swift iOS App」
+→ AI 說明 AIO ChoosePayment=ApplePay 或 ECPG 方式，以及 Google Pay 透過 TWQR 支援（guides/01 / guides/02）
 ```
 
 ## 涵蓋服務
