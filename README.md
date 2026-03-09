@@ -96,13 +96,14 @@ git clone <repo-url> ~/.openclaw/skills/ecpay
 
 > ecpay, 綠界, 信用卡串接, 超商取貨, 電子發票, CheckMacValue, 站內付, 金流串接, 物流串接, 定期定額, 綁卡, 退款, 折讓...
 
-**Claude Code 快速指令**（選用）：將 `commands/` 內的 `.md` 檔複製到專案 `.claude/commands/`，即可使用以下 5 個快速指令：
+**Claude Code 快速指令**（選用）：將 `commands/` 內的 `.md` 檔複製到專案 `.claude/commands/`，即可使用以下 6 個快速指令：
 
 | 指令 | 用途 |
 |------|------|
 | `/ecpay-pay` | 串接金流（AIO / ECPG / 幕後授權）、查詢、退款、Callback |
 | `/ecpay-invoice` | 串接電子發票（B2C / B2B / 離線） |
-| `/ecpay-logistics` | 串接物流（國內 / 全方位 / 跨境）及電子票證 |
+| `/ecpay-logistics` | 串接物流（國內 / 全方位 / 跨境） |
+| `/ecpay-ecticket` | 串接電子票證（價金保管 / 純發行） |
 | `/ecpay-debug` | 除錯排查 + CheckMacValue/AES 加密驗證 |
 | `/ecpay-go-live` | 上線前檢查清單 |
 
