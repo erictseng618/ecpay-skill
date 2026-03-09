@@ -1,11 +1,11 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 217-263 | Node.js: line 264-312 | TypeScript: line 313-367
-Java: line 368-446 | C#: line 447-508 | Go: line 509-614
-C: line 615-773 | C++: line 774-928 | Rust: line 929-994
-Swift: line 995-1072 | Kotlin: line 1073-1121 | Ruby: line 1122-1171
-Test vectors: line 1172-1317 | 常見錯誤: line 1318-1349
+Python: line 218-263 | Node.js: line 265-312 | TypeScript: line 314-367
+Java: line 369-446 | C#: line 448-509 | Go: line 511-616
+C: line 617-775 | C++: line 776-930 | Rust: line 931-996
+Swift: line 997-1074 | Kotlin: line 1075-1123 | Ruby: line 1124-1173
+Test vectors: line 1174-1319 | 常見錯誤: line 1320-1351
 -->
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
@@ -162,10 +162,11 @@ function aesUrlEncode(source: string): string {
 ```
 
 ```csharp
-// C# — AES 專用（HttpUtility.UrlEncode 不編碼 ~，需手動替換）
+// C# — AES 專用（WebUtility.UrlEncode 大寫 hex，與 PHP 一致）
 static string AesUrlEncode(string source) =>
-    System.Web.HttpUtility.UrlEncode(source)
-        ?.Replace("~", "%7E").Replace("!", "%21").Replace("*", "%2A")
+    System.Net.WebUtility.UrlEncode(source)
+        ?.Replace("%20", "+")     // WebUtility 空格→%20，PHP 空格→+
+        .Replace("~", "%7E").Replace("!", "%21").Replace("*", "%2A")
         .Replace("'", "%27").Replace("(", "%28").Replace(")", "%29") ?? source;
 ```
 
@@ -452,19 +453,21 @@ public class EcpayAes {
 ```csharp
 using System;
 using System.IO;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using System.Web;
 
 public static class EcpayAes
 {
     public static string Encrypt(string jsonStr, string hashKey, string hashIv)
     {
         // 2. URL encode
-        // HttpUtility.UrlEncode 不編碼 ~，但 PHP urlencode 會編碼為 %7E
-        string urlEncoded = HttpUtility.UrlEncode(jsonStr)
-            ?.Replace("~", "%7E").Replace("!", "%21").Replace("*", "%2A")
-            .Replace("'", "%27").Replace("(", "%28").Replace(")", "%29") ?? ""; // 空格→+
+        // ⚠️ 必須使用 WebUtility.UrlEncode（大寫 hex）而非 HttpUtility.UrlEncode（小寫 hex）
+        // PHP urlencode 輸出大寫 hex（%7B），AES 無 toLowerCase 步驟，hex 大小寫影響密文
+        string urlEncoded = WebUtility.UrlEncode(jsonStr)
+            ?.Replace("%20", "+")     // WebUtility 空格→%20，PHP 空格→+
+            .Replace("~", "%7E").Replace("!", "%21").Replace("*", "%2A")
+            .Replace("'", "%27").Replace("(", "%28").Replace(")", "%29") ?? "";
         // 3. AES-128-CBC + PKCS7
         using var aes = Aes.Create();
         aes.Key = Encoding.UTF8.GetBytes(hashKey)[..16];
@@ -493,16 +496,15 @@ public static class EcpayAes
         using var decryptor = aes.CreateDecryptor();
         byte[] decrypted = decryptor.TransformFinalBlock(encrypted, 0, encrypted.Length);
         // 3. URL decode
-        return HttpUtility.UrlDecode(Encoding.UTF8.GetString(decrypted));
+        return WebUtility.UrlDecode(Encoding.UTF8.GetString(decrypted));
         // 呼叫端再 JSON.parse
     }
 }
 ```
 
-> **注意**：.NET Core 中 `HttpUtility.UrlEncode` 需引用 `System.Web`（`<FrameworkReference Include="Microsoft.AspNetCore.App" />`），
-> 或改用 `System.Net.WebUtility.UrlEncode()` + 手動補齊差異字元。
-> **HttpUtility vs WebUtility 選擇**：`HttpUtility.UrlEncode` 較接近 PHP `urlencode`（空格→`+`），為 AES 加密推薦選擇。
-> `WebUtility.UrlEncode` 空格→`%20`，若使用需額外將 `%20` 替換為 `+`。兩者皆需手動補 `~!*'()` 替換。
+> **⚠️ 為何不用 HttpUtility.UrlEncode**：`HttpUtility.UrlEncode` 產生小寫 hex（如 `%7b`），而 PHP `urlencode` 產生大寫 hex（如 `%7B`）。
+> CMV 流程有 `ToLower()` 步驟可消除此差異，但 AES 流程無此步驟，hex 大小寫直接影響密文結果。
+> `WebUtility.UrlEncode` 位於 `System.Net`（所有 .NET 版本均可用），產生大寫 hex 但空格→`%20`（需替換為 `+`），皆需手動補 `~!*'()` 替換。
 
 ---
 
