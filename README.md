@@ -233,7 +233,7 @@ ECPay API 使用三種不同的認證和請求格式，本 Skill 完整涵蓋：
 
 ```
 ecpay-skill/
-├── SKILL.md                    # AI 進入點：決策樹 + 導航（Claude Code / Copilot CLI / OpenClaw）
+├── SKILL.md                    # AI 進入點：決策樹 + 導航（Claude Code / Copilot CLI / Cursor / Windsurf / OpenClaw）
 ├── SKILL_OPENAI.md             # OpenAI Custom GPTs System Instructions
 ├── OPENAI_SETUP.md             # OpenAI GPTs 建置指南
 ├── README.md                   # 本文件
