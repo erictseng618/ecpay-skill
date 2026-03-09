@@ -179,8 +179,8 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 ```
 「後台自動扣款不需要消費者操作畫面，ECPay 怎麼做？Kotlin」
-→ ⚠️ 幕後授權需取得 PCI-DSS SAQ-D 認證，合規成本高，一般商家建議改用 ECPG 綁卡扣款。
-  AI 先確認開發者是否具備 PCI-DSS 資格，再決定推薦幕後授權或 ECPG 替代方案（guides/03）
+→ ⚠️ 幕後授權需取得 PCI-DSS SAQ-D 認證方可申請使用。
+  AI 應先確認開發者是否已具備 PCI-DSS 資格，若無則引導至 ECPG 綁卡扣款等替代方案（guides/03）
 
 「怎麼用 Python 查詢綠界 AIO 訂單狀態？」
 → AI 生成 QueryTradeInfo API 呼叫 + 回應解析範例（guides/01 §QueryTradeInfo）
