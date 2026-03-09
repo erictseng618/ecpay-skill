@@ -71,11 +71,11 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 | 正式環境 | `https://ecticket.ecpay.com.tw` |
 | 回應結構 | 三層 JSON（TransCode → 驗證 CheckMacValue → 解密 Data → RtnCode） |
 | 測試帳號 | 官方提供公開測試帳號（見 §測試帳號 或 references/Ecticket/ §準備事項/測試介接資訊） |
-| NotifyURL 回應格式 | 收到核退通知後，回應純字串 `1\|OK`（text/plain）|
+| UseStatusNotifyURL 回應格式 | 收到核退通知後，回應 AES 加密 JSON 三層結構（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`）|
 
-> **核退通知（NotifyURL）**：電子票證退款/核退時，ECPay 會 POST 通知你的 NotifyURL。
+> **核退通知（UseStatusNotifyURL）**：電子票證退款/核退時，ECPay 會 POST AES-JSON 通知到你的 UseStatusNotifyURL。
 > 驗證方式：AES 解密 Data 欄位 + **驗證 CheckMacValue**（與發送 API 相同的 HashKey/HashIV）。
-> 必須回應純字串 `1\|OK`，否則約每 2 小時重試。詳見 [guides/22 §Callback 總覽表](./22-webhook-events-reference.md)。
+> 必須回應 AES 加密 JSON 三層結構（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`），否則約每 2 小時重試。詳見 [guides/22 §Callback 總覽表](./22-webhook-events-reference.md)。
 
 ## 模式選擇決策樹
 
@@ -138,8 +138,8 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 | 查詢作業 | 查詢訂單退款資訊 | POST | `/api/Query/RefundInfo` |
 | 查詢作業 | 查詢訂單資訊 | POST | `/api/Query/OrderInfo` |
 | 查詢作業 | 下載訂單明細檔 | POST | `/api/Query/DownloadOrderDetail` |
-| 主動通知 | 退款主動通知 | POST（綠界→你） | 由你提供 ServerReplyURL |
-| 主動通知 | 核退主動通知 | POST（綠界→你） | 由你提供 ServerReplyURL |
+| 主動通知 | 退款主動通知 | POST（綠界→你） | 由你提供 UseStatusNotifyURL |
+| 主動通知 | 核退主動通知 | POST（綠界→你） | 由你提供 UseStatusNotifyURL |
 
 #### PHP 請求範例（票券發行）
 
@@ -155,7 +155,7 @@ $input = [
         'TicketPrice'    => 500,
         'TicketQty'      => 1,
         'ValidDate'      => date('Y/m/d', strtotime('+30 days')),
-        'ServerReplyURL' => 'https://你的網站/ecticket/notify',
+        'UseStatusNotifyURL' => 'https://你的網站/ecticket/notify',
     ],
 ];
 try {
@@ -208,7 +208,7 @@ try {
 | 查詢作業 | 查詢訂單退款資訊 | POST | `/api/Query/RefundInfo` |
 | 查詢作業 | 查詢訂單資訊 | POST | `/api/Query/OrderInfo` |
 | 查詢作業 | 下載訂單明細檔 | POST | `/api/Query/DownloadOrderDetail` |
-| 主動通知 | 退款主動通知 | POST（綠界→你） | 由你提供 ServerReplyURL |
+| 主動通知 | 退款主動通知 | POST（綠界→你） | 由你提供 UseStatusNotifyURL |
 
 > **與使用後核銷差異**：分期核銷模式的票券發行和核銷由綠界後台管理，API 主要處理退貨和查詢。每次核銷部分金額，適合多次使用的票券場景。
 
@@ -243,7 +243,7 @@ try {
 | 查詢作業 | 查詢票券明細 | POST | `/api/Query/TicketDetail` |
 | 查詢作業 | 查詢訂單資訊 | POST | `/api/Query/OrderInfo` |
 | 查詢作業 | 下載訂單明細檔 | POST | `/api/Query/DownloadOrderDetail` |
-| 主動通知 | 核退主動通知 | POST（綠界→你） | 由你提供 ServerReplyURL |
+| 主動通知 | 核退主動通知 | POST（綠界→你） | 由你提供 UseStatusNotifyURL |
 
 > **與價金保管差異**：純發行模式不含「查詢訂單退款資訊」和「退款主動通知」，因為金流由商家自行處理，綠界不介入退款流程。
 
@@ -382,7 +382,7 @@ async function issueTicket() {
     TicketPrice: 500,
     TicketQty: 1,
     ValidDate: '2026/12/31',
-    ServerReplyURL: 'https://your-domain.com/ecticket/notify',
+    UseStatusNotifyURL: 'https://your-domain.com/ecticket/notify',
   };
 
   const dataJson = JSON.stringify(ticketData);
@@ -421,7 +421,7 @@ async function issueTicket() {
 
 ```python
 import hashlib, json, base64, time, requests
-from urllib.parse import quote
+from urllib.parse import quote_plus
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
@@ -431,17 +431,13 @@ HASH_KEY = '7b53896b742849d3'
 HASH_IV = '37a0ad3c6ffa428b'
 BASE_URL = 'https://ecticket-stage.ecpay.com.tw'
 
-def ecpay_url_encode(s: str) -> str:
-    """ECPay 專用 URL encode — 完整實作見 guides/14 §Python"""
-    encoded = quote(s, safe='')
-    for old, new in [('%20', '+'), ('~', '%7E'), ('!', '%21'),
-                     ('*', '%2A'), ("'", '%27'), ('(', '%28'), (')', '%29')]:
-        encoded = encoded.replace(old, new)
-    return encoded
+def aes_url_encode(s: str) -> str:
+    """AES 專用 URL encode（與 AIO 金流的 ecpayUrlEncode 不同！不含 toLowerCase、不含 .NET 字元替換）"""
+    return quote_plus(str(s)).replace('~', '%7E')
 
 def aes_encrypt(plaintext_json: str, hash_key: str, hash_iv: str) -> str:
     """AES-128-CBC 加密 — 完整實作見 guides/14 §Python"""
-    url_encoded = ecpay_url_encode(plaintext_json)
+    url_encoded = aes_url_encode(plaintext_json)
     key = hash_key[:16].encode('utf-8')
     iv = hash_iv[:16].encode('utf-8')
     cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -451,7 +447,7 @@ def aes_encrypt(plaintext_json: str, hash_key: str, hash_iv: str) -> str:
 def calc_ecticket_cmv(data_plaintext: str, hash_key: str, hash_iv: str) -> str:
     """電子票證 CheckMacValue（與 AIO 金流不同！）"""
     raw = hash_key + data_plaintext + hash_iv
-    url_encoded = ecpay_url_encode(raw).lower()
+    url_encoded = aes_url_encode(raw).lower()
     return hashlib.sha256(url_encoded.encode('utf-8')).hexdigest().upper()
 
 def issue_ticket():
@@ -462,7 +458,7 @@ def issue_ticket():
         'TicketPrice': 500,
         'TicketQty': 1,
         'ValidDate': '2026/12/31',
-        'ServerReplyURL': 'https://你的網站/ecticket/notify',
+        'UseStatusNotifyURL': 'https://你的網站/ecticket/notify',
     }
     data_json = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
 

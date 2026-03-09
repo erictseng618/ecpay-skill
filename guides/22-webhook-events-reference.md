@@ -24,7 +24,7 @@
 | 非信用卡幕後取號 | ReturnURL | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次 |
 | 國內物流 | ServerReplyURL | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
 | 全方位 / 跨境物流 | ServerReplyURL | AES 加密 JSON 三層結構 | application/json | 約每 2 小時重試 |
-| 電子票證 | NotifyURL | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
+| 電子票證 | UseStatusNotifyURL | AES 加密 JSON 三層結構（Data 內 `RtnCode=1`）| application/json | 約每 2 小時重試 |
 
 > **跨服務整合注意**：如果你同時使用金流 + 發票 + 物流，建議為各服務使用**不同的 callback URL**，
 > 各自回應對應的正確格式。在同一 URL 判斷服務類型雖可行但容易出錯。
@@ -36,7 +36,7 @@
 - [ ] 驗證 CheckMacValue / AES 解密是否通過
 - [ ] RtnCode 是否在預期值範圍（AIO: 1=成功, 2=ATM取號, 10100073=CVS取號）
 - [ ] 此 MerchantTradeNo 是否已處理過（冪等檢查）
-- [ ] **立即回應** `1|OK` 或 `{"TransCode": 1}`（在任何非同步操作之前）
+- [ ] **立即回應**：依服務回應正確格式（`1|OK`、`{"TransCode": 1}` 或 AES 加密 JSON，見上方速查表）
 - [ ] 非同步處理業務邏輯（發信、開發票、更新庫存）
 
 ## Callback 總覽表
@@ -56,7 +56,7 @@
 | 國內物流 | ClientReplyURL | 消費者選店結果（前端跳轉） | CheckMacValue (MD5) | HTML 頁面 | 不重試 |
 | 全方位物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON | 約每 2 小時重試（次數未公開）|
 | 跨境物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON（與全方位物流相同） | 約每 2 小時重試（次數未公開）|
-| 電子票證 | NotifyURL | 退款/核退通知 | AES 解密 Data + CheckMacValue (SHA256) | `1\|OK` | 約每 2 小時重試（次數未公開）|
+| 電子票證 | UseStatusNotifyURL | 退款/核退通知 | AES 解密 Data + CheckMacValue (SHA256) | AES 加密 JSON（Data 內 `RtnCode=1`） | 約每 2 小時重試（次數未公開）|
 | 電子發票 | — | 通常由 API 主動查詢 | AES 解密 | JSON | — |
 
 > **重試觸發條件**：HTTP 超時、回應非 200 狀態碼、或回應格式不符（如應回 `1|OK` 但回了其他內容）時觸發重試。AIO 的重試次數有上限（每日 4 次），其他服務的重試上限未公開，建議實作冪等處理（見下方 §冪等性處理建議）。
