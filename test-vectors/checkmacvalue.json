@@ -57,6 +57,20 @@
       },
       "expected": "CEEAE01D2F9A8E74D4AC0DCE7735B046D73F35A5EC99558A31A2EE03159DA1C9",
       "note": "驗證各語言 ~ → %7E 替換。ecpayUrlEncode 會將 ~ 編碼為 %7e，再經 toLowerCase 保持小寫"
+    },
+    {
+      "name": "空格處理測試（%20 vs + 陷阱）",
+      "method": "SHA256",
+      "hashKey": "pwFHCqoQZGmho4w6",
+      "hashIV": "EkRm7iFT261dpevs",
+      "params": {
+        "MerchantID": "3002607",
+        "ItemName": "My Test Product",
+        "TotalAmount": "300"
+      },
+      "expected": "7712A5E6EDC3B57086063C88568084C66CE882A21D40E74DE5ACA3B478C6F316",
+      "wrong_with_percent20": "13F7A6B69BF856B5203212AC5F3202B6140D8E2B4316A62851712BF2AF7812D0",
+      "note": "空格必須編碼為 + 而非 %20。Node.js encodeURIComponent 和 Rust percent_encode 預設產生 %20，需手動 .replace(/%20/g, '+')。若使用 %20 會得到 wrong_with_percent20 的錯誤值"
     }
   ]
 }

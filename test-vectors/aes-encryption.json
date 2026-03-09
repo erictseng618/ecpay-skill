@@ -38,6 +38,16 @@
         "~": "%7E"
       },
       "note": "Node.js encodeURIComponent 不編碼 !*'()，Java URLEncoder.encode 不編碼 *，需手動補 replace"
+    },
+    {
+      "name": "PKCS7 16-byte 邊界測試（plaintext 剛好 32 bytes）",
+      "hashKey": "ejCk326UnaZWKisg",
+      "hashIV": "q9jcZX8Ib9LM8wYk",
+      "plaintext_json": "{\"N\":\"1234567890\"}",
+      "expected_url_encoded": "%7B%22N%22%3A%221234567890%22%7D",
+      "expected_url_encoded_length": 32,
+      "expected_base64": "gVwWJnIpl1m3ZDypcRAjiCctilYnQhHn4h8OzJP5IxQPov7HuysXX+jPONvrHS7Z",
+      "note": "URL encode 後長度剛好 32 bytes（2 個 AES block），PKCS7 必須額外填充完整的 16-byte padding block。若 padding 實作錯誤（未補滿 block），解密端會失敗"
     }
   ]
 }

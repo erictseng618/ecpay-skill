@@ -2,18 +2,13 @@
 name: ecpay
 version: "2.20"
 description: >
-  綠界科技 ECPay 全方位整合助手。支援金流（信用卡、ATM、超商、條碼、WebATM、TWQR、
-  BNPL、微信、Apple Pay、銀聯）、物流（超商取貨、宅配、跨境）、電子發票（B2C、B2B）、
-  電子票證、購物車模組串接。觸發關鍵字：ecpay, 綠界, 綠界科技, 信用卡串接, 信用卡付款,
-  線上付款, 金流串接, 超商取貨, 超商代碼, ATM轉帳, 電子發票, 發票開立, CheckMacValue,
-  AES加密, 站內付, ECPG, AIO, 物流串接, 宅配, 跨境物流, 定期定額, 訂閱制, 綁卡,
-  退款, 折讓, 對帳, POS刷卡機, 直播收款, Shopify金流, WooCommerce金流,
-  電子票證, BNPL先買後付, TWQR, 微信支付, Apple Pay, 銀聯,
-  分期付款, 3D Secure, webhook, 回呼, 測試帳號, sandbox,
-  MerchantID, ReturnURL, 交易查詢, 信用卡退款, payment gateway,
-  發票作廢, 物流追蹤, Token綁定, 定期定額, 3DS,
-  第三方支付, 串金流, 串物流, 開發票, 收款方式, 付款方式,
-  線上收款, 超商繳費, 代收
+  ECPay 綠界科技 API 整合助手（ecpay, 綠界, 綠界科技）。
+  核心服務：AIO 金流、ECPG 站內付、CheckMacValue、AES 加密、
+  電子發票（B2C/B2B）、超商取貨物流、電子票證（ECTicket）。
+  金流方式：信用卡、ATM 轉帳、超商代碼、條碼、WebATM、TWQR、BNPL 先買後付、
+  Apple Pay、微信支付、銀聯、分期付款、定期定額、3D Secure。
+  進階功能：Token 綁卡、退款、折讓、對帳、發票作廢、物流追蹤、跨境物流。
+  整合情境：Shopify、WooCommerce、POS 刷卡機、直播收款
 license: MIT
 metadata:
   author: ECPay (綠界科技)

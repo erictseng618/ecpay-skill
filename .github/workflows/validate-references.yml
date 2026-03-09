@@ -15,15 +15,28 @@ jobs:
         run: |
           echo "Checking URLs in references/ directory..."
           FAILED=0
+          CONTENT_WARN=0
+          TMPFILE=$(mktemp)
+          trap 'rm -f "$TMPFILE"' EXIT
+
           while IFS= read -r url; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 --retry-all-errors --max-time 10 "$url" 2>/dev/null || echo "000")
+            STATUS=$(curl -s -w "%{http_code}" --retry 3 --retry-delay 5 --retry-all-errors --max-time 15 -o "$TMPFILE" "$url" 2>/dev/null || echo "000")
             if [ "$STATUS" != "200" ] && [ "$STATUS" != "301" ] && [ "$STATUS" != "302" ]; then
               echo "FAIL [$STATUS] $url"
               FAILED=$((FAILED + 1))
+            elif [ "$STATUS" = "200" ]; then
+              # Content validation: ensure the page is still an ECPay API doc
+              if ! grep -qiE 'ecpay|綠界|ECPay|API' "$TMPFILE"; then
+                echo "WARN [content-mismatch] $url (HTTP 200 but no ECPay/API content found)"
+                CONTENT_WARN=$((CONTENT_WARN + 1))
+              fi
             fi
           done < <(grep -oh 'https://[^)\">\s]*ecpay[^)\">\s]*' references/**/*.md | sort -u)
 
           echo "---"
+          if [ $CONTENT_WARN -gt 0 ]; then
+            echo "WARN: $CONTENT_WARN URL(s) returned 200 but may no longer contain ECPay API content."
+          fi
           if [ $FAILED -gt 0 ]; then
             echo "FAIL: $FAILED URL(s) may be unreachable. Please verify manually."
             exit 1

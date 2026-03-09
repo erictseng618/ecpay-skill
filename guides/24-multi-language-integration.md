@@ -40,6 +40,15 @@ E2E 組裝步驟: line 839-850 | C/C++ 注意事項: line 852-968
 - **TypeScript** 開發者請直接使用 Node.js 範例（[guides/00](./00-getting-started.md)）+ 型別標注，加密函式見 guides/13-14 §TypeScript
 - AI 生成其他語言程式碼時，會基於本指南的 E2E 結構 + guides/13-14 的加密實作 + guides/20 的 HTTP 協議規格進行翻譯
 
+> ### ⚠️ AI 組裝指令（差異指南使用規則）
+>
+> Java/C#/Kotlin/Ruby/Swift/Rust 區段僅列出與 Go 的差異，**不是可獨立執行的程式碼**。
+> 生成完整實作時必須遵守：
+>
+> 1. **加密函式禁止從 Go 直譯** — 必須使用 [guides/13](./13-checkmacvalue.md) 和 [guides/14](./14-aes-encryption.md) 中該語言的專屬實作（含 URL encode 差異、padding 處理、JSON 序列化注意事項）
+> 2. **組裝順序**：先讀 guides/13-14 目標語言區段 → 再讀本文 Go E2E 了解業務流程 → 最後套用差異指南的依賴和 API 差異
+> 3. **必驗項目**：用 `test-vectors/` 驗證加密輸出正確性，再整合到 E2E 流程
+
 ## 概述
 
 本指南為非 PHP/Node.js/Python 開發者提供完整的 ECPay API 整合範例，涵蓋 Go、Java、C#、Kotlin 等語言的端到端實作。
@@ -452,7 +461,7 @@ func main() {
 ## Java 整合差異指南（基於 Go 參考實作）
 
 > 完整 E2E 結構同 Go 範例。以下僅列出 Java 與 Go 的關鍵差異。
-> AI 助手：根據 Go E2E + 以下差異 + guides/13-14 Java 區段產生完整 Java 程式碼。
+> AI 助手：**加密函式必須取自 [guides/13 §Java](./13-checkmacvalue.md) 和 [guides/14 §Java](./14-aes-encryption.md)**，不可從 Go 直譯。業務流程參考 Go E2E + 以下差異。
 
 ### 環境與依賴
 
@@ -496,7 +505,7 @@ java -cp .:gson-2.11.0.jar EcpayDemo
 ## C# 整合差異指南（基於 Go 參考實作）
 
 > 完整 E2E 結構同 Go 範例。以下僅列出 C# 與 Go 的關鍵差異。
-> AI 助手：根據 Go E2E + 以下差異 + guides/13-14 C# 區段產生完整 C# 程式碼。
+> AI 助手：**加密函式必須取自 [guides/13 §C#](./13-checkmacvalue.md) 和 [guides/14 §C#](./14-aes-encryption.md)**，不可從 Go 直譯。業務流程參考 Go E2E + 以下差異。
 
 ### 環境與依賴
 
@@ -598,7 +607,7 @@ interface AioCallbackParams {
 ## Kotlin 整合差異指南（基於 Go 參考實作）
 
 > 完整 E2E 結構同 Go 範例。以下僅列出 Kotlin 與 Go 的關鍵差異。
-> AI 助手：根據 Go E2E + 以下差異 + guides/13-14 Kotlin 區段產生完整 Kotlin 程式碼。
+> AI 助手：**加密函式必須取自 [guides/13 §Kotlin](./13-checkmacvalue.md) 和 [guides/14 §Kotlin](./14-aes-encryption.md)**，不可從 Go 直譯。業務流程參考 Go E2E + 以下差異。
 
 ### 環境與依賴
 
@@ -640,7 +649,7 @@ java -cp ecpay.jar:okhttp-4.12.0.jar:gson-2.11.0.jar EcpayDemoKt
 ## Ruby 整合差異指南（基於 Go 參考實作）
 
 > 完整 E2E 結構同 Go 範例。以下僅列出 Ruby 與 Go 的關鍵差異。
-> AI 助手：根據 Go E2E + 以下差異 + guides/13-14 Ruby 區段產生完整 Ruby 程式碼。
+> AI 助手：**加密函式必須取自 [guides/13 §Ruby](./13-checkmacvalue.md) 和 [guides/14 §Ruby](./14-aes-encryption.md)**，不可從 Go 直譯。業務流程參考 Go E2E + 以下差異。
 
 ### 環境與依賴
 
@@ -681,7 +690,7 @@ ruby ecpay_demo.rb
 ## Swift 整合差異指南（基於 Go 參考實作）
 
 > 完整 E2E 結構同 Go 範例。以下僅列出 Swift 與 Go 的關鍵差異。
-> AI 助手：根據 Go E2E + 以下差異 + guides/13-14 Swift 區段產生完整 Swift 程式碼。
+> AI 助手：**加密函式必須取自 [guides/13 §Swift](./13-checkmacvalue.md) 和 [guides/14 §Swift](./14-aes-encryption.md)**，不可從 Go 直譯。業務流程參考 Go E2E + 以下差異。
 
 ### 環境與依賴
 
@@ -721,7 +730,7 @@ swift ecpay_demo.swift
 ## Rust 整合差異指南（基於 Go 參考實作）
 
 > 完整 E2E 結構同 Go 範例。以下僅列出 Rust 與 Go 的關鍵差異。
-> AI 助手：根據 Go E2E + 以下差異 + guides/13-14 Rust 區段產生完整 Rust 程式碼。
+> AI 助手：**加密函式必須取自 [guides/13 §Rust](./13-checkmacvalue.md) 和 [guides/14 §Rust](./14-aes-encryption.md)**，不可從 Go 直譯。業務流程參考 Go E2E + 以下差異。
 
 ### 環境與依賴
 

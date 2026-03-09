@@ -335,7 +335,7 @@ $response = $postService->post($input, 'https://ecticket-stage.ecpay.com.tw/api/
 
 如需完整的跨服務整合範例，請參考 [guides/11-cross-service-scenarios.md](./11-cross-service-scenarios.md)。
 
-## 非 PHP 語言 HTTP 範例（Node.js）
+## 非 PHP 語言 HTTP 範例（Node.js / Python）
 
 電子票證使用 AES-JSON + CheckMacValue 協議。以下為 Node.js 票券發行範例：
 
@@ -413,6 +413,98 @@ async function issueTicket() {
 
 > 上述 `aesEncrypt` 為簡化版。完整加密/解密實作（含 PKCS7 padding、URL decode）見 [guides/14-aes-encryption.md](./14-aes-encryption.md) §Node.js。
 > 其他語言開發者：電子票證的 AES 加密方式與 B2C 發票相同，可複用 guides/14 的加密函式。但 **CheckMacValue 計算為電子票證獨有**，須額外實作。
+
+### Python 票券發行 + 核銷範例
+
+> ⚠️ 非官方 SDK 範例 — 官方 PHP SDK v4.x 未包含電子票證範例，以下為根據 API 規格手寫的 Python 實作。
+> 加密函式完整實作見 [guides/14 §Python](./14-aes-encryption.md)。
+
+```python
+import hashlib, json, base64, time, requests
+from urllib.parse import quote
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+
+# 測試帳號（官方公開測試資訊，見 references/Ecticket/ §準備事項/測試介接資訊）
+MERCHANT_ID = '3085676'
+HASH_KEY = '7b53896b742849d3'
+HASH_IV = '37a0ad3c6ffa428b'
+BASE_URL = 'https://ecticket-stage.ecpay.com.tw'
+
+def ecpay_url_encode(s: str) -> str:
+    """ECPay 專用 URL encode — 完整實作見 guides/14 §Python"""
+    encoded = quote(s, safe='')
+    for old, new in [('%20', '+'), ('~', '%7E'), ('!', '%21'),
+                     ('*', '%2A'), ("'", '%27'), ('(', '%28'), (')', '%29')]:
+        encoded = encoded.replace(old, new)
+    return encoded
+
+def aes_encrypt(plaintext_json: str, hash_key: str, hash_iv: str) -> str:
+    """AES-128-CBC 加密 — 完整實作見 guides/14 §Python"""
+    url_encoded = ecpay_url_encode(plaintext_json)
+    key = hash_key[:16].encode('utf-8')
+    iv = hash_iv[:16].encode('utf-8')
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded = pad(url_encoded.encode('utf-8'), AES.block_size)
+    return base64.b64encode(cipher.encrypt(padded)).decode('utf-8')
+
+def calc_ecticket_cmv(data_plaintext: str, hash_key: str, hash_iv: str) -> str:
+    """電子票證 CheckMacValue（與 AIO 金流不同！）"""
+    raw = hash_key + data_plaintext + hash_iv
+    url_encoded = ecpay_url_encode(raw).lower()
+    return hashlib.sha256(url_encoded.encode('utf-8')).hexdigest().upper()
+
+def issue_ticket():
+    """票券發行（價金保管 — 使用後核銷）"""
+    data = {
+        'MerchantID': MERCHANT_ID,
+        'TicketName': '遊樂園入場券',
+        'TicketPrice': 500,
+        'TicketQty': 1,
+        'ValidDate': '2026/12/31',
+        'ServerReplyURL': 'https://你的網站/ecticket/notify',
+    }
+    data_json = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+
+    payload = {
+        'MerchantID': MERCHANT_ID,
+        'RqHeader': {'Timestamp': int(time.time()), 'Revision': '1.0.0'},
+        'Data': aes_encrypt(data_json, HASH_KEY, HASH_IV),
+        'CheckMacValue': calc_ecticket_cmv(data_json, HASH_KEY, HASH_IV),
+    }
+    resp = requests.post(f'{BASE_URL}/api/Ticket/Issue', json=payload)
+    result = resp.json()
+
+    # 三重驗證
+    if result.get('TransCode') != 1:
+        raise Exception(f"傳輸層錯誤: {result.get('TransMsg')}")
+    # 驗證回應 CheckMacValue → 解密 Data → 檢查 RtnCode
+    return result
+
+def redeem_ticket(ticket_no: str):
+    """票券核銷"""
+    data = {
+        'MerchantID': MERCHANT_ID,
+        'TicketNo': ticket_no,
+    }
+    data_json = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+
+    payload = {
+        'MerchantID': MERCHANT_ID,
+        'RqHeader': {'Timestamp': int(time.time()), 'Revision': '1.0.0'},
+        'Data': aes_encrypt(data_json, HASH_KEY, HASH_IV),
+        'CheckMacValue': calc_ecticket_cmv(data_json, HASH_KEY, HASH_IV),
+    }
+    resp = requests.post(f'{BASE_URL}/api/Ticket/Redeem', json=payload)
+    result = resp.json()
+
+    if result.get('TransCode') != 1:
+        raise Exception(f"傳輸層錯誤: {result.get('TransMsg')}")
+    return result
+```
+
+> 依賴安裝：`pip install requests pycryptodome`
+> 完整 AES 解密（含回應驗證）見 [guides/14 §Python](./14-aes-encryption.md)。
 
 ## 整合提示
 
