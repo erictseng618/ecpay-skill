@@ -4,8 +4,8 @@
 Python: line 103-157 | Node.js: line 158-219 | TypeScript: line 220-287
 Java: line 288-352 | C#: line 353-434 | Go: line 435-511
 C: line 512-680 | C++: line 681-803 | Rust: line 804-884
-Swift: line 885-969 | Kotlin: line 970-1030 | Ruby: line 1031-1080
-Test vectors: line 1081-1192
+Swift: line 885-969 | Kotlin: line 970-1030 | Ruby: line 1031-1081
+Test vectors: line 1082-1193
 -->
 
 # CheckMacValue 完整解說
@@ -1030,8 +1030,8 @@ fun verifyCheckMacValue(
 
 ### Ruby
 
-> **⚠️ CGI.escape 陷阱**：`CGI.escape` 不編碼 `!*'()` 等字元（RFC 3986 保留字元），但 PHP 的 `urlencode` 會將其編碼為 `%21%2A%27%28%29`。
-> 下方實作已使用 Hash 替換表手動補充這些字元的編碼，確保與 PHP 行為一致。
+> **⚠️ CGI.escape 陷阱**：`CGI.escape` 不編碼 `!*'()~` 等字元（RFC 3986 保留字元），但 PHP 的 `urlencode` 會。
+> 對 CMV 而言，`!*()` 經 .NET 替換後會還原為原字元（結果一致），但 `'` 不在 .NET 替換表中，需手動補 `'→%27`。
 
 ```ruby
 require 'digest'
@@ -1042,6 +1042,7 @@ require 'openssl'
 
 def ecpay_url_encode(source)
   encoded = CGI.escape(source) # 空格→+
+  encoded = encoded.gsub("'", '%27') # CGI.escape 不編碼 '，但 PHP urlencode 會（%27 不在 .NET 替換表中，必須手動補）
   encoded = encoded.downcase
   {
     '%2d' => '-', '%5f' => '_', '%2e' => '.', '%21' => '!',

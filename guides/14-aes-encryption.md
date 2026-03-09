@@ -3,9 +3,9 @@
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
 Python: line 217-263 | Node.js: line 264-312 | TypeScript: line 313-367
 Java: line 368-446 | C#: line 447-508 | Go: line 509-614
-C: line 615-771 | C++: line 772-926 | Rust: line 927-992
-Swift: line 993-1069 | Kotlin: line 1070-1118 | Ruby: line 1119-1168
-Test vectors: line 1169-1314 | 常見錯誤: line 1315-1346
+C: line 615-773 | C++: line 774-928 | Rust: line 929-994
+Swift: line 995-1072 | Kotlin: line 1073-1121 | Ruby: line 1122-1171
+Test vectors: line 1172-1317 | 常見錯誤: line 1318-1349
 -->
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
@@ -670,9 +670,11 @@ char* ecpay_aes_encrypt(const char* json_str, const char* hash_key, const char* 
     /* Step 1: URL encode */
     CURL *curl = curl_easy_init();
     char *url_encoded = curl_easy_escape(curl, json_str, 0);
-    /* curl_easy_escape 不編碼 ~!*'()，但 PHP urlencode 會，需手動替換 */
+    /* curl_easy_escape 空格→%20，PHP urlencode 空格→+，需替換 */
     char *temp;
-    temp = str_replace(url_encoded, "~", "%7E");  curl_free(url_encoded); url_encoded = temp;
+    temp = str_replace(url_encoded, "%20", "+");   curl_free(url_encoded); url_encoded = temp;
+    /* curl_easy_escape 不編碼 ~!*'()，但 PHP urlencode 會，需手動替換 */
+    temp = str_replace(url_encoded, "~", "%7E");   free(url_encoded); url_encoded = temp;
     temp = str_replace(url_encoded, "!", "%21");   free(url_encoded); url_encoded = temp;
     temp = str_replace(url_encoded, "*", "%2A");   free(url_encoded); url_encoded = temp;
     temp = str_replace(url_encoded, "'", "%27");   free(url_encoded); url_encoded = temp;
@@ -1013,8 +1015,9 @@ func aesEncrypt(data: [String: Any], hashKey: String, hashIv: String) -> String?
     guard let jsonData = try? JSONSerialization.data(withJSONObject: data),
           let jsonStr = String(data: jsonData, encoding: .utf8) else { return nil }
     // 2. URL encode（空格→+）
-    // AES 專用：只白名單 alnum（不含 -_.），確保 ~ 等字元正確編碼
-    let allowed = CharacterSet.alphanumerics
+    // AES 專用：白名單 alnum + -_.（與 PHP urlencode safe characters 一致），確保 ~ 等字元正確編碼
+    var allowed = CharacterSet.alphanumerics
+    allowed.insert(charactersIn: "-_.")
     guard let urlEncoded = jsonStr.addingPercentEncoding(
         withAllowedCharacters: allowed
     )?.replacingOccurrences(of: "%20", with: "+")
