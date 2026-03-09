@@ -48,7 +48,6 @@ When changing the version number, update ALL of these:
 - `SKILL.md` front-matter `version` field
 - `SKILL_OPENAI.md` version reference
 - `README.md` version badge
-- `CHANGELOG.md` new entry (use CRITICAL/HIGH/MEDIUM/LOW severity)
 
 ### SNAPSHOT Timestamps
 
@@ -85,7 +84,7 @@ Do not change this format. URLs follow the pattern `https://developers.ecpay.com
 
 - [ ] Editing `guides/13`, `14`, or `24`? → Run `bash scripts/validate-ai-index.sh`
 - [ ] Changing parameter tables in guides? → Update SNAPSHOT date
-- [ ] Bumping version? → Sync across SKILL.md, SKILL_OPENAI.md, README.md, CHANGELOG.md
+- [ ] Bumping version? → Sync across SKILL.md, SKILL_OPENAI.md, README.md
 - [ ] Adding a new language? → Add crypto impl to guides/13+14, E2E to guides/24, update language count in SKILL.md
 - [ ] Adding a new API? → Add guide + reference file + update SKILL.md decision tree
 - [ ] Modifying `commands/`? → Keep ≤20 lines, navigation focus only

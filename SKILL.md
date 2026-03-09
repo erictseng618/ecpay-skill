@@ -542,4 +542,4 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 
 ## 更新紀錄
 
-> 完整歷史見 [CHANGELOG.md](./CHANGELOG.md)（目前版本 v2.20）
+> 目前版本 v2.20

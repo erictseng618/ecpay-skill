@@ -33,7 +33,7 @@
    - **references/** 內為 URL 索引，維持 blockquote AI 指令標頭 + 章節 URL 列表格式
    - 更新 **guides/13、14、24** 的章節結構後，執行 `bash scripts/validate-ai-index.sh` 確認 AI Section Index 行號索引正確
    - **commands/** 為 Claude Code 快速指令，保持精簡（每個 ≤ 20 行）
-3. 確認 SKILL.md / SKILL_OPENAI.md / README.md 的版本號與更新紀錄一致
+3. 確認 SKILL.md / SKILL_OPENAI.md / README.md 的版本號一致
 4. 提交 Pull Request 並說明變更原因
 
 ## 目錄結構規範
@@ -79,7 +79,7 @@
 當 ECPay 更新 API 規格時（棄用端點、新增參數、變更格式）：
 1. 更新 `references/` 對應文件中的 URL 索引
 2. 更新對應 `guides/` 的 SNAPSHOT 日期戳記
-3. 在 `CHANGELOG.md` 記錄受影響的 guide 編號
+3. 在對應 `guides/` 更新 SNAPSHOT 日期戳記
 
 ECPay 官方 API 變更公告請見：[developers.ecpay.com.tw](https://developers.ecpay.com.tw)
 
@@ -87,7 +87,7 @@ ECPay 官方 API 變更公告請見：[developers.ecpay.com.tw](https://develope
 
 - **v2.x（當前系列）**：同系列版本保持向下相容，不移除現有 guide 結構或加密函式介面
 - **棄用警告**：若 ECPay 官方廢棄某 API 端點，對應 guide 頂部將標注 `⚠️ 已棄用（官方公告：YYYY-MM）`，並維持至少一個版本的過渡說明
-- **主版本升級**（如 v3.x）：提前在 `CHANGELOG.md` 及 `guides/00` 頂部列出破壞性變更清單，讓開發者有足夠時間準備遷移
+- **主版本升級**（如 v3.x）：提前在 `guides/00` 頂部列出破壞性變更清單，讓開發者有足夠時間準備遷移
 - ECPay API 官方棄用公告請見 [developers.ecpay.com.tw](https://developers.ecpay.com.tw)
 
 ## 授權
