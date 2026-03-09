@@ -157,14 +157,15 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 - **`scripts/validate-ai-index.sh`**：驗證 guides/13、14、24 中的 AI Section Index 行號是否準確（確認行號指向的行為 `#` 開頭的標題）。維護者更新這些 guide 的章節結構後建議執行此腳本確認行號索引無誤。
 
-### 三大 HTTP 協議模式
+### HTTP 協議模式
 
-ECPay API 使用三種不同的認證和請求格式，本 Skill 完整涵蓋：
+ECPay API 使用不同的認證和請求格式，本 Skill 完整涵蓋：
 
 | 模式 | 認證方式 | 請求格式 | 適用服務 |
 |------|---------|---------|---------|
 | **CMV-SHA256** | CheckMacValue + SHA256 | Form POST | AIO 金流 |
-| **AES-JSON** | AES-128-CBC 加密 | JSON POST | ECPG、電子發票、全方位/跨境物流、電子票證 |
+| **AES-JSON** | AES-128-CBC 加密 | JSON POST | ECPG、電子發票、全方位/跨境物流 |
+| **AES-JSON + CMV** | AES-128-CBC + CheckMacValue（SHA256） | JSON POST | 電子票證（CMV 公式與 AIO 不同） |
 | **CMV-MD5** | CheckMacValue + MD5 | Form POST | 國內物流 |
 
 ## 指南索引

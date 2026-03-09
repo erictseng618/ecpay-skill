@@ -17,7 +17,8 @@ The critical pattern: **guides/ tells you HOW to integrate; references/ gives yo
 | Mode | Auth | Format | Services |
 |------|------|--------|----------|
 | CMV-SHA256 | CheckMacValue + SHA256 | Form POST | AIO payment |
-| AES-JSON | AES-128-CBC | JSON POST | ECPG, invoices, logistics v2, e-tickets |
+| AES-JSON | AES-128-CBC | JSON POST | ECPG, invoices, logistics v2 |
+| AES-JSON + CMV | AES-128-CBC + CheckMacValue (SHA256) | JSON POST | E-tickets (CMV formula differs from AIO) |
 | CMV-MD5 | CheckMacValue + MD5 | Form POST | Domestic logistics |
 
 ### Supporting Files

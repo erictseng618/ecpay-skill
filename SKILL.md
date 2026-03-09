@@ -84,7 +84,8 @@ metadata:
 | 純後台扣款（無前端） | **AES-JSON** | ★★★ | [guides/03](./guides/03-payment-backend.md) |
 | 超商取貨/宅配（國內物流） | **CMV-MD5** | ★★☆ | [guides/06](./guides/06-logistics-domestic.md) |
 | 全方位/跨境物流 | **AES-JSON** | ★★★ | [guides/07](./guides/07-logistics-allinone.md) |
-| 電子發票 / 電子票證 | **AES-JSON** | ★★★ | [guides/04](./guides/04-invoice-b2c.md) / [guides/09](./guides/09-ecticket.md) |
+| 電子發票 | **AES-JSON** | ★★★ | [guides/04](./guides/04-invoice-b2c.md) |
+| 電子票證 | **AES-JSON + CMV** | ★★★ | [guides/09](./guides/09-ecticket.md) — **除 AES 外還需計算 CheckMacValue（SHA256），公式與 AIO 不同** |
 
 > 不確定？大多數場景用 **AIO（CMV-SHA256）** 最簡單。30 分鐘可完成基礎串接。
 
@@ -350,8 +351,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | 國內物流 C2C | 2000933 | XBERn1YOvpM9nfZc | h1ONHk4P4yqbl5LK | MD5 |
 | 全方位/跨境物流 | 2000132 | 5294y06JbISpM5x9 | v77hoKGq4kWxNNIS | AES |
 | 電子發票 | 2000132 | ejCk326UnaZWKisg | q9jcZX8Ib9LM8wYk | AES |
-| 電子票證（特店） | 3085676 | 7b53896b742849d3 | 37a0ad3c6ffa428b | AES |
-| 電子票證（平台商） | 3085672 | b15bd8514fed472c | 9c8458263def47cd | AES |
+| 電子票證（特店） | 3085676 | 7b53896b742849d3 | 37a0ad3c6ffa428b | AES + CMV |
+| 電子票證（平台商） | 3085672 | b15bd8514fed472c | 9c8458263def47cd | AES + CMV |
 
 > ⚠️ 電子票證的 HashKey/HashIV 與金流**不同**，請使用對應的介接資訊。
 
