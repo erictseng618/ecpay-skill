@@ -56,7 +56,7 @@ $factory = new Factory([
     'hashKey' => getenv('ECPAY_HASH_KEY'),
     'hashIv'  => getenv('ECPAY_HASH_IV'),
 ]);
-$postService = $factory->create('FormWithCmvVerifyService');
+$postService = $factory->create('FormWithCmvService');
 $response = $postService->post($input, $url);
 ```
 
