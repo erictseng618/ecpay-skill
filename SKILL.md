@@ -172,8 +172,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 ```
 電子票證？→ 讀 guides/09-ecticket.md
-   ⚠️ 重要限制：無公開測試帳號，需向綠界客服申請
-   聯繫方式：(02)2655-1775 或 techsupport@ecpay.com.tw
+   測試帳號：官方提供公開測試帳號（見 guides/09 §測試帳號）
    適用場景：演唱會、電影票、餐券、遊樂園等虛擬票證
 購物車平台？→ 讀 guides/10-cart-plugins.md
 收款+發票+出貨？→ 讀 guides/11-cross-service-scenarios.md
@@ -350,8 +349,10 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | 國內物流 C2C | 2000933 | XBERn1YOvpM9nfZc | h1ONHk4P4yqbl5LK | MD5 |
 | 全方位/跨境物流 | 2000132 | 5294y06JbISpM5x9 | v77hoKGq4kWxNNIS | AES |
 | 電子發票 | 2000132 | ejCk326UnaZWKisg | q9jcZX8Ib9LM8wYk | AES |
+| 電子票證（特店） | 3085676 | 7b53896b742849d3 | 37a0ad3c6ffa428b | AES |
+| 電子票證（平台商） | 3085672 | b15bd8514fed472c | 9c8458263def47cd | AES |
 
-> 電子票證（E-Ticket）測試帳號非公開，需聯繫綠界客服申請。
+> ⚠️ 電子票證的 HashKey/HashIV 與金流**不同**，請使用對應的介接資訊。
 
 > **常見錯誤：帳號混用** — 金流、物流、發票使用**不同的** MerchantID 和 HashKey/HashIV。
 > 同時串接多個服務時，請確認每個 API 呼叫使用對應服務的帳號，混用會導致 CheckMacValue 驗證失敗。
@@ -397,7 +398,6 @@ composer require "ecpay/sdk:^4.0"
 - 僅支援新台幣（TWD）交易
 - references/ URL 索引需要網路連線才能即時讀取最新 API 規格
 - OpenAI GPTs 無法直接讀取 references/ 檔案（透過 Web Search 替代，可靠性略低於 web_fetch 直讀）
-- 電子票證無公開測試帳號（需向綠界客服申請）
 - AI 翻譯品質可能因模型與語言組合而異，生成的程式碼片段應經人工驗證
 
 ## 文件索引

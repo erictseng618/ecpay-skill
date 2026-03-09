@@ -643,7 +643,7 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 
 > Base URL（測試）：`https://ecticket-stage.ecpay.com.tw`
 > Base URL（正式）：`https://ecticket.ecpay.com.tw`
-> 測試帳號需向綠界客服個別申請（無公開測試帳號）
+> 測試帳號：官方提供公開測試帳號（見 [guides/09 §測試帳號](./09-ecticket.md)）
 
 ### 3.5 其他服務端點
 
@@ -734,7 +734,7 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 
 | 陷阱 | 正確做法 |
 |------|---------|
-| 電子票證用金流測試帳號 | 電子票證需**個別向綠界客服申請**測試帳號 |
+| 電子票證用金流測試帳號 | 電子票證有**獨立的** HashKey/HashIV，與金流不同（見 guides/09 §測試帳號） |
 | 正式/測試 domain 只差前綴 | 是的，加 `-stage` 即可，但要確認每個服務的 domain 不同 |
 
 ---
