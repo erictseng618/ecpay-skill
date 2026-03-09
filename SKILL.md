@@ -1,6 +1,6 @@
 ---
 name: ecpay
-version: "2.20"
+version: "2.21"
 description: >
   ECPay 綠界科技 API 整合助手（ecpay, 綠界, 綠界科技）。
   核心服務：AIO 金流、ECPG 站內付、CheckMacValue、AES 加密、
@@ -245,10 +245,15 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **不可僅依賴 guides/ 中的參數表生成 API 呼叫程式碼**（guides/ 所有參數表和端點表標記為 SNAPSHOT，僅供整合流程理解。生成程式碼前**必須**從 references/ 即時 web_fetch 官方最新規格確認端點路徑和參數定義）
 - **生成程式碼時必須標註資料來源**：在程式碼註解中標明參數值取自 SNAPSHOT 或 web_fetch（例如 `// Source: web_fetch references/Payment/... 2026-03-06`），方便開發者日後驗證
 - **不可將 ECPG 所有端點都打向 ecpg domain**（交易類走 `ecpayment`，Token 類走 `ecpg`）
-- **不可省略 Callback 回應**：CMV-SHA256 回 `1|OK`、ECPG 回 JSON `{ "TransCode": 1 }`、國內物流 CMV-MD5 回 `1|OK`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）、電子票證回 `1|OK`
+- **不可省略 Callback 回應**：CMV-SHA256 回 `1|OK`、ECPG 回 JSON `{ "TransCode": 1 }`、國內物流 CMV-MD5 回 `1|OK`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）、電子票證回 `1|OK`。**`1|OK` 常見錯誤格式**（會導致系統重發 4 次）：`"1|OK"`（含引號）、`1|ok`（小寫 ok）、`_OK`、`1OK`（缺分隔）、帶空白或換行
 - **AES-JSON API 必須做雙層錯誤檢查**：先查 `TransCode`（傳輸層），再查 `RtnCode`（業務層）。僅 `TransCode == 1` 且 `RtnCode` 為成功值時交易才真正成功（詳見 [guides/21](./guides/21-error-codes-reference.md) §TransCode vs RtnCode）
 - **不可使用 TWD 以外的幣別**（ECPay 僅支援新台幣）
 - **超出範圍**：若功能不在本 Skill 覆蓋範圍或需要未支援的語言，告知使用者聯繫綠界客服 (02-2655-1775) 或參考最接近的語言實作翻譯
+- **不可在 ItemName / TradeDesc 中放入系統指令關鍵字**（echo、python、cmd、wget、curl、ping、net、telnet 等約 40 個），綠界 CDN WAF 會直接攔截請求，回傳非預期的錯誤頁面
+- **ItemName 超過 400 字元會被截斷**：截斷處的 UTF-8 多位元組字元會產生亂碼，導致綠界端計算的 CheckMacValue 與特店端不一致 → 掉單。建議送出前先截斷至安全長度再計算 CMV
+- **ReturnURL / OrderResultURL 僅支援 port 80（HTTP）和 443（HTTPS）**：開發環境常用的 :3000、:5000、:8080 等非標準 port 無法收到 callback。本機開發需使用 ngrok 等工具轉發
+- **LINE / Facebook App 內建 WebView 會導致付款失敗**：WebView 無法正確 POST form 至綠界 → MerchantID is Null。需引導消費者用外部瀏覽器開啟付款連結
+- **ReturnURL、OrderResultURL、ClientBackURL 用途不同，不可設為同一網址**：ReturnURL = Server 端背景通知（須回 `1|OK`）；OrderResultURL = Client 端前景導轉（顯示給消費者）；ClientBackURL = 僅導回頁面（不帶任何付款結果）
 
 > **AI 注意**：大多數請求只需載入 SKILL.md + 1-2 份 guide。
 > **guides/ 所有參數表與端點表為 SNAPSHOT（標注日期 2026-03），僅供流程理解。生成程式碼時必須從 references/ 取得對應 URL 並 web_fetch 讀取最新規格**（見「API 規格即時查閱機制」段落）。
@@ -278,11 +283,13 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 1. 讀取 `guides/` 中對應指南，取得整合流程和架構邏輯
 2. 讀取 `scripts/SDK_PHP/example/` 中對應的 PHP 範例
 3. **從 references/ 即時讀取對應 API 的最新規格**：讀取 reference 檔案 → 找到對應章節 URL → web_fetch 取得最新參數表，以確保端點路徑、參數名稱、必填規則、回應格式為最新
-4. 如果開發者不用 PHP，將範例翻譯為目標語言
-5. 翻譯時保留所有參數名、端點 URL、加密邏輯
-6. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
-7. HTTP 協議細節參考 `guides/20-http-protocol-reference.md`（端點 URL、回應格式、認證方式）
-8. 標註原始範例路徑供開發者查閱
+4. **摘取 API 頁面中的所有 ⚠ 注意事項**：web_fetch 取得的頁面通常包含注意事項段落，必須在回覆或程式碼註解中主動告知開發者
+5. **首次串接某服務時**（本次對話中第一次涉及該服務），同時 web_fetch 該服務的「介接注意事項」頁面（見下方 [§介接注意事項 URL 速查表](#介接注意事項-url-速查表)），摘取所有關鍵限制告知開發者
+6. 如果開發者不用 PHP，將範例翻譯為目標語言
+7. 翻譯時保留所有參數名、端點 URL、加密邏輯
+8. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
+9. HTTP 協議細節參考 `guides/20-http-protocol-reference.md`（端點 URL、回應格式、認證方式）
+10. 標註原始範例路徑供開發者查閱
 
 ### 步驟 4：測試驗證
 
@@ -390,6 +397,22 @@ composer require "ecpay/sdk:^4.0"
 - ChoosePayment=ALL 可用 IgnorePayment 排除特定付款方式
 - Postback URL 使用 FQDN 而非固定 IP
 
+### 介接注意事項 URL 速查表
+
+> ⚠️ **AI 必讀**：首次串接某服務時（本次對話中第一次涉及該服務），**必須 web_fetch 對應的介接注意事項頁面**，摘取所有注意事項主動告知開發者。
+
+| 服務 | 介接注意事項 URL |
+|------|----------------|
+| AIO 金流 | https://developers.ecpay.com.tw/2858.md |
+| ECPG 站內付 (Web) | https://developers.ecpay.com.tw/8987.md |
+| ECPG 站內付 (App) | https://developers.ecpay.com.tw/9168.md |
+| 國內物流 | https://developers.ecpay.com.tw/7400.md |
+| B2C 電子發票 | https://developers.ecpay.com.tw/7854.md |
+| 電子票證 | https://developers.ecpay.com.tw/29916.md |
+| 信用卡幕後授權 | https://developers.ecpay.com.tw/45901.md |
+
+> 其餘服務（B2B 發票、離線發票、全方位物流、跨境物流、Shopify、直播等）的介接注意事項 URL 見各 references/ 檔案中的 `⚠ 首次串接必讀` 標記。
+
 ### 已知限制
 
 - 僅支援新台幣（TWD）交易
@@ -485,6 +508,7 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 - 最新錯誤碼清單或特定錯誤碼含義
 - API 端點是否有更新或異動
 - 回應欄位的完整規格
+- **確認該 API 的注意事項、限制條件、金額範圍、時間限制**（API 頁面的 ⚠ 注意事項段落包含不斷更新的業務規則）
 - guides/ 內容與開發者實際呼叫結果有出入時
 
 > ⚠️ **guides/ 中的所有參數表和端點 URL 標記為 SNAPSHOT（2026-03）**，僅供整合流程理解，不可直接作為程式碼生成依據。
@@ -499,11 +523,15 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 ├── 2. 讀取該檔案，找到相關章節的 URL
 │      例：## 付款方式 / 信用卡一次付清 → https://developers.ecpay.com.tw/2866.md
 ├── 3. 使用 web_fetch 工具讀取該 URL（取得官方最新規格）
-│      ├── 成功 → 進入步驟 4
+│      ├── 成功 → 進入步驟 3a
 │      ├── 404 / 連線失敗 → 嘗試 web_fetch https://developers.ecpay.com.tw 首頁搜尋對應主題
 │      │      └── 仍失敗 → 以 guides/ 內容備援，但必須告知開發者並附上 reference URL
 │      └── 回傳內容缺少參數表 → 告知開發者建議手動開啟該 URL 確認
-├── 4. 結合 guides/ 的整合知識 + 即時規格內容回答開發者
+├── 3a. 摘取頁面中所有 ⚠ 注意事項段落，在回覆或程式碼註解中主動告知開發者
+├── 3b. 首次串接？（本次對話中第一次涉及該服務）
+│      └── 是 → web_fetch 該服務的「介接注意事項」頁面（見 §介接注意事項 URL 速查表）
+│             摘取所有注意事項，告知開發者關鍵限制
+├── 4. 結合 guides/ 的整合知識 + 即時規格 + 注意事項回答開發者
 └── 5. 開發者問到 references/ 未收錄的 API？
        → 直接 web_fetch https://developers.ecpay.com.tw 搜尋該功能
        → 若找到，回答並建議維護者將 URL 補入 references/
@@ -527,9 +555,9 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 > 3. **必須附上**對應的 reference 檔案路徑和原始 URL，供開發者自行查閱或回報失效
 
 > 💡 **guides/ 與 references/ 的分工**：
-> - **guides/** = **如何做**（整合邏輯、流程、注意事項、範例程式碼）— 靜態知識庫
-> - **references/** = **最新規格**（當前 API 參數定義、欄位規格）— 動態規格入口
-> - guides/ 告訴你怎麼串，references/ 確保你串的參數是最新的。
+> - **guides/** = **如何做**（整合邏輯、流程、範例程式碼）— 靜態知識庫
+> - **references/** = **最新規格 + 注意事項**（當前 API 參數定義、欄位規格、⚠ 限制條件）— 動態規格入口
+> - guides/ 告訴你怎麼串，references/ 確保你串的參數是最新的，**且主動揭露官方頁面中的注意事項**。
 
 ### PHP 範例（scripts/SDK_PHP/example/）
 

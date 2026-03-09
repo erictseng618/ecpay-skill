@@ -1,4 +1,4 @@
-> ⚠️ **AI 指令**：本檔案為即時 API 規格入口。當開發者詢問具體參數、欄位定義或規格細節時，使用 web_fetch 工具讀取下方對應 URL，取得 developers.ecpay.com.tw 上的官方最新內容。勿僅依賴 guides/ 中的靜態摘要。
+> ⚠️ **AI 指令**：本檔案為即時 API 規格入口。當開發者詢問具體參數、欄位定義或規格細節時，使用 web_fetch 工具讀取下方對應 URL，取得 developers.ecpay.com.tw 上的官方最新內容。**讀取 API 頁面後，必須同時摘取頁面中所有 ⚠ 注意事項段落，主動告知開發者相關限制和陷阱。** 勿僅依賴 guides/ 中的靜態摘要。
 > 最後驗證：2026-03 | URL 可能隨綠界官網改版變動，若連結失效請至 developers.ecpay.com.tw 搜尋對應主題
 
 ## 簡介
@@ -13,7 +13,7 @@ https://developers.ecpay.com.tw/35196.md
 ## 準備事項 / 測試介接資訊
 https://developers.ecpay.com.tw/2856.md
 
-## 準備事項 / 介接注意事項
+## 準備事項 / 介接注意事項 ⚠ 首次串接必讀
 https://developers.ecpay.com.tw/2858.md
 
 ## 付款 / 付款簡介
@@ -133,5 +133,5 @@ https://developers.ecpay.com.tw/44089.md
 ## 附錄 / ATM檢核功能表
 https://developers.ecpay.com.tw/59297.md
 
-## 常見技術FAQ
+## 常見技術FAQ ⚠ 疑難排解
 https://developers.ecpay.com.tw/61944.md
