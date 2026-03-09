@@ -259,6 +259,11 @@ ECPay.getPayToken(function(payToken, errMsg) {
 });
 ```
 
+> ⚠️ **常見陷阱：payToken 是字串**
+> `getPayToken` 回呼的第一個參數 `payToken` 是**純字串**（如 `"a1b2c3d4..."`）。
+> 常見錯誤是將整個回呼物件或包裝過的結構送往後端，導致後端收到 `[object Object]` 而非 Token 字串。
+> 確認送往後端的值為 `typeof payToken === 'string'`。
+
 #### 語系設定
 
 付款介面支援切換語系，透過 `createPayment` 的第二個參數指定：
@@ -378,6 +383,29 @@ Data 解密後常見欄位：
 | RtnMsg | 業務結果訊息 |
 | TradeNo | ECPay 交易編號 |
 | MerchantTradeNo | 特店訂單編號 |
+
+#### 3D Secure 驗證跳轉（必處理）
+
+> ⚠️ 自 2025/8 起 3D Secure 2.0 已強制實施，信用卡交易的 CreatePayment 回應中**幾乎一定會包含 `ThreeDURL`**。
+
+CreatePayment 的 Data 解密後，若包含 `ThreeDURL` 欄位（非空字串），代表此筆交易需要 3D 驗證。**前端必須將消費者導向該 URL 完成驗證**，否則交易將逾時失敗。
+
+```javascript
+// 後端 CreatePayment 回應解密後回傳給前端
+const result = await response.json();
+
+if (result.ThreeDURL) {
+    // 必須跳轉至 3D 驗證頁面
+    window.location.href = result.ThreeDURL;
+} else if (result.RtnCode === 1) {
+    // 不需 3D 驗證，交易直接成功
+    showSuccess(result);
+} else {
+    showError(result.RtnMsg);
+}
+```
+
+> **注意**：3D 驗證完成後，綠界會將結果 POST 至 OrderResultURL（前端顯示）和 ReturnURL（後端通知），流程與一般付款回呼相同。
 
 ## 綁卡付款流程
 
