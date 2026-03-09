@@ -11,11 +11,11 @@
 | 平台 | 需求 |
 |------|------|
 | Claude Code | Claude Pro / Max / Team / Enterprise 訂閱 |
-| GitHub Copilot CLI | GitHub Copilot 訂閱 |
-| Cursor | Cursor Pro / Business 訂閱 |
+| GitHub Copilot CLI | GitHub Copilot Pro 以上訂閱（Free 方案不含 CLI） |
+| Cursor | Cursor Pro / Teams 訂閱 |
 | Windsurf | Windsurf Pro / Teams 訂閱 |
-| OpenAI Custom GPTs | ChatGPT Plus / Pro / Team / Enterprise / Edu |
-| OpenClaw | OpenClaw 帳號 |
+| OpenAI Custom GPTs | ChatGPT Plus / Pro / Business / Enterprise / Edu |
+| OpenClaw | OpenClaw 安裝（開源免費，需 Node ≥22） |
 
 ## 這是什麼？
 
@@ -72,7 +72,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git .windsurf/skills/ecpay
 git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecpay
 ```
 
-**OpenAI Custom GPTs（ChatGPT Plus/Pro/Team/Enterprise/Edu）**
+**OpenAI Custom GPTs（ChatGPT Plus/Pro/Business/Enterprise/Edu）**
 1. 開啟 [GPT 編輯器](https://chatgpt.com/gpts/editor)
 2. 將 `SKILL_OPENAI.md` 內容貼入 Instructions 欄位（GPT Builder 限制 8,000 字元，本檔案已控制在此上限內）
 3. 依 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md) 的建議清單上傳 Knowledge Files（最多 20 個檔案）
@@ -288,7 +288,7 @@ A：參考 guides/16 上線檢查清單，逐項替換 MerchantID、HashKey/Hash
 A：AI 基於 134 個官方驗證的 PHP 範例和 12 語言加密實作生成程式碼，品質高但仍建議人工驗證。特別是金額、加密邏輯、Callback 處理等關鍵路徑應搭配測試環境驗證。
 
 **Q：API 規格更新時，AI 會讀到最新的嗎？**
-A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw` 的 URL 索引，不是靜態規格副本。AI 被指示在需要具體參數規格時，透過 `web_fetch` 即時讀取這些 URL 取得官方最新內容。guides/ 提供整合邏輯，references/ 提供即時規格，兩者結合確保回答始終反映最新 API 狀態。注意：OpenAI GPTs 無法使用 web_fetch，改以 Web Search 替代，可靠性略低。
+A：會。references/ 目錄存放的是 431 個指向 `developers.ecpay.com.tw` 的 URL 索引，不是靜態規格副本。AI 被指示在需要具體參數規格時，透過各平台的網頁讀取工具（Claude Code / Copilot CLI / OpenClaw 使用 `web_fetch`；Cursor 使用 `@web`；Windsurf 使用 `@web` / `@docs`）即時讀取這些 URL 取得官方最新內容。guides/ 提供整合邏輯，references/ 提供即時規格，兩者結合確保回答始終反映最新 API 狀態。注意：OpenAI GPTs 無法使用 web_fetch，改以 Web Search 替代，可靠性略低。
 
 ## 相關資源
 

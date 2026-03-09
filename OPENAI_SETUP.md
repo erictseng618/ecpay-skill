@@ -2,7 +2,7 @@
 
 > **版本**：v2.20 | 對應 SKILL_OPENAI.md v2.20
 
-> 將 ECPay Skill 安裝到 OpenAI Custom GPTs（ChatGPT Plus/Pro/Team/Enterprise/Edu）。
+> 將 ECPay Skill 安裝到 OpenAI Custom GPTs（ChatGPT Plus/Pro/Business/Enterprise/Edu）。
 > 前置條件：具備可建立 GPT 的 ChatGPT 方案、已 clone 或下載本 repo。
 
 ## 步驟 1：開啟 GPT 編輯器

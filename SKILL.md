@@ -521,9 +521,9 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 | Claude Code | `web_fetch` | `web_fetch(url="https://developers.ecpay.com.tw/2866.md")` |
 | GitHub Copilot CLI | `web_fetch` / `fetch` | 同上 |
 | OpenAI GPTs | Web Search / 瀏覽 | 啟用「Web Search」後直接瀏覽 URL |
-| Cursor | `web_fetch` / `fetch` | 同上 |
-| Windsurf | `web_fetch` / `fetch` | 同上 |
-| OpenClaw | `web_fetch` | 同上 |
+| Cursor | `@web` / `fetch`（MCP） | 使用 `@web` 搜尋或透過 Fetch MCP 讀取 URL |
+| Windsurf | `@web` / `@docs` | 使用 `@web` 搜尋或 `@docs` 查文件 |
+| OpenClaw | `web_fetch` / `web_search` | 內建 `web_fetch` 讀取 URL、`web_search` 搜尋網頁 |
 
 > ⚠️ **web_fetch 失敗時的備援**：若 web_fetch 逾時、回傳 404 或連線失敗：
 > 1. 先嘗試 web_fetch `https://developers.ecpay.com.tw` 首頁，搜尋對應 API 主題的替代 URL
