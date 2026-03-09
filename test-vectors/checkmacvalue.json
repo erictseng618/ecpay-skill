@@ -18,7 +18,8 @@
         "ChoosePayment": "ALL",
         "EncryptType": "1"
       },
-      "expected": "291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2"
+      "expected": "291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2",
+      "note": "標準 AIO 金流基線測試。使用測試環境帳號 MerchantID=3002607，SHA256 雜湊，EncryptType=1"
     },
     {
       "name": "MD5 測試（國內物流）",

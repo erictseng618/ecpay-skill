@@ -2,7 +2,7 @@
   "description": "ECPay URL Encode 函式比對表 — ecpayUrlEncode (CMV用) vs aesUrlEncode (AES用) 的差異",
   "note": "此檔案驗證開發者正確區分兩種 URL encode 函式。混用是最常見的串接錯誤之一",
   "functions": {
-    "ecpayUrlEncode": "urlencode() → .NET replacements (%2d→- %5f→_ %2e→. %21→! %2a→* %28→( %29→)) → toLowerCase()",
+    "ecpayUrlEncode": "urlencode() → toLowerCase() → .NET replacements (%2d→- %5f→_ %2e→. %21→! %2a→* %28→( %29→))",
     "aesUrlEncode": "urlencode() only (no .NET replacements, no toLowerCase)"
   },
   "vectors": [
