@@ -271,7 +271,7 @@ $response = $postService->post($input, 'https://ecpayment-stage.ecpay.com.tw/1.0
 
 ### ReturnURL 回呼格式
 
-與 AIO 的 ReturnURL 相同，綠界會 POST 付款結果到你指定的 ReturnURL。回呼包含：
+消費者付款完成後，綠界會 POST 付款結果（AES-JSON 格式）到你指定的 ReturnURL。解密後回呼包含：
 - MerchantID、MerchantTradeNo
 - RtnCode（1=付款成功）
 - 付款方式相關欄位（BankCode/vAccount 或 PaymentNo 或 Barcode1~3）
