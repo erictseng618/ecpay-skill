@@ -2,6 +2,25 @@
 
 # 從零開始：第一筆交易到上線
 
+## 新手必知術語（10 項速查）
+
+第一次接觸 ECPay？先看這張表，之後讀文件就不會卡住：
+
+| 術語 | 白話解釋 |
+|------|---------|
+| **MerchantID** | 你的商店編號（綠界發給你的，測試用 `3002607`） |
+| **HashKey / HashIV** | 兩把密鑰，像你家大門的鑰匙，加密用的，絕對不能外洩 |
+| **AIO** | All-In-One 金流，消費者會跳到綠界頁面付款，最常用的方案（約 60% 商家使用） |
+| **ECPG** | 站內付 2.0，付款表單嵌在你的網站裡，消費者不用跳轉 |
+| **CheckMacValue** | 簽名驗證碼——你和綠界雙方各自用密鑰算出一個簽名，對得上才代表資料沒被竄改 |
+| **AES 加密** | 進階加密方式——把整段資料用密鑰鎖起來再傳送（ECPG、發票、物流 v2 用這個） |
+| **ReturnURL** | 你的伺服器接收通知的網址——綠界付款完成後，會從背景 POST 通知到這個 URL |
+| **Callback** | 跟 ReturnURL 同義，就是綠界從後台通知你「付款完成了」的機制 |
+| **ClientBackURL** | 消費者付完款後，瀏覽器自動跳回的前端頁面（不是通知你的伺服器，是給消費者看的） |
+| **SimulatePaid** | 設為 1 就能模擬付款成功，測試時不用真刷卡 |
+
+> 🎯 **最重要的一件事**：ReturnURL 是**伺服器對伺服器**的背景通知，ClientBackURL 是**瀏覽器跳轉**。兩者用途完全不同，不可搞混。
+
 ## 概述
 
 本指南帶你跑通第一筆 ECPay 測試交易。PHP 開發者約 30 分鐘可完成基礎串接（含 SimulatePaid 模擬付款），非 PHP 開發者約 45-60 分鐘。
@@ -76,11 +95,11 @@ ECPay 官方僅提供 PHP SDK。其他語言需自行實作：
 
 ECPay API 分為三個協議模式，認證方式和請求格式完全不同：
 
-| 模式 | 認證方式 | Content-Type | 適用服務 | 難度 |
-|------|---------|-------------|---------|:----:|
-| **CMV-SHA256** | CheckMacValue SHA256 | application/x-www-form-urlencoded | AIO 金流 | ★★☆ |
-| **AES-JSON** | AES-128-CBC | application/json | ECPG / 發票 / v2 物流 / 幕後 / 跨境 / 票券 | ★★★ |
-| **CMV-MD5** | CheckMacValue MD5 | application/x-www-form-urlencoded | 國內物流 | ★★☆ |
+| 模式 | 白話說明 | 適用服務 | 難度 |
+|------|---------|---------|:----:|
+| **CMV-SHA256** | 像蓋章簽名——把所有參數排序後用密鑰產生一個簽名碼（SHA256），附在表單裡一起送出 | AIO 金流 | ★★☆ |
+| **AES-JSON** | 像加密信件——把整段資料用密鑰鎖起來（AES 加密），放進 JSON 信封再寄出 | ECPG / 發票 / v2 物流 / 幕後 / 跨境 / 票券 | ★★★ |
+| **CMV-MD5** | 同簽名蓋章，但用舊版印章（MD5），僅國內物流使用 | 國內物流 | ★★☆ |
 
 > ⚠️ **ECPG 開發者必看**：ECPG 使用**兩個不同的 domain**，混淆必定 404。
 > Token / 建立交易 → `ecpg(-stage).ecpay.com.tw` ｜ 查詢 / 請退款 → `ecpayment(-stage).ecpay.com.tw`
@@ -128,9 +147,90 @@ sequenceDiagram
 
 | Tier | 包含服務 | 預估時間 | 含測試 | 閱讀路徑 |
 |:----:|---------|:-------:|:-----:|---------|
+| **Tier 0** 體驗 | 純 HTML 表單送出至測試環境 | **5 分鐘** | — | 本頁下方「5 分鐘體驗」 |
 | **Tier 1** 基礎 | AIO 金流 (CMV-SHA256) | 30 分鐘 | **45m** | 本頁 → [guides/01](./01-payment-aio.md) |
 | **Tier 2** 標準 | + 發票 (AES-JSON) + 國內物流 (CMV-MD5) | 2-3 小時 | **3-4h** | + [guides/04](./04-invoice-b2c.md) + [guides/06](./06-logistics-domestic.md) + [guides/11](./11-cross-service-scenarios.md) |
 | **Tier 3** 進階 | + ECPG / 幕後 / 定期 / 全方位 / 跨境 | 4-8 小時 | **5-10h** | + [guides/20](./20-http-protocol-reference.md) → 依需求選讀 |
+
+## 5 分鐘體驗（Tier 0）
+
+> 🎯 **目標**：完全不懂加密也能看到綠界付款頁面。以下範例不含 CheckMacValue 計算，僅用 `curl` 呼叫綠界提供的測試表單頁面，讓你先理解整體流程。
+
+**步驟 1：用瀏覽器直接體驗**
+
+將以下 HTML 存為 `pay-test.html`，用瀏覽器直接打開：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head><meta charset="UTF-8"><title>ECPay 5 分鐘體驗</title></head>
+<body>
+  <h2>ECPay AIO 測試付款（Tier 0 體驗）</h2>
+  <p>點下方按鈕，會跳到綠界測試付款頁面。</p>
+  <p>⚠️ 這只是體驗流程，正式串接需要加上 CheckMacValue 簽名驗證。</p>
+
+  <form method="POST" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5">
+    <input type="hidden" name="MerchantID" value="3002607">
+    <input type="hidden" name="MerchantTradeNo" value="">
+    <input type="hidden" name="MerchantTradeDate" value="">
+    <input type="hidden" name="PaymentType" value="aio">
+    <input type="hidden" name="TotalAmount" value="100">
+    <input type="hidden" name="TradeDesc" value="ECPay5MinDemo">
+    <input type="hidden" name="ItemName" value="測試商品">
+    <input type="hidden" name="ReturnURL" value="https://example.com/notify">
+    <input type="hidden" name="EncryptType" value="1">
+    <input type="hidden" name="CheckMacValue" value="">
+    <button type="submit" onclick="fillDynamic()" style="font-size:18px;padding:12px 24px;cursor:pointer;">
+      🛒 體驗綠界付款
+    </button>
+  </form>
+
+  <script>
+    function fillDynamic() {
+      // 產生唯一訂單編號（時間戳）
+      var now = new Date();
+      var tradeNo = 'T' + now.getFullYear()
+        + String(now.getMonth()+1).padStart(2,'0')
+        + String(now.getDate()).padStart(2,'0')
+        + String(now.getHours()).padStart(2,'0')
+        + String(now.getMinutes()).padStart(2,'0')
+        + String(now.getSeconds()).padStart(2,'0')
+        + String(now.getMilliseconds()).padStart(3,'0');
+      // 格式化日期
+      var tradeDate = now.getFullYear() + '/'
+        + String(now.getMonth()+1).padStart(2,'0') + '/'
+        + String(now.getDate()).padStart(2,'0') + ' '
+        + String(now.getHours()).padStart(2,'0') + ':'
+        + String(now.getMinutes()).padStart(2,'0') + ':'
+        + String(now.getSeconds()).padStart(2,'0');
+      document.querySelector('[name=MerchantTradeNo]').value = tradeNo;
+      document.querySelector('[name=MerchantTradeDate]').value = tradeDate;
+    }
+  </script>
+
+  <hr>
+  <h3>體驗完之後？</h3>
+  <ol>
+    <li>👆 你會看到綠界的付款頁面（因缺少正確的 CheckMacValue，會顯示錯誤，這是正常的）</li>
+    <li>📖 接下來讀 <b>Tier 1</b>：讓 AI 助手幫你產出含完整 CheckMacValue 簽名的程式碼</li>
+    <li>💬 在 AI 助手中說：<code>「用 Node.js 串接 ECPay AIO 信用卡付款，測試環境」</code></li>
+  </ol>
+</body>
+</html>
+```
+
+> ⚠️ **為什麼會顯示錯誤？** 因為 CheckMacValue 欄位是空的。這正是 ECPay 的安全機制——沒有正確簽名就無法建立交易。這也說明了為什麼需要 Skill 幫你自動產出加密程式碼。
+
+**步驟 2：請 AI 幫你完成真正的串接**
+
+在 AI 助手中輸入：
+
+```
+「我剛用 Tier 0 體驗了 ECPay 付款流程，現在請幫我用 [你的語言] 串接 AIO 信用卡付款，
+測試帳號 MerchantID=3002607，需要完整的 CheckMacValue 計算。」
+```
+
+AI 會產出**可直接運行**的完整程式碼，包含 CheckMacValue 簽名計算。
 
 ## 選擇指引
 
@@ -236,6 +336,18 @@ func main() {
 > ⚠️ **CRITICAL：帳號不可混用**
 > 金流 / 物流 / 電子發票各自使用完全不同的 MerchantID + HashKey + HashIV。
 > 混用 = CheckMacValue 驗證永遠失敗。請確認你的服務使用下表正確的帳號。
+
+## 新手最常踩的 5 個坑
+
+| # | 坑 | 症狀 | 解法 |
+|:-:|---|------|------|
+| 1 | **帳號混用** | CheckMacValue 永遠失敗 | 金流、物流、發票各有獨立帳號，不可混用（見下方帳號表） |
+| 2 | **ReturnURL 和 ClientBackURL 搞混** | 訂單狀態不更新 | ReturnURL 是伺服器背景通知（必須處理），ClientBackURL 是瀏覽器跳轉（選填） |
+| 3 | **URL encode 不符 ECPay 規格** | CheckMacValue 產出不一致 | 必須用綠界專屬的 URL encode 規則（見 [guides/14](./14-aes-encryption.md)），PHP 的 `urlencode()` 需搭配 `str_replace` |
+| 4 | **沒做雙層錯誤檢查** | 看似成功實際失敗 | AES-JSON 回應要先查 `TransCode`（傳輸層），再查 `RtnCode`（業務層），只看一層會漏判 |
+| 5 | **測試環境用 HTTP** | 連線被拒絕 | ECPay 所有 API 只接受 **HTTPS**，ReturnURL 也必須是 HTTPS |
+
+> 遇到問題？讓 AI 助手幫你除錯：`「ECPay CheckMacValue 驗證失敗，錯誤碼是 [你的錯誤碼]」`
 
 ## 測試帳號
 
