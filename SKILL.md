@@ -410,6 +410,7 @@ composer require "ecpay/sdk:^4.0"
 | B2C 電子發票 | https://developers.ecpay.com.tw/7854.md |
 | 電子票證 | https://developers.ecpay.com.tw/29916.md |
 | 信用卡幕後授權 | https://developers.ecpay.com.tw/45901.md |
+| 非信用卡幕後取號 | https://developers.ecpay.com.tw/27984.md |
 
 > 其餘服務（B2B 發票、離線發票、全方位物流、跨境物流、Shopify、直播等）的介接注意事項 URL 見各 references/ 檔案中的 `⚠ 首次串接必讀` 標記。
 
@@ -569,4 +570,4 @@ references/ 的 19 個檔案包含 431 個 URL，每個 URL 連結至綠界 `dev
 
 ## 更新紀錄
 
-> 目前版本 v2.20
+> 目前版本 v2.21
