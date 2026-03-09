@@ -27,7 +27,7 @@
 
 ## 步驟 3：貼入 System Instructions
 
-將 **`SKILL_OPENAI.md`** 的全部內容複製貼入 **Instructions** 欄位。若 OpenAI 日後調整欄位長度限制，請以 GPT 編輯器當下顯示為準。
+將 **`SKILL_OPENAI.md`** 的全部內容複製貼入 **Instructions** 欄位。GPT Builder 目前限制 Instructions 為 **8,000 字元**（本檔案已精簡至此上限內）。若 OpenAI 日後調整限制，請以 GPT 編輯器當下顯示為準。
 
 ## 步驟 4：上傳 Knowledge Files（最多 20 個）
 

@@ -74,7 +74,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 **OpenAI Custom GPTs（ChatGPT Plus/Pro/Team/Enterprise/Edu）**
 1. 開啟 [GPT 編輯器](https://chatgpt.com/gpts/editor)
-2. 將 `SKILL_OPENAI.md` 內容貼入 Instructions 欄位
+2. 將 `SKILL_OPENAI.md` 內容貼入 Instructions 欄位（GPT Builder 限制 8,000 字元，本檔案已控制在此上限內）
 3. 依 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md) 的建議清單上傳 Knowledge Files（最多 20 個檔案）
 4. 詳細步驟見 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md)
 

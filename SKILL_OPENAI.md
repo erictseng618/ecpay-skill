@@ -79,18 +79,9 @@ Every ECPay API uses one of these three modes. Identify the correct mode first.
 
 # Test Accounts
 
-| Purpose | MerchantID | HashKey | HashIV | Encryption |
-|---------|-----------|---------|--------|------------|
-| Payment AIO | 3002607 | pwFHCqoQZGmho4w6 | EkRm7iFT261dpevs | SHA256 |
-| Payment ECPG | 3002607 | pwFHCqoQZGmho4w6 | EkRm7iFT261dpevs | AES |
-| Domestic Logistics B2B | 2000132 | 5294y06JbISpM5x9 | v77hoKGq4kWxNNIS | MD5 |
-| Domestic Logistics C2C | 2000933 | XBERn1YOvpM9nfZc | h1ONHk4P4yqbl5LK | MD5 |
-| All-in-One/Cross-border Logistics | 2000132 | 5294y06JbISpM5x9 | v77hoKGq4kWxNNIS | AES |
-| E-Invoice | 2000132 | ejCk326UnaZWKisg | q9jcZX8Ib9LM8wYk | AES |
+See `SKILL.md` Knowledge File §Test Accounts for full credentials table (MerchantID, HashKey/HashIV per service). Test card: `4311-9522-2222-2222`, CVV: any 3 digits, expiry: any future, 3DS: `1234`.
 
-Test card: `4311-9522-2222-2222` (Visa), CVV: any 3 digits, expiry: any future, 3DS: `1234`.
-
-> **Warning**: Payment, Logistics, and Invoice use **different MerchantID and HashKey/HashIV**. Do not mix accounts across services.
+> **Warning**: Payment, Logistics, and Invoice use **different MerchantID/HashKey/HashIV**. Do not mix.
 
 # Environment URLs
 
@@ -102,7 +93,7 @@ Search the uploaded Knowledge Files first. Do not assume every repository guide 
 
 In the recommended OpenAI setup, the uploaded files are: `SKILL.md`, guides `00`, `01`, `02`, `03`, `04`, `05`, `06`, `07`, `09`, `11`, `12`, `13`, `14`, `15`, `16`, `20`, `21`, `22`, and `24`.
 
-Some repository topics may not be uploaded because OpenAI Knowledge is limited to 20 files. If a requested topic is not present in Knowledge Files, first use Web Search on `developers.ecpay.com.tw` for official API specs. If the topic is repository-only integration or operations guidance (for example guides `10`, `17`, `18`, `23`), explain that Web Search may not fully replace the missing guide and recommend swapping a lower-priority upload when that topic is needed often.
+Some topics may not be uploaded (20-file limit). If missing, use Web Search on `developers.ecpay.com.tw`. For repo-only guides (e.g., `10`, `17`, `18`, `23`), Web Search cannot fully replace them — recommend swapping a lower-priority upload.
 
 # Language-Specific Traps
 
