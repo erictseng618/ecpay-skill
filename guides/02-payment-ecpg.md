@@ -324,6 +324,12 @@ try {
 
 ReturnURL / OrderResultURL 收到的 POST 需要 AES 解密。
 
+> ⚠️ **常見陷阱：回傳格式是 Form POST，不是 JSON**
+> 3D 驗證完成後，綠界透過瀏覽器 Form POST（`Content-Type: application/x-www-form-urlencoded`）將結果送至 OrderResultURL / ReturnURL。
+> 資料放在表單欄位 **`ResultData`**（內含 AES 加密的 Base64 字串），**不是** JSON body。
+> 非 PHP 語言常見錯誤：用 `request.json()` 解析 → 報錯 → 誤判為交易失敗。
+> **正確做法**：優先用 form data 方式讀取（如 Python 的 `request.form['ResultData']`、Node.js 的 `req.body.ResultData`），再解密。
+
 綠界回傳的完整 JSON 結構：
 
 ```json
