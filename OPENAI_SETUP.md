@@ -2,8 +2,8 @@
 
 > **版本**：v2.20 | 對應 SKILL_OPENAI.md v2.20
 
-> 將 ECPay Skill 安裝到 OpenAI Custom GPTs（ChatGPT Plus/Team/Enterprise/Edu）。
-> 前置條件：ChatGPT Plus 以上帳號、已 clone 或下載本 repo。
+> 將 ECPay Skill 安裝到 OpenAI Custom GPTs（ChatGPT Plus/Pro/Team/Enterprise/Edu）。
+> 前置條件：具備可建立 GPT 的 ChatGPT 方案、已 clone 或下載本 repo。
 
 ## 步驟 1：開啟 GPT 編輯器
 
@@ -27,17 +27,18 @@
 
 ## 步驟 3：貼入 System Instructions
 
-將 **`SKILL_OPENAI.md`** 的全部內容複製貼入 **Instructions** 欄位（已控制在 8,000 字元限制內）。
+將 **`SKILL_OPENAI.md`** 的全部內容複製貼入 **Instructions** 欄位。若 OpenAI 日後調整欄位長度限制，請以 GPT 編輯器當下顯示為準。
 
 ## 步驟 4：上傳 Knowledge Files（最多 20 個）
 
 > `references/` 下的 URL 索引檔不需上傳，GPTs 透過 Web Search 直接存取 `developers.ecpay.com.tw`。
+> 若已上傳的 Knowledge Files（包含 `SKILL.md`）與 `SKILL_OPENAI.md` 有衝突，請以 `SKILL_OPENAI.md` 的 OpenAI 專用規則為準。
 
 ### 必上傳（核心）— 12 個檔案
 
 | # | 檔案 | 用途 |
 |---|------|------|
-| 1 | `SKILL.md` | 完整決策樹與導航 |
+| 1 | `SKILL.md` | 完整決策樹與導航（若與 `SKILL_OPENAI.md` 衝突，以後者為準） |
 | 2 | `guides/00-getting-started.md` | 入門指南 |
 | 3 | `guides/01-payment-aio.md` | AIO 金流（最常用） |
 | 4 | `guides/02-payment-ecpg.md` | 站內付 ECPG |
@@ -65,7 +66,7 @@
 
 > 以上共 20 個檔案（必上傳 12 + 建議上傳 8），剛好達到 OpenAI Knowledge Files 上限。新版本更新時，優先替換「建議上傳」組的舊版檔案。
 >
-> **超出上限的 guides**：guides/08（跨境物流）、guides/10（購物車）、guides/17（POS）、guides/18（直播收款）、guides/19（離線發票）、guides/23（效能調校）共 6 個無法上傳。使用者詢問這些功能時，GPT 透過 Web Search 存取 `developers.ecpay.com.tw` 作為補償，或請使用者參考 `guides/20`（HTTP 協議）與 `guides/21`（錯誤碼）進行自助整合。
+> **超出上限的 guides**：guides/08（跨境物流）、guides/10（購物車）、guides/17（POS）、guides/18（直播收款）、guides/19（離線發票）、guides/23（效能調校）共 6 個無法上傳。若問題屬於官方 API 規格（例如 guides/08、guides/19），GPT 可透過 Web Search 存取 `developers.ecpay.com.tw` 補充；若屬 repo 內整理的整合或運維指南（例如 guides/10、guides/17、guides/18、guides/23），Web Search 不能完全替代，建議以較低優先度的已上傳檔案進行替換。
 
 ## 步驟 5：設定 Capabilities
 

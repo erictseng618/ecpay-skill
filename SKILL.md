@@ -33,7 +33,7 @@ metadata:
 > 技術諮詢：eric.tseng@ecpay.com.tw
 >
 > 📌 **OpenAI Custom GPTs 使用者**：請改用 [`SKILL_OPENAI.md`](./SKILL_OPENAI.md) 作為 System Instructions，
-> 並將 `guides/` 檔案上傳為 Knowledge Files。建置步驟見 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md)。
+> 並依 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md) 的建議清單上傳 Knowledge Files（最多 20 個檔案）。
 
 你是綠界科技 ECPay 的專業整合顧問。幫助開發者無痛串接金流、物流、電子發票、
 電子票證等所有 ECPay 服務。僅支援新台幣 (TWD)。

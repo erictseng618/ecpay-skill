@@ -14,7 +14,7 @@
 | GitHub Copilot CLI | GitHub Copilot 訂閱 |
 | Cursor | Cursor Pro / Business 訂閱 |
 | Windsurf | Windsurf Pro / Teams 訂閱 |
-| OpenAI Custom GPTs | ChatGPT Plus / Team / Enterprise |
+| OpenAI Custom GPTs | ChatGPT Plus / Pro / Team / Enterprise / Edu |
 | OpenClaw | OpenClaw 帳號 |
 
 ## 這是什麼？
@@ -72,10 +72,10 @@ git clone https://github.com/erictseng618/ecpay-skill.git .windsurf/skills/ecpay
 git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecpay
 ```
 
-**OpenAI Custom GPTs（ChatGPT Plus/Team/Enterprise）**
+**OpenAI Custom GPTs（ChatGPT Plus/Pro/Team/Enterprise/Edu）**
 1. 開啟 [GPT 編輯器](https://chatgpt.com/gpts/editor)
 2. 將 `SKILL_OPENAI.md` 內容貼入 Instructions 欄位
-3. 將 `guides/` 下的 Markdown 檔案上傳為 Knowledge Files
+3. 依 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md) 的建議清單上傳 Knowledge Files（最多 20 個檔案）
 4. 詳細步驟見 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md)
 
 **其他框架**：將此資料夾放入框架的 skill 目錄。
@@ -86,7 +86,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 > 「用 ECPay AIO 串接信用卡付款，需要哪些步驟？」
 
-若 AI 回應中引用了 `guides/01`、提到 CheckMacValue 加密、並建議從 `references/` 取得最新規格，表示 Skill 運作正常。若 AI 僅給出通用建議而未提及 ECPay 特定步驟，請檢查 Skill 安裝路徑是否正確、資料夾內是否包含 `SKILL.md`。
+若 AI 回應中引用了 `guides/01`、提到 CheckMacValue 加密，且在需要最新規格時能依平台使用正確來源（OpenAI GPTs 會改用 Web Search 查 `developers.ecpay.com.tw`；其他支援 `references/` 的助手則會建議從 `references/` 取得最新規格），表示 Skill 運作正常。若 AI 僅給出通用建議而未提及 ECPay 特定步驟，請檢查 Skill 安裝路徑是否正確、資料夾內是否包含 `SKILL.md`。
 
 ### 2. 使用
 
@@ -150,7 +150,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 - 跨服務整合場景（收款 + 發票 + 出貨）
 - 內建除錯指南和上線檢查清單
 - 多輪多代理品質審查（DX、API 準確度、多語言、過度設計、企業基準、參考利用率）
-- **SNAPSHOT 防護機制**——guides/ 參數表標記為 SNAPSHOT，附來源路徑與禁令，AI 生成程式碼時自動從 references/ 即時讀取最新官方規格
+- **SNAPSHOT 防護機制**——guides/ 參數表標記為 SNAPSHOT，附來源路徑與禁令；支援 `references/` 的助手會即時讀取最新官方規格，OpenAI GPTs 則依 `SKILL_OPENAI.md` 改用 Web Search 查 `developers.ecpay.com.tw`
 - **6 個 Claude Code 快速指令**（`/ecpay-pay`、`/ecpay-invoice`、`/ecpay-debug` 等）
 
 ### 維護工具
@@ -243,7 +243,7 @@ ecpay-skill/
 ├── .github/                    # GitHub 社群模板（Issue/PR 模板、CI workflow）
 ├── test-vectors/               # 跨語言加密驗證用測試向量（CMV + AES）
 ├── commands/                   # Claude Code 快速指令（6 個 /ecpay-* 指令）
-├── guides/                     # 25 份深度整合指南（同時作為 OpenAI Knowledge Files）
+├── guides/                     # 25 份深度整合指南（OpenAI GPTs 依 OPENAI_SETUP.md 選擇上傳子集）
 ├── references/                 # 官方 API 文件 URL 索引（19 個檔案，431 個 URL）— AI 即時讀取入口
 │   ├── Payment/   (8 個)
 │   ├── Invoice/   (4 個)
