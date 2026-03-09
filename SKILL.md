@@ -139,7 +139,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── Shopify → 購物車模組（讀 guides/10-cart-plugins.md #Shopify，API 規格見 references/Payment/Shopify專用金流API技術文件.md）
 ├── Mobile App（iOS/Android）→ ECPG 站內付（讀 guides/02-payment-ecpg.md + guides/24 Mobile App 區段）
 ├── Apple Pay → AIO（ChoosePayment=ApplePay）或 ECPG（讀 guides/01 或 guides/02）[預計 30m]
-├── Google Pay → AIO（透過 TWQR 通路，ChoosePayment=TWQR）（讀 guides/01 §TWQR 範例）[預計 30m]
+├── TWQR 行動支付 → AIO（ChoosePayment=TWQR）（讀 guides/01 §TWQR 範例）[預計 30m]
 ├── 微信支付 → AIO（ChoosePayment=WeiXin）（讀 guides/01 §微信支付範例）[預計 30m]
 ├── 銀聯卡 → AIO（ChoosePayment=UnionPay）（讀 guides/01）[預計 30m]
 ├── 非 PHP 語言完整範例 → 讀 guides/24-multi-language-integration.md（Go/Java/C#/TS/Kotlin/Ruby E2E + Mobile App）

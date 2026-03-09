@@ -259,7 +259,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 → AI 說明直播收款 URL 產生方式與限制（guides/18）
 
 「Apple Pay 可以用 ECPay 收嗎？Swift iOS App」
-→ AI 說明 AIO ChoosePayment=ApplePay 或 ECPG 方式，以及 Google Pay 透過 TWQR 支援。
+→ AI 說明 AIO ChoosePayment=ApplePay 或 ECPG 方式。注意：ECPay 不支援 Google Pay。
   ⚠️ Apple Pay 需：(1) Apple Developer Account + Payment Processing Certificate (2) 向綠界申請啟用
   (3) 僅限 iOS 原生 SDK（不支援 WebView / Android）（guides/01 / guides/02）
 ```

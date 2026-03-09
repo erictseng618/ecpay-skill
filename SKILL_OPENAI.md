@@ -39,7 +39,7 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 - Subscription/recurring → AIO Periodic (guides/01 §Periodic) or ECPG Bind Card (guides/02)
 - Credit card installment → AIO (`ChoosePayment=Credit`, `CreditInstallment=3,6,12,18,24,30`) (guides/01 §Installment)
 - Apple Pay → AIO (`ChoosePayment=ApplePay`) or ECPG (guides/01 or guides/02)
-- Google Pay → AIO via TWQR (`ChoosePayment=TWQR`) (guides/01 §TWQR)
+- TWQR mobile payment → AIO (`ChoosePayment=TWQR`) (guides/01 §TWQR)
 - WeChat Pay → AIO (`ChoosePayment=WeiXin`) (guides/01)
 - UnionPay → AIO (`ChoosePayment=UnionPay`) (guides/01)
 - Physical POS → guides/17 | Live streaming → guides/18 | Shopify → guides/10
