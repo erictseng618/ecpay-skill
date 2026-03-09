@@ -115,6 +115,7 @@ Other traps (PKCS7 padding, JSON key order, compact JSON, `'` encoding, HTML esc
 2. **Fetch latest API spec via Web Search** at `developers.ecpay.com.tw` before generating code. Guide parameter tables are snapshots.
 3. Preserve exactly: endpoint URLs, parameter names, JSON structure, encryption logic, callback response format.
 4. Reference guides/20 for HTTP details, guides/13 or 14 for encryption.
+5. **Unwrap PHP SDK abstractions**: Before translating, verify each `$_POST`/`$_GET`'s actual Content-Type (form-urlencoded vs JSON), SDK methods' underlying HTTP behavior, return value types (string vs object), and implicit behaviors (3D Secure redirect, auto-decryption). These are hidden by PHP SDK and absent from API docs.
 
 # Response Format
 

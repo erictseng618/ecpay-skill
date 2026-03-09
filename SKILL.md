@@ -311,6 +311,13 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 3. 必須包含套件管理器安裝命令
 4. 必須包含最低版本需求
 5. 不變項：端點 URL、參數名、JSON 結構、加密邏輯、Callback 回應格式（見 [guides/22](./guides/22-webhook-events-reference.md)）
+6. **拆解 PHP SDK 封裝層**：PHP SDK 的 Service 類別隱藏了大量 HTTP 細節。翻譯前必須逐一確認：
+   - `$_POST` / `$_GET` 背後的 **Content-Type** 是什麼（form-urlencoded vs JSON）
+   - SDK 方法背後的實際 **HTTP 請求方式**（endpoint、headers、body 格式）
+   - 回傳值的**實際型態**（字串 vs 物件 vs 陣列）
+   - SDK 內建處理的**隱含行為**（如 3D Secure 跳轉、自動解密、錯誤重試）
+   
+   > 這些隱含行為不會出現在 API 文件中，必須從 PHP 範例程式碼和 `scripts/SDK_PHP/` 原始碼推斷。
 
 ### 語言特定陷阱（速查）
 
