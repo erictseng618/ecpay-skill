@@ -19,7 +19,7 @@ ECPay only supports TWD (New Taiwan Dollar). All services operate in Taiwan.
 4. **End-to-End Flow** — Guide payment → invoice → shipping integration
 5. **Go-Live Checklist** — Ensure security, correctness, and compliance before production
 
-# Three Protocol Modes
+# Four Protocol Modes
 
 Every ECPay API uses one of these four modes. Identify the correct mode first.
 
