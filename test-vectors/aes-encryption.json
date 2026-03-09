@@ -7,8 +7,6 @@
       "name": "基本測試（插入順序 JSON key）",
       "hashKey": "ejCk326UnaZWKisg",
       "hashIV": "q9jcZX8Ib9LM8wYk",
-      "key_bytes": "ejCk326UnaZWKisg",
-      "iv_bytes": "q9jcZX8Ib9LM8wYk",
       "plaintext_json": "{\"MerchantID\":\"2000132\",\"BarCode\":\"/1234567\"}",
       "expected_url_encoded": "%7B%22MerchantID%22%3A%222000132%22%2C%22BarCode%22%3A%22%2F1234567%22%7D",
       "expected_base64": "XeEOdHpTRvxKEqs/JD9RSd16s7VtpyWVCN6AV44pKTW3DVa6yI7vKmjBRp2eulDhXoru/qBqFDBH3fEqlkMn3bbJfJBfGAq+v+SvttutYnc=",
@@ -48,6 +46,25 @@
       "expected_url_encoded_length": 32,
       "expected_base64": "gVwWJnIpl1m3ZDypcRAjiCctilYnQhHn4h8OzJP5IxQPov7HuysXX+jPONvrHS7Z",
       "note": "URL encode 後長度剛好 32 bytes（2 個 AES block），PKCS7 必須額外填充完整的 16-byte padding block。若 padding 實作錯誤（未補滿 block），解密端會失敗"
+    },
+    {
+      "name": "UTF-8 中文字元測試",
+      "hashKey": "ejCk326UnaZWKisg",
+      "hashIV": "q9jcZX8Ib9LM8wYk",
+      "plaintext_json": "{\"MerchantID\":\"2000132\",\"ItemName\":\"綠界科技測試商品\"}",
+      "expected_url_encoded": "%7B%22MerchantID%22%3A%222000132%22%2C%22ItemName%22%3A%22%E7%B6%A0%E7%95%8C%E7%A7%91%E6%8A%80%E6%B8%AC%E8%A9%A6%E5%95%86%E5%93%81%22%7D",
+      "expected_base64": "XeEOdHpTRvxKEqs/JD9RSd16s7VtpyWVCN6AV44pKTVKsXddZRgV+Cle9oeB2PqsEC2O0oDi4kObiCtdGznG9aAX69Kj0//VjGXhieBYZ3RuGW9v20xQyBevaBwtOvg1lYjlDw6jsgfToGMUvlGsIJ2DO6/tbXjNZumnRgj2GCSj7LLDRBU3KlkUWji16nO1",
+      "note": "驗證 UTF-8 中文內容在 AES 加密流程中的正確性。Python 需設定 json.dumps(ensure_ascii=False)，Go 注意 SetEscapeHTML(false)，Node.js JSON.stringify 預設保留 Unicode 正確。使用 compact JSON（無空格），與 PHP json_encode 預設格式一致"
+    },
+    {
+      "name": "AES 解密測試（反向驗證）",
+      "hashKey": "ejCk326UnaZWKisg",
+      "hashIV": "q9jcZX8Ib9LM8wYk",
+      "direction": "decrypt",
+      "encrypted_base64": "XeEOdHpTRvxKEqs/JD9RSd16s7VtpyWVCN6AV44pKTW3DVa6yI7vKmjBRp2eulDhXoru/qBqFDBH3fEqlkMn3bbJfJBfGAq+v+SvttutYnc=",
+      "expected_url_decoded": "%7B%22MerchantID%22%3A%222000132%22%2C%22BarCode%22%3A%22%2F1234567%22%7D",
+      "expected_json": "{\"MerchantID\":\"2000132\",\"BarCode\":\"/1234567\"}",
+      "note": "解密是加密的反向流程：Base64 decode → AES decrypt → 移除 PKCS7 padding → URL decode → JSON parse。此向量使用 Vector 1 的加密結果反向驗證。開發者收到 ECPay callback 時，需用此流程解密通知資料"
     }
   ]
 }
