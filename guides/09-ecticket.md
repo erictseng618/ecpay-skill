@@ -544,6 +544,13 @@ def redeem_ticket(ticket_no: str):
 > AES 加解密方式與 B2C 發票相同（參考 [guides/14-aes-encryption.md](./14-aes-encryption.md)），
 > 但 CheckMacValue 為電子票證獨有，計算方式見上方 §CheckMacValue 計算
 
+> ⚠️ **安全必做清單（UseStatusNotifyURL / 退款通知）**
+> 1. 驗證 MerchantID 為自己的
+> 2. **驗證 CheckMacValue**（電子票證獨有公式，見本文 §CheckMacValue 計算），且**必須**使用 timing-safe 比較函式（見 [guides/13](./13-checkmacvalue.md) 各語言實作），禁止使用 `==` 或 `===` 直接比對
+> 3. 防重複處理（記錄已處理的票券編號）
+> 4. 回應 AES 加密 JSON 三層結構（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`），否則約每 2 小時重試
+> 5. 記錄完整日誌（遮蔽 HashKey/HashIV）
+
 ## 相關文件
 
 - AES 加解密：[guides/14-aes-encryption.md](./14-aes-encryption.md)

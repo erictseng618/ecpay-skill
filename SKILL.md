@@ -108,6 +108,11 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 > 🎯 **第一次使用？從這裡開始**
 >
+> 如果開發者不確定需要什麼，請先問這三個問題：
+> 1. **需要收款嗎？** → 是：見下方金流決策樹；否：跳到發票/物流/電子票證決策樹
+> 2. **消費者會看到付款畫面嗎？** → 是：AIO（guides/01）或 ECPG（guides/02）；否：幕後授權（guides/03）
+> 3. **用 PHP 嗎？** → 是：直接用官方 SDK 範例；否：必讀 guides/13 + guides/14 + guides/20
+>
 > | 你的情境 | 建議路徑 | 預估時間 |
 > |---------|---------|:-------:|
 > | 只想先跑通第一筆測試交易 | [guides/00](./guides/00-getting-started.md) §概述 的「最快測試路徑」 | 30 分鐘 |
@@ -138,7 +143,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── 直播電商收款 → 直播收款（讀 guides/18）[預計 1h]
 ├── Shopify → 購物車模組（讀 guides/10-cart-plugins.md #Shopify，API 規格見 references/Payment/Shopify專用金流API技術文件.md）
 ├── Mobile App（iOS/Android）→ ECPG 站內付（讀 guides/02-payment-ecpg.md + guides/24 Mobile App 區段）
-├── Apple Pay → AIO（ChoosePayment=ApplePay）或 ECPG（讀 guides/01 或 guides/02）[預計 30m]
+├── Apple Pay → 優先 ECPG（完整 iOS SDK 支援，讀 guides/02 §Apple Pay）；AIO 亦可（ChoosePayment=ApplePay，讀 guides/01）[預計 30m-1h]
 ├── TWQR 行動支付 → AIO（ChoosePayment=TWQR）（讀 guides/01 §TWQR 範例）[預計 30m]
 ├── 微信支付 → AIO（ChoosePayment=WeiXin）（讀 guides/01 §微信支付範例）[預計 30m]
 ├── 銀聯卡
@@ -147,6 +152,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── 非 PHP 語言完整範例 → 讀 guides/24-multi-language-integration.md（Go/Java/C#/TS/Kotlin/Ruby E2E + Mobile App）
 ├── 查詢訂單狀態 → AIO: guides/01 QueryTradeInfo 區段 / ECPG: guides/02 查詢區段
 ├── 下載對帳檔 → guides/01 對帳區段（注意 domain 為 vendor.ecpay.com.tw）
+├── 平台商多商戶（PlatformID）→ 特約合作模式，需另簽平台商合約。參數已含在 guides/01、guides/02 參數表中，搜尋 PlatformID
 └── 其他 → 先讀 guides/00-getting-started.md 瞭解全貌
 ```
 
@@ -438,6 +444,7 @@ composer require "ecpay/sdk:^4.0"
 ### 已知限制
 
 - 僅支援新台幣（TWD）交易
+- 不支援分帳功能（Split Payment）——ECPay 目前無分帳 API，需自行在應用層處理拆帳邏輯
 - references/ URL 索引需要網路連線才能即時讀取最新 API 規格
 - OpenAI GPTs 無法直接讀取 references/ 檔案（透過 Web Search 替代，可靠性略低於 web_fetch 直讀）
 - AI 翻譯品質可能因模型與語言組合而異，生成的程式碼片段應經人工驗證

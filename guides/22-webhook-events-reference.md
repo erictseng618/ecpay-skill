@@ -627,9 +627,9 @@ async def notify(request: Request):
 
 | 認證模式 | 驗證方式 | 適用服務 |
 |---------|---------|---------|
-| CMV-SHA256 | 計算 CheckMacValue（SHA256）並比對 | AIO 金流 |
+| CMV-SHA256 | 計算 CheckMacValue（SHA256）並以 **timing-safe** 函式比對（見 [guides/13](./13-checkmacvalue.md)）| AIO 金流 |
 | AES-JSON | AES 解密成功即可視為來自 ECPay | ECPG 站內付、全方位物流、電子發票 |
-| CMV-MD5 | 計算 CheckMacValue（MD5）並比對 | 國內物流 |
+| CMV-MD5 | 計算 CheckMacValue（MD5）並以 **timing-safe** 函式比對（見 [guides/13](./13-checkmacvalue.md)）| 國內物流 |
 
 ### 2. HTTPS 必須
 

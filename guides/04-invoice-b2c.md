@@ -2,6 +2,8 @@
 
 # B2C 電子發票完整指南
 
+> **讀對指南了嗎？** 企業對企業開票 → [guides/05 B2B 發票](./05-invoice-b2b.md)。無網路環境 → [guides/19 離線發票](./19-invoice-offline.md)。需要串金流而非發票 → [guides/01 AIO](./01-payment-aio.md) 或 [guides/02 ECPG](./02-payment-ecpg.md)。
+
 ## 概述
 
 B2C 電子發票適用於**賣給消費者**的情境。支援手機條碼載具、自然人憑證、綠界會員載具、捐贈（愛心碼）等。使用 AES 加密 + JSON 格式。
@@ -571,6 +573,7 @@ $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2CI
 > 1. 驗證 MerchantID 為自己的
 > 2. 防重複處理（記錄已處理的 InvoiceNo）
 > 3. 記錄完整日誌（遮蔽 HashKey/HashIV）
+> 4. 折讓 Callback 的 CheckMacValue 驗證**必須**使用 timing-safe 比較函式（見 [guides/13](./13-checkmacvalue.md) 各語言實作），禁止使用 `==` 或 `===` 直接比對
 
 ## 查詢財政部配號
 

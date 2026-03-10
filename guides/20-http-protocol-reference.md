@@ -7,7 +7,7 @@
 
 本文件是 ECPay 所有服務的 **語言無關 HTTP 協議參考**。PHP 開發者可直接使用官方 SDK，其他語言開發者必須了解底層 HTTP 協議才能正確串接。
 
-ECPay 服務使用 **3 個 HTTP 協議模式**（CMV-SHA256 / AES-JSON / CMV-MD5），每個模式的 Content-Type、認證方式、回應格式皆不同。
+ECPay 服務使用 **4 個 HTTP 協議模式**（CMV-SHA256 / AES-JSON / AES-JSON+CMV / CMV-MD5），衍生為下表中多種服務組合。每個模式的 Content-Type、認證方式、回應格式皆不同。
 
 ---
 

@@ -98,6 +98,7 @@ ECPAY_LOGISTICS_HASH_IV=v77hoKGq4kWxNNIS
 
 - **三組不同帳號**：金流、發票、物流各有獨立的 MerchantID / HashKey / HashIV，務必分開管理
 - **付款確認後再開票出貨**：務必在 RtnCode=1 且 SimulatePaid=0 後才執行
+- **高併發場景**：當跨服務 callback 量大或需批次開票/建單時，參見 [guides/23 效能與擴展](./23-performance-scaling.md) 的佇列架構與限流策略
 
 ### 跨服務 Callback 時序
 

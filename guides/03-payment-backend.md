@@ -2,6 +2,8 @@
 
 # 幕後授權 + 幕後取號指南
 
+> **讀對指南了嗎？** 消費者需要看到付款介面 → [guides/01 AIO](./01-payment-aio.md) 或 [guides/02 ECPG](./02-payment-ecpg.md)。需要 Token 綁卡快速付 → [guides/02 §綁卡](./02-payment-ecpg.md)。
+
 ## 概述
 
 幕後 API 是純後台操作，消費者不需要看到付款頁面。適合 B2B、電話訂購、自動扣款等場景。

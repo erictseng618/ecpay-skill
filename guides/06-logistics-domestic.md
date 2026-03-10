@@ -2,6 +2,8 @@
 
 # 國內物流完整指南
 
+> **讀對指南了嗎？** 需要全方位物流（AES-JSON 協議）→ [guides/07](./07-logistics-allinone.md)。跨境物流 → [guides/08](./08-logistics-crossborder.md)。需要收款而非出貨 → [guides/01 AIO](./01-payment-aio.md)。
+
 ## 概述
 
 國內物流支援超商取貨（全家/統一/萊爾富/OK）和宅配（黑貓/郵局）。使用 CheckMacValue **MD5** 加密（注意不是 SHA256）。
@@ -436,6 +438,7 @@ echo $autoSubmitFormService->generate($input, 'https://logistics-stage.ecpay.com
 > 3. 防重複處理（記錄已處理的 AllPayLogisticsID）
 > 4. 異常時仍回應 `1|OK`（避免重送風暴）
 > 5. 記錄完整日誌（遮蔽 HashKey/HashIV）
+> 6. CheckMacValue 驗證**必須**使用 timing-safe 比較函式（見 [guides/13](./13-checkmacvalue.md) 各語言實作），禁止使用 `==` 或 `===` 直接比對
 
 ## 相關文件
 

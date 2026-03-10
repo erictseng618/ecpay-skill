@@ -121,7 +121,8 @@ AIO（All-In-One）是 ECPay 最常用的金流整合方案，將消費者導向
 | WebATM | WebATM | — | — | CreateWebAtmOrder.php |
 | TWQR | TWQR | — | — | CreateTwqrOrder.php |
 | BNPL | BNPL | — | ≥3000 | CreateBnplOrder.php |
-| 綠界PAY | ECPay | — | — | — |
+| Apple Pay | ApplePay | — | — | —（更完整的 Apple Pay 整合見 [guides/02 §Apple Pay 前置準備](./02-payment-ecpg.md)）|
+| 綠界PAY | ECPay | — | — | —（API 規格見 `references/Payment/全方位金流API技術文件.md`）|
 | 微信 | WeiXin | — | — | CreateWeiXinOrder.php |
 
 > **分期期數說明**：AIO 支援的分期期數：3, 6, 12, 18, 24, 30 期（依合約而定）。實際可用期數以商店後台設定和信用卡銀行合約為準。
@@ -718,6 +719,7 @@ echo $autoSubmitFormService->generate(
 > 3. 防重複處理（記錄已處理的 MerchantTradeNo）
 > 4. 異常時仍回應 `1|OK`（避免重送風暴）
 > 5. 記錄完整日誌（遮蔽 HashKey/HashIV）
+> 6. CheckMacValue 驗證**必須**使用 timing-safe 比較函式（見 [guides/13](./13-checkmacvalue.md) §各語言實作），禁止使用 `==` 或 `===` 直接比對
 
 ```php
 $factory = new Factory([
