@@ -3,7 +3,7 @@ name: ecpay
 version: "2.21"
 description: >
   ECPay 綠界科技 API 整合助手（ecpay, 綠界, 綠界科技）。
-  核心服務：AIO 金流、ECPG 站內付、CheckMacValue、AES 加密、
+  核心服務：AIO 金流、ECPG（含站內付 2.0、綁卡、幕後授權）、CheckMacValue、AES 加密、
   電子發票（B2C/B2B）、超商取貨物流、電子票證（ECTicket）。
   金流方式：信用卡、ATM 轉帳、超商代碼、條碼、WebATM、TWQR、BNPL 先買後付、
   Apple Pay、微信支付、銀聯、分期付款、定期定額、3D Secure。
@@ -64,7 +64,7 @@ metadata:
 | 排序 | 場景 | 採用率 | 直接跳轉 | 預估時間 |
 |:---:|------|:-----:|---------|:------:|
 | 1 | 網頁收款（最常見） | ~60% | [guides/01](./guides/01-payment-aio.md) AIO | 30m |
-| 2 | 前後端分離 / 嵌入式付款 | ~25% | [guides/02](./guides/02-payment-ecpg.md) ECPG | 1h |
+| 2 | 前後端分離 / 嵌入式付款 | ~25% | [guides/02](./guides/02-payment-ecpg.md) 站內付 2.0 | 1h |
 | 3 | 超商取貨 / 宅配 | ~10% | [guides/06](./guides/06-logistics-domestic.md) | 45m |
 | 4 | 其他（發票、票證、BNPL 等） | ~5% | 使用下方完整決策樹 | — |
 
@@ -84,7 +84,7 @@ metadata:
 
 > 不確定？大多數場景用 **AIO（CMV-SHA256）** 最簡單。30 分鐘可完成基礎串接。
 
-#### 代收付 vs 新型閘道模式（金流方案選擇前必讀）
+#### 代收付（大特店）vs 新型閘道模式（金流方案選擇前必讀）
 
 ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商務面：
 
@@ -93,7 +93,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | **簽約對象** | 僅與綠界簽約 | 需分別與各銀行 + 綠界簽約 |
 | **款項撥付** | 綠界代收後依約定時間撥款 | 由合約銀行直接撥付，綠界不經手款項 |
 | **支援付款方式** | 信用卡、ATM、超商代碼/條碼、WebATM、TWQR、BNPL、微信、Apple Pay | 信用卡、ATM、超商代碼/條碼 + **美國運通 (AMEX)**、**國旅卡** |
-| **可用金流服務** | AIO、ECPG、信用卡綁定、幕後授權、幕後取號、Shopify、直播收款、POS（**全 9 種**） | AIO、ECPG、幕後授權、POS（**僅 5 種**，不含綁定/Shopify/直播/幕後取號） |
+| **可用金流服務** | AIO、站內付 2.0、信用卡綁定、幕後授權、幕後取號、Shopify、直播收款（**共 7 種**） | AIO、站內付 2.0、信用卡綁定、幕後授權（**共 4 種**，不含幕後取號/Shopify/直播） |
 | **適用商戶** | 一般電商、中小型商戶 | 大型商戶、需 AMEX/國旅卡的場景 |
 | **API 串接差異** | 無 — API 技術文件完全相同，串接方式不變 | 無 — 同左 |
 
@@ -104,7 +104,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 > 來源：[developers.ecpay.com.tw](https://developers.ecpay.com.tw/) 開發者導覽首頁（SNAPSHOT 2026-03）
 
-##### 代收付模式（廠商僅與綠界簽約）
+##### 代收付模式 / 大特店模式（廠商僅與綠界簽約）
 
 | 金流服務＼付款方式 | 信用卡一次付清 | 紅利折抵 | 分期付款 | 定期定額 | 銀聯卡 | Apple Pay | TWQR | 微信支付 | BNPL 無卡分期 | ATM | 超商代碼 | 超商條碼 |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -139,7 +139,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 >
 > 如果開發者不確定需要什麼，請先問這三個問題：
 > 1. **需要收款嗎？** → 是：見下方金流決策樹；否：跳到發票/物流/電子票證決策樹
-> 2. **消費者會看到付款畫面嗎？** → 是：AIO（guides/01）或 ECPG（guides/02）；否：幕後授權（guides/03）
+> 2. **消費者會看到付款畫面嗎？** → 是：AIO（guides/01）或站內付 2.0（guides/02）；否：幕後授權（guides/03）
 > 3. **用 PHP 嗎？** → 是：直接用官方 SDK 範例；否：必讀 guides/13 + guides/14 + guides/20
 >
 > | 你的情境 | 建議路徑 | 預估時間 |
@@ -155,11 +155,11 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── 消費者在網頁/App 付款
 │   ├── 要綠界標準付款頁 → AIO（讀 guides/01）[預計 30m]
 │   │   └── ⚠️ ReturnURL 有 10 秒超時限制，耗時邏輯需用佇列處理（見 guides/23）
-│   ├── 要嵌入式體驗 → ECPG 站內付（讀 guides/02）[預計 1h]
+│   ├── 要嵌入式體驗 → 站內付 2.0（讀 guides/02）[預計 1h]
 │   │   ├── ⚠️ 雙 Domain：Token API 走 ecpg，交易 API 走 ecpayment（混用會 404）
 │   │   └── ⚠️ Callback 同樣有 10 秒超時限制，耗時邏輯需用佇列處理（見 guides/23）
 │   ├── 不確定
-│   │   ├── 前後端分離（React/Vue/Angular/SPA）→ 推薦 ECPG 站內付
+│   │   ├── 前後端分離（React/Vue/Angular/SPA）→ 推薦站內付 2.0
 │   │   └── 傳統 SSR / 簡單需求 → 推薦 AIO（最簡單、最常用）
 │   └── 需要開發票？→ 是 → 同時讀 guides/04-invoice-b2c.md，callback 分開處理（見 guides/11）
 ├── 純後台扣款
@@ -172,15 +172,15 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── 實體門市刷卡 → POS 刷卡機（讀 guides/17）[預計 2h]
 ├── 直播電商收款 → 直播收款（讀 guides/18）[預計 1h]
 ├── Shopify → 購物車模組（讀 guides/10-cart-plugins.md #Shopify，API 規格見 references/Payment/Shopify專用金流API技術文件.md）
-├── Mobile App（iOS/Android）→ ECPG 站內付（讀 guides/02-payment-ecpg.md + guides/24 Mobile App 區段）
+├── Mobile App（iOS/Android）→ 站內付 2.0（讀 guides/02-payment-ecpg.md + guides/24 Mobile App 區段）
 ├── Apple Pay → 優先 ECPG（完整 iOS SDK 支援，讀 guides/02 §Apple Pay）；AIO 亦可（ChoosePayment=ApplePay，讀 guides/01）[預計 30m-1h]
 ├── TWQR 行動支付 → AIO（ChoosePayment=TWQR）（讀 guides/01 §TWQR 範例）[預計 30m]
 ├── 微信支付 → AIO（ChoosePayment=WeiXin）（讀 guides/01 §微信支付範例）[預計 30m]
 ├── 銀聯卡
-│   ├── ECPG 站內付 → ChoosePaymentList="6"，UnionPayInfo（讀 guides/02）[預計 1h]
+│   ├── 站內付 2.0 → ChoosePaymentList="6"，UnionPayInfo（讀 guides/02）[預計 1h]
 │   └── AIO 信用卡頁面 → ChoosePayment=Credit，UnionPay=1（讀 guides/01 §信用卡一次付清參數）[預計 30m]
 ├── 非 PHP 語言完整範例 → 讀 guides/24-multi-language-integration.md（Go/Java/C#/TS/Kotlin/Ruby E2E + Mobile App）
-├── 查詢訂單狀態 → AIO: guides/01 QueryTradeInfo 區段 / ECPG: guides/02 查詢區段
+├── 查詢訂單狀態 → AIO: guides/01 QueryTradeInfo 區段 / 站內付: guides/02 查詢區段
 ├── 下載對帳檔 → guides/01 對帳區段（注意 domain 為 vendor.ecpay.com.tw）
 ├── 平台商多商戶（PlatformID）→ 特約合作模式，需另簽平台商合約。參數已含在 guides/01、guides/02 參數表中，搜尋 PlatformID
 └── 其他 → 先讀 guides/00-getting-started.md 瞭解全貌
@@ -223,7 +223,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 需要退款或取消？
 ├── 信用卡退款
 │   ├── AIO 訂單 → guides/01 DoAction（Action=R 退款 / Action=N 取消授權）
-│   └── ECPG 訂單 → guides/02 DoAction 區段
+│   └── 站內付訂單 → guides/02 DoAction 區段
 ├── 非信用卡（ATM/超商代碼/條碼）→ ⚠️ 不支援 API 退款，需透過綠界商家後台或聯繫客服
 ├── 訂閱（定期定額）取消/暫停 → guides/01 §定期定額 CreditCardPeriodAction
 ├── 發票作廢 → guides/04 Invalid 區段（B2C）/ guides/05 Invalid 區段（B2B）
@@ -269,7 +269,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | CheckMacValue 驗證失敗 | guides/13 + guides/15 §1 |
 | AES 解密結果亂碼 | guides/14 §常見錯誤 |
 | Callback 收不到 | guides/15 §2 + guides/22 失敗恢復策略 |
-| 如何退款 | guides/01 §DoAction (AIO) / guides/02 §DoAction (ECPG) |
+| 如何退款 | guides/01 §DoAction (AIO) / guides/02 §DoAction (站內付) |
 | 如何查訂單 | guides/01 §QueryTradeInfo / guides/02 §查詢 |
 | 如何對帳 | guides/01 §對帳（domain: vendor.ecpay.com.tw）|
 | 如何開發票 | guides/04 (B2C) / guides/05 (B2B) |
@@ -284,7 +284,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 ### AI 注意事項（不可做的事）
 
-- **不可使用 iframe** 嵌入綠界付款頁（會被擋，使用 ECPG 或新視窗）
+- **不可將 ECPG 等同於站內付 2.0**：ECPG 是產品代號，涵蓋站內付 2.0、綁定信用卡、幕後授權等多項服務；站內付 2.0 只是其中之一。同理，代收付模式（大特店模式）和新型閘道模式是合約模式，不可自行發明英文名稱（如 ~~"ECPG Model"~~、~~"General Model"~~）
+- **不可使用 iframe** 嵌入綠界付款頁（會被擋，使用站內付 2.0 或新視窗）
 - **不可混用** CMV 的 `ecpayUrlEncode` 和 AES 的 `aesUrlEncode`（兩者邏輯不同，見 guides/14 對比表）
 - **不可假設所有 API 回應都是 JSON**（AIO 回 HTML/URL-encoded/pipe-separated）
 - **不可在前端或版本控制中暴露** HashKey/HashIV
@@ -463,8 +464,8 @@ composer require "ecpay/sdk:^4.0"
 | 服務 | 介接注意事項 URL |
 |------|----------------|
 | AIO 金流 | https://developers.ecpay.com.tw/2858.md |
-| ECPG 站內付 (Web) | https://developers.ecpay.com.tw/8987.md |
-| ECPG 站內付 (App) | https://developers.ecpay.com.tw/9168.md |
+| 站內付 2.0 (Web) | https://developers.ecpay.com.tw/8987.md |
+| 站內付 2.0 (App) | https://developers.ecpay.com.tw/9168.md |
 | 國內物流 | https://developers.ecpay.com.tw/7400.md |
 | B2C 電子發票 | https://developers.ecpay.com.tw/7854.md |
 | 電子票證 | https://developers.ecpay.com.tw/29916.md |
@@ -500,7 +501,7 @@ composer require "ecpay/sdk:^4.0"
 | # | 檔案 | 主題 | 預估閱讀 |
 |---|------|------|:-------:|
 | 01 | guides/01-payment-aio.md | 全方位金流 AIO（20 個 PHP 範例） | 25 分鐘 |
-| 02 | guides/02-payment-ecpg.md | 站內付 2.0 ECPG（24 個 PHP 範例） | 30 分鐘 |
+| 02 | guides/02-payment-ecpg.md | 站內付 2.0（24 個 PHP 範例） | 30 分鐘 |
 | 03 | guides/03-payment-backend.md | 幕後授權 + 幕後取號 | 20 分鐘 |
 | 17 | guides/17-pos-integration.md | POS 刷卡機串接指引 | 10 分鐘 |
 | 18 | guides/18-livestream-payment.md | 直播收款指引 | 10 分鐘 |

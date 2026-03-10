@@ -34,7 +34,7 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 
 ## Payment
 - Redirect to ECPay checkout page → **AIO** (guides/01)
-- Embedded payment in SPA/App → **ECPG On-Site Payment** (guides/02)
+- Embedded payment in SPA/App → **站內付 2.0** (guides/02)
 - Backend-only charge (no UI) → **Backend Auth** (guides/03)
 - Subscription/recurring → AIO Periodic (guides/01 §Periodic) or ECPG Bind Card (guides/02)
 - Credit card installment → AIO (`ChoosePayment=Credit`, `CreditInstallment=3,6,12,18,24,30`) (guides/01 §Installment)
