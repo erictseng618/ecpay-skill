@@ -127,7 +127,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 │   ├── 要綠界標準付款頁 → AIO（讀 guides/01）[預計 30m]
 │   │   └── ⚠️ ReturnURL 有 10 秒超時限制，耗時邏輯需用佇列處理（見 guides/23）
 │   ├── 要嵌入式體驗 → ECPG 站內付（讀 guides/02）[預計 1h]
-│   │   └── ⚠️ 雙 Domain：Token API 走 ecpg，交易 API 走 ecpayment（混用會 404）
+│   │   ├── ⚠️ 雙 Domain：Token API 走 ecpg，交易 API 走 ecpayment（混用會 404）
+│   │   └── ⚠️ Callback 同樣有 10 秒超時限制，耗時邏輯需用佇列處理（見 guides/23）
 │   ├── 不確定
 │   │   ├── 前後端分離（React/Vue/Angular/SPA）→ 推薦 ECPG 站內付
 │   │   └── 傳統 SSR / 簡單需求 → 推薦 AIO（最簡單、最常用）
@@ -213,6 +214,8 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 ├── 上線後交易異常 → 讀 guides/16 上線後觀察清單
 └── 不確定該讀哪份文件 → 讀 guides/00 總覽
 ```
+
+> **⚡ 效能提醒**：預估日交易量 >1,000 筆、有高併發需求、或遇到 API 被限速（HTTP 429）？→ 請先讀 [guides/23](./guides/23-performance-scaling.md)（Rate Limiting 閾值 + Callback 佇列架構 + 批次 API 最佳實踐）。
 
 #### 快速指令（跨平台）
 
