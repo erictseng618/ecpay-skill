@@ -31,7 +31,7 @@ jobs:
                 CONTENT_WARN=$((CONTENT_WARN + 1))
               fi
             fi
-          done < <(grep -oh 'https://[^)\">\s]*ecpay[^)\">\s]*' references/**/*.md | sort -u)
+          done < <(grep -roP 'https://[^)\">\s]*ecpay[^)\">\s]*' references/ --include='*.md' | sed 's/^[^:]*://' | sort -u)
 
           echo "---"
           if [ $CONTENT_WARN -gt 0 ]; then

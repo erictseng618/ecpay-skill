@@ -11,7 +11,7 @@
 
 若發現安全漏洞（如 HashKey/HashIV 洩漏風險、加密實作缺陷、timing attack 弱點），請**不要**在公開 Issues 中提交。
 
-**通報方式**：直接聯繫綠界技術團隊 ecpay@ecpay.com.tw，主旨標明 `[Security] ECPay Skill 安全漏洞通報`。
+**通報方式**：直接聯繫綠界科技系統分析部 sysanalydep.sa@ecpay.com.tw，主旨標明 `[Security] ECPay Skill 安全漏洞通報`。
 
 **回應時間**：
 - 確認收到：1-2 個工作天
