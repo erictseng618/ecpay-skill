@@ -6,11 +6,11 @@
 
 > **不確定選哪個模式？** → [決策樹](#何時選交換何時選存證)
 >
-> **交換模式**（雙方確認流程）：[概述](#交換模式-vs-存證模式) | [開立](#開立發票) | [確認](#確認發票交換模式) | [折讓](#折讓) | [拒絕](#拒絕發票) | [端點一覽](#端點-url-一覽交換模式)
+> **交換模式**（雙方確認流程）：[概述](#交換模式-vs-存證模式) | [開立](#開立發票) | [確認](#確認發票交換模式) | [折讓](#折讓) | [退回](#退回發票) | [端點一覽](#端點-url-一覽交換模式)
 >
 > **存證模式**（開立即生效）：[專屬章節](#存證模式專屬章節) | [開立範例](#存證模式--開立發票範例) | [折讓範例](#存證模式--折讓範例) | [端點一覽](#存證模式端點-url-一覽)
 >
-> **共通操作**：[通知](#通知) | [客戶資料維護](#客戶資料維護) | [查詢操作](#查詢操作一覽) | [字軌設定](#字軌設定查詢)
+> **共通操作**：[通知](#通知) | [交易對象維護](#交易對象維護) | [查詢操作](#查詢操作一覽) | [字軌設定](#字軌設定查詢)
 
 ## 概述
 
@@ -117,7 +117,7 @@ B2B 的 RqHeader 與 B2C 不同，多了 `RqID`，且 Revision 為 `1.0.0`：
 | 退回發票 | `/B2BInvoice/Reject` |
 | 退回折讓 | `/B2BInvoice/RejectConfirm` |
 | 發送通知 | `/B2BInvoice/Notify` |
-| 客戶資料維護 | `/B2BInvoice/MaintainMerchantCustomerData` |
+| 交易對象維護 | `/B2BInvoice/MaintainMerchantCustomerData` |
 | 查詢開立確認 | `/B2BInvoice/GetIssueConfirm` |
 | 查詢作廢確認 | `/B2BInvoice/GetInvalidConfirm` |
 | 查詢折讓確認 | `/B2BInvoice/GetAllowanceConfirm` |
@@ -235,7 +235,7 @@ $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BI
 
 端點：`POST /B2BInvoice/InvalidConfirm`
 
-## 拒絕發票
+## 退回發票
 
 > 原始範例：`scripts/SDK_PHP/example/Invoice/B2B/Reject.php`
 
@@ -257,7 +257,7 @@ $input = [
 $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BInvoice/Reject');
 ```
 
-### 確認拒絕（交換模式）
+### 確認退回（交換模式）
 
 > 原始範例：`scripts/SDK_PHP/example/Invoice/B2B/RejectConfirm.php`
 
@@ -329,7 +329,7 @@ $input = [
 $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BInvoice/Notify');
 ```
 
-## 客戶資料維護
+## 交易對象維護
 
 > 原始範例：`scripts/SDK_PHP/example/Invoice/B2B/MaintainMerchantCustomerData.php`
 
@@ -390,8 +390,8 @@ $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BI
 | 查詢折讓確認 | /GetAllowanceConfirm | 同上 | `scripts/SDK_PHP/example/Invoice/B2B/GetAllowanceConfirm.php` |
 | 查詢折讓作廢 | /GetAllowanceInvalid | 同上 | `scripts/SDK_PHP/example/Invoice/B2B/GetAllowanceInvalid.php` |
 | 查詢折讓作廢確認 | /GetAllowanceInvalidConfirm | 同上 | `scripts/SDK_PHP/example/Invoice/B2B/GetAllowanceInvalidConfirm.php` |
-| 查詢拒絕 | /GetReject | MerchantID, InvoiceNumber, InvoiceDate, Reason | `scripts/SDK_PHP/example/Invoice/B2B/GetReject.php` |
-| 查詢拒絕確認 | /GetRejectConfirm | MerchantID, InvoiceCategory=0, InvoiceNumber, InvoiceDate | `scripts/SDK_PHP/example/Invoice/B2B/GetRejectConfirm.php` |
+| 查詢退回 | /GetReject | MerchantID, InvoiceNumber, InvoiceDate, Reason | `scripts/SDK_PHP/example/Invoice/B2B/GetReject.php` |
+| 查詢退回確認 | /GetRejectConfirm | MerchantID, InvoiceCategory=0, InvoiceNumber, InvoiceDate | `scripts/SDK_PHP/example/Invoice/B2B/GetRejectConfirm.php` |
 
 ## 完整範例檔案對照（23 個）
 
@@ -401,14 +401,14 @@ $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BI
 | `scripts/SDK_PHP/example/Invoice/B2B/IssueConfirm.php` | 確認開立 |
 | `scripts/SDK_PHP/example/Invoice/B2B/Invalid.php` | 作廢 |
 | `scripts/SDK_PHP/example/Invoice/B2B/InvalidConfirm.php` | 確認作廢 |
-| `scripts/SDK_PHP/example/Invoice/B2B/Reject.php` | 拒絕 |
-| `scripts/SDK_PHP/example/Invoice/B2B/RejectConfirm.php` | 確認拒絕 |
+| `scripts/SDK_PHP/example/Invoice/B2B/Reject.php` | 退回 |
+| `scripts/SDK_PHP/example/Invoice/B2B/RejectConfirm.php` | 確認退回 |
 | `scripts/SDK_PHP/example/Invoice/B2B/Allowance.php` | 折讓 |
 | `scripts/SDK_PHP/example/Invoice/B2B/AllowanceConfirm.php` | 確認折讓 |
 | `scripts/SDK_PHP/example/Invoice/B2B/CancelAllowance.php` | 取消折讓 |
 | `scripts/SDK_PHP/example/Invoice/B2B/CancelAllowanceConfirm.php` | 確認取消折讓 |
 | `scripts/SDK_PHP/example/Invoice/B2B/Notify.php` | 通知 |
-| `scripts/SDK_PHP/example/Invoice/B2B/MaintainMerchantCustomerData.php` | 客戶資料維護 |
+| `scripts/SDK_PHP/example/Invoice/B2B/MaintainMerchantCustomerData.php` | 交易對象維護 |
 | `scripts/SDK_PHP/example/Invoice/B2B/GetInvoiceWordSetting.php` | 字軌設定 |
 | `scripts/SDK_PHP/example/Invoice/B2B/GetIssue.php` | 查詢開立 |
 | `scripts/SDK_PHP/example/Invoice/B2B/GetIssueConfirm.php` | 查詢開立確認 |
@@ -418,8 +418,8 @@ $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BI
 | `scripts/SDK_PHP/example/Invoice/B2B/GetAllowanceConfirm.php` | 查詢折讓確認 |
 | `scripts/SDK_PHP/example/Invoice/B2B/GetAllowanceInvalid.php` | 查詢折讓作廢 |
 | `scripts/SDK_PHP/example/Invoice/B2B/GetAllowanceInvalidConfirm.php` | 查詢折讓作廢確認 |
-| `scripts/SDK_PHP/example/Invoice/B2B/GetReject.php` | 查詢拒絕 |
-| `scripts/SDK_PHP/example/Invoice/B2B/GetRejectConfirm.php` | 查詢拒絕確認 |
+| `scripts/SDK_PHP/example/Invoice/B2B/GetReject.php` | 查詢退回 |
+| `scripts/SDK_PHP/example/Invoice/B2B/GetRejectConfirm.php` | 查詢退回確認 |
 
 ## 存證模式專屬章節
 
@@ -431,7 +431,7 @@ $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BI
 | 買方確認流程 | 需要買方在加值中心確認接收 | 不需要買方確認 |
 | Confirm/Reject API | 有（IssueConfirm, RejectConfirm 等） | **無** — 存證模式不含任何 Confirm/Reject API |
 | 適用場景 | 大型企業對大型企業，雙方皆有加值中心帳號 | 一般企業交易、內部存證備查 |
-| API 數量 | 較多（含 Confirm/Reject + 字軌管理共 34 個） | 較少（約 17 個，無確認/拒絕系列） |
+| API 數量 | 較多（含 Confirm/Reject + 字軌管理共 34 個） | 較少（約 17 個，無確認/退回系列） |
 | 發票生效時機 | 買方確認後生效 | 開立即生效 |
 | 端點前綴 | `/B2BInvoice/` | `/B2BInvoice/`（路徑相同，但不含 Confirm/Reject 端點） |
 | RqHeader | Timestamp + RqID + Revision `1.0.0` | 同交換模式 |
@@ -444,8 +444,8 @@ $response = $postService->post($input, 'https://einvoice-stage.ecpay.com.tw/B2BI
 | 交換模式專屬 API | 說明 |
 |-----------------|------|
 | IssueConfirm / GetIssueConfirm | 確認開立 / 查詢確認開立 |
-| Reject / GetReject | 拒絕發票 / 查詢拒絕 |
-| RejectConfirm / GetRejectConfirm | 確認拒絕 / 查詢確認拒絕 |
+| Reject / GetReject | 退回發票 / 查詢退回 |
+| RejectConfirm / GetRejectConfirm | 確認退回 / 查詢確認退回 |
 | InvalidConfirm / GetInvalidConfirm | 確認作廢 / 查詢確認作廢 |
 | AllowanceConfirm / GetAllowanceConfirm | 確認折讓 / 查詢確認折讓 |
 | CancelAllowanceConfirm / GetAllowanceInvalidConfirm | 確認取消折讓 / 查詢折讓作廢確認 |

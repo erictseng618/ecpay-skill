@@ -106,6 +106,7 @@ ECPG（站內付 2.0）讓付款體驗嵌入你自己的頁面，消費者不需
 | 以卡號付款 | `/Merchant/CreatePaymentWithCardID` | **ecpg** |
 | 查詢會員綁卡 | `/Merchant/GetMemberBindCard` | **ecpg** |
 | 刪除會員綁卡 | `/Merchant/DeleteMemberBindCard` | **ecpg** |
+| ⚠️ *上方 5 個綁卡端點尚無獨立官方文件 URL，參數規格以 SDK 範例為準* | | |
 | **── 查詢 / 請退款（ecpayment domain）──** | | |
 | 信用卡請退款 | `/1.0.0/Credit/DoAction` | **ecpayment** |
 | 查詢訂單 | `/1.0.0/Cashier/QueryTrade` | **ecpayment** |
