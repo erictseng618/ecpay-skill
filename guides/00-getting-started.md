@@ -1039,6 +1039,6 @@ def issue_invoice():
 ### 官方 API 技術文件
 
 - [references/Payment/全方位金流API技術文件.md](../references/Payment/全方位金流API技術文件.md) — AIO 金流完整 API 規格
-- [references/Payment/站內付2.0API技術文件Web.md](../references/Payment/站內付2.0API技術文件Web.md) — ECPG 站內付 API 規格
+- [references/Payment/站內付2.0API技術文件Web.md](../references/Payment/站內付2.0API技術文件Web.md) — 站內付 2.0 API 規格
 - [references/Invoice/B2C電子發票介接技術文件.md](../references/Invoice/B2C電子發票介接技術文件.md) — B2C 電子發票 API 規格
 - [references/Logistics/物流整合API技術文件.md](../references/Logistics/物流整合API技術文件.md) — 國內物流 API 規格

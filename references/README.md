@@ -14,8 +14,8 @@
 |------|------|---------|---------|
 | **Payment** | | | |
 | 　AIO 全方位金流 | `Payment/全方位金流API技術文件.md` | 45 | [guides/01](../guides/01-payment-aio.md) |
-| 　ECPG 站內付 (Web) | `Payment/站內付2.0API技術文件Web.md` | 34 | [guides/02](../guides/02-payment-ecpg.md) |
-| 　ECPG 站內付 (App) | `Payment/站內付2.0API技術文件App.md` | 39 | [guides/02](../guides/02-payment-ecpg.md) |
+| 　站內付 2.0 (Web) | `Payment/站內付2.0API技術文件Web.md` | 34 | [guides/02](../guides/02-payment-ecpg.md) |
+| 　站內付 2.0 (App) | `Payment/站內付2.0API技術文件App.md` | 39 | [guides/02](../guides/02-payment-ecpg.md) |
 | 　信用卡幕後授權 | `Payment/信用卡幕後授權API技術文件.md` | 16 | [guides/03](../guides/03-payment-backend.md) |
 | 　非信用卡幕後取號 | `Payment/非信用卡幕後取號API技術文件.md` | 15 | [guides/03](../guides/03-payment-backend.md) |
 | 　POS 刷卡機 | `Payment/刷卡機POS串接規格.md` | 13 | [guides/17](../guides/17-pos-integration.md) |

@@ -157,18 +157,18 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
   ⚠️ 最低消費 3,000 元、需另向綠界申請啟用 BNPL 服務（guides/01）
 ```
 
-#### 金流 — ECPG 站內付 2.0
+#### 金流 — 站內付 2.0
 
 ```
 「我要用 Node.js 串接綠界信用卡付款，前後端分離 React 架構」
-→ AI 推薦 ECPG 站內付，生成前端 Token + 後端建立交易的完整 TypeScript 程式碼（guides/02）
+→ AI 推薦站內付 2.0，生成前端 Token + 後端建立交易的完整 TypeScript 程式碼（guides/02）
 
 「ECPay 站內付綁卡快速付款怎麼做？Vue + Express」
 → AI 生成首次綁卡 + Token 儲存 + 後續免輸入卡號扣款的完整流程。
   ⚠️ 信用卡綁定僅限「代收付」合約模式，「新型閘道」模式不支援（guides/02 §綁卡）
 
 「我的 iOS App 要串接綠界信用卡付款」
-→ AI 推薦 ECPG 站內付 App 方案，提醒 SDK 版本需求與雙 Domain 規則（guides/02 + guides/24）
+→ AI 推薦站內付 2.0 App 方案，提醒 SDK 版本需求與雙 Domain 規則（guides/02 + guides/24）
 ```
 
 #### 金流 — 幕後授權 / 查詢 / 退款
@@ -268,7 +268,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 | 服務 | 內容 | 對應指南 |
 |------|------|---------|
-| **金流** | 全方位金流（AIO）、站內付 2.0（ECPG）、幕後授權、幕後取號 | guides/01-03 |
+| **金流** | 全方位金流（AIO）、站內付 2.0、幕後授權、幕後取號 | guides/01-03 |
 | **物流** | 國內物流（超商取貨 + 宅配）、全方位物流、跨境物流 | guides/06-08 |
 | **電子發票** | B2C、B2B（交換 + 存證模式）、離線 | guides/04-05, 19 |
 | **電子票證** | 價金保管（使用後核銷 / 分期核銷）、純發行 | guides/09 |
@@ -473,8 +473,8 @@ references/*/  →  取得「最新規格」
 **Q：不用 PHP 可以嗎？**
 A：可以。本 Skill 支援 12 種語言的加密函式實作，並提供 HTTP 協議參考（guides/20）讓其他語言也能從零實作。PHP 範例作為翻譯基底，AI 會自動轉換為你的目標語言。
 
-**Q：AIO 和 ECPG 站內付怎麼選？**
-A：AIO 會跳轉到綠界付款頁，整合最簡單；ECPG 站內付讓消費者在你的網站內完成付款，適合前後端分離架構（React/Vue/Angular）。詳見 guides/01 和 guides/02。
+**Q：AIO 和站內付 2.0 怎麼選？**
+A：AIO 會跳轉到綠界付款頁，整合最簡單；站內付 2.0 讓消費者在你的網站內完成付款，適合前後端分離架構（React/Vue/Angular）。詳見 guides/01 和 guides/02。
 
 **Q：Callback（付款通知）收不到怎麼辦？**
 A：參考 guides/15 §2 排查流程 + guides/22 各服務 Callback 格式彙總。常見原因：URL 不可達、未回應 `1|OK`、防火牆擋 ECPay IP。

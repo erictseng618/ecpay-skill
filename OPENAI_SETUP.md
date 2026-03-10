@@ -41,7 +41,7 @@
 | 1 | `SKILL.md` | 完整決策樹與導航（若與 `SKILL_OPENAI.md` 衝突，以後者為準） |
 | 2 | `guides/00-getting-started.md` | 入門指南 |
 | 3 | `guides/01-payment-aio.md` | AIO 金流（最常用） |
-| 4 | `guides/02-payment-ecpg.md` | 站內付 ECPG |
+| 4 | `guides/02-payment-ecpg.md` | 站內付 2.0 |
 | 5 | `guides/04-invoice-b2c.md` | B2C 電子發票 |
 | 6 | `guides/06-logistics-domestic.md` | 國內物流 |
 | 7 | `guides/13-checkmacvalue.md` | CheckMacValue 12 語言實作 |

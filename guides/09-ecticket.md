@@ -556,7 +556,7 @@ def redeem_ticket(ticket_no: str):
 - AES 加解密：[guides/14-aes-encryption.md](./14-aes-encryption.md)
 - CheckMacValue（AIO 金流版）：[guides/13-checkmacvalue.md](./13-checkmacvalue.md)（注意：電子票證的 CMV 計算公式不同，見本文 §CheckMacValue 計算）
 - 金流串接（搭配票券銷售）：[guides/01-payment-aio.md](./01-payment-aio.md)
-- ECPG 站內付（嵌入式收款）：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)
+- 站內付 2.0（嵌入式收款）：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)
 - 電子發票（搭配開立）：[guides/04-invoice-b2c.md](./04-invoice-b2c.md)
 - 跨服務整合場景：[guides/11-cross-service-scenarios.md](./11-cross-service-scenarios.md)
 - 除錯指南：[guides/15-troubleshooting.md](./15-troubleshooting.md)

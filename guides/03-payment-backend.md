@@ -98,10 +98,10 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 | 整合方式 | 你的伺服器接觸卡號？ | PCI DSS 範圍 | 合規成本 |
 |---------|-------------------|-------------|---------|
 | AIO（全方位金流） | ✗ | 最小（SAQ A） | 低 |
-| ECPG（站內付） | ✗ | 最小（SAQ A） | 低 |
+| 站內付 2.0 | ✗ | 最小（SAQ A） | 低 |
 | 幕後授權 | **✅ 直接接觸** | **完整（SAQ D）** | **高** |
 
-> **建議**：除非有明確的業務需求（如電話訂購、B2B 大額交易），否則應優先使用 AIO 或 ECPG，避免承擔 PCI DSS 完整合規成本。
+> **建議**：除非有明確的業務需求（如電話訂購、B2B 大額交易），否則應優先使用 AIO 或站內付 2.0，避免承擔 PCI DSS 完整合規成本。
 
 ### 主要功能
 
@@ -286,4 +286,4 @@ $response = $postService->post($input, 'https://ecpayment-stage.ecpay.com.tw/1.0
 - 非信用卡幕後取號：`references/Payment/非信用卡幕後取號API技術文件.md`
 - AES 加解密：[guides/14-aes-encryption.md](./14-aes-encryption.md)
 - AIO 金流（消費者互動）：[guides/01-payment-aio.md](./01-payment-aio.md)
-- ECPG 站內付（嵌入式）：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)
+- 站內付 2.0（嵌入式）：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)

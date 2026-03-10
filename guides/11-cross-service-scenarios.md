@@ -325,7 +325,7 @@ ECPAY_INVOICE_MERCHANT_ID / ECPAY_INVOICE_HASH_KEY / ECPAY_INVOICE_HASH_IV
 ## 相關文件
 
 - 金流 AIO：[guides/01-payment-aio.md](./01-payment-aio.md)
-- 站內付 ECPG：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)
+- 站內付 2.0：[guides/02-payment-ecpg.md](./02-payment-ecpg.md)
 - B2C 發票：[guides/04-invoice-b2c.md](./04-invoice-b2c.md)
 - 國內物流：[guides/06-logistics-domestic.md](./06-logistics-domestic.md)
 - 效能與擴展：[guides/23-performance-scaling.md](./23-performance-scaling.md)
