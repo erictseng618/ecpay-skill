@@ -24,9 +24,11 @@ The critical pattern: **guides/ tells you HOW to integrate; references/ gives yo
 ### Supporting Files
 
 - **`SKILL_OPENAI.md`** — Condensed version of SKILL.md for OpenAI Custom GPTs (8K token limit). When both exist, SKILL_OPENAI.md takes precedence for GPT platforms.
+- **`OPENAI_SETUP.md`** — Step-by-step GPT Builder setup guide. Contains its own version reference that must stay in sync.
 - **`commands/`** (6 files) — Claude Code slash commands. Navigation only, ≤20 lines each. Do not duplicate SKILL.md logic.
 - **`test-vectors/`** — Deterministic test vectors for CheckMacValue (SHA256/MD5), AES encryption, and URL encoding comparison. Run `python test-vectors/verify.py` (requires `pycryptodome`) to validate all 17 vectors.
 - **`scripts/SDK_PHP/`** — Official ECPay PHP SDK with 134 verified examples. Read-only reference; do not modify.
+- **`MAPPING_REPORT.txt`** — Bidirectional mapping verification (25 guides ↔ 19 references). Use to verify alignment after adding/renaming guides or references.
 
 ## Validation Commands
 
@@ -50,13 +52,20 @@ CI runs automatically:
 ### Version Sync (mandatory)
 
 When changing the version number, update ALL of these:
-- `SKILL.md` front-matter `version` field
-- `SKILL_OPENAI.md` version reference
-- `README.md` version badge
+- `SKILL.md` front-matter `version` field (line 3)
+- `SKILL_OPENAI.md` version reference (line 3)
+- `README.md` version badge (line 5)
+- `OPENAI_SETUP.md` version reference (line 3)
 
 ### SNAPSHOT Timestamps
 
-Parameter tables in `guides/` are marked `SNAPSHOT 2026-XX`. When updating a guide's parameter content, update its SNAPSHOT date. AI is instructed to use guides/ for initial development and verify against live specs via `references/` before production deployment.
+Parameter tables in `guides/` are marked with SNAPSHOT blockquotes in this exact format:
+
+```
+> ⚠️ **SNAPSHOT 2026-XX** | 來源：`references/Path/檔案名.md`
+```
+
+When updating a guide's parameter content, update its SNAPSHOT date. Guides also have a line-1 header with `最後更新：2026-XX` — update both when modifying parameter content. AI is instructed to use guides/ for initial development and verify against live specs via `references/` before production deployment.
 
 ### AI Section Index
 
@@ -94,11 +103,15 @@ Each file follows this structure:
 
 Do not change this format. URLs follow the pattern `https://developers.ecpay.com.tw/{numeric_id}.md`.
 
+### Guide File Naming
+
+Guides use `{NN}-{slug}.md` (zero-padded two-digit index, kebab-case slug). Current range: 00-24. When adding a guide, use the next available index and update `SKILL.md`'s decision tree and file index table.
+
 ## Modification Checklist
 
 - [ ] Editing `guides/13`, `14`, or `24`? → Run `bash scripts/validate-ai-index.sh`
 - [ ] Changing parameter tables in guides? → Update SNAPSHOT date
-- [ ] Bumping version? → Sync across SKILL.md, SKILL_OPENAI.md, README.md
+- [ ] Bumping version? → Sync across SKILL.md, SKILL_OPENAI.md, README.md, OPENAI_SETUP.md
 - [ ] Adding a new language? → Add crypto impl to guides/13+14, E2E to guides/24, update language count in SKILL.md
 - [ ] Adding a new API? → Add guide + reference file + update SKILL.md decision tree
 - [ ] Modifying `commands/`? → Keep ≤20 lines, navigation focus only
