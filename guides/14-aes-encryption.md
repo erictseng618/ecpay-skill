@@ -1,11 +1,11 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 218-263 | Node.js: line 265-312 | TypeScript: line 314-367
-Java: line 369-446 | C#: line 448-509 | Go: line 511-616
-C: line 617-775 | C++: line 776-930 | Rust: line 931-996
-Swift: line 997-1074 | Kotlin: line 1075-1123 | Ruby: line 1124-1173
-Test vectors: line 1174-1319 | 常見錯誤: line 1320-1351
+Python: line 221-267 | Node.js: line 268-316 | TypeScript: line 317-371
+Java: line 372-450 | C#: line 451-513 | Go: line 514-619
+C: line 620-778 | C++: line 779-933 | Rust: line 934-999
+Swift: line 1000-1077 | Kotlin: line 1078-1126 | Ruby: line 1127-1176
+Test vectors: line 1177-1322 | 常見錯誤: line 1323-1354
 CI/自動化驗證: test-vectors/aes-encryption.json (6 vectors) + test-vectors/url-encode-comparison.json (4 vectors) + test-vectors/verify.py
 -->
 
