@@ -59,8 +59,8 @@ CheckMacValue 是 ECPay 用於驗證請求/回應完整性的檢查碼。用於 
 
 ## PHP 開發者
 
-> ⚠️ **安全提醒**：PHP SDK 官方 `CheckMacValueService::verify()` 內部使用 `===` 比較，而非 `hash_equals()`。
-> 若安全要求高（如高金額交易），建議手動呼叫 `generate()` 後用 `hash_equals()` 驗證：
+> ✅ **安全說明**：PHP SDK 官方 `CheckMacValueService::verify()` 已使用 `hash_equals()` 進行 timing-safe 比較。
+> 若使用較舊版本的 SDK，建議手動呼叫 `generate()` 後用 `hash_equals()` 驗證：
 > ```php
 > $calculated = $checkMacValue->generate($params, $hashKey, $hashIV, $encType);
 > $isValid = hash_equals($calculated, $receivedCheckMacValue);

@@ -12,7 +12,7 @@ description: >
 license: MIT
 metadata:
   author: ECPay (綠界科技)
-  contact: eric.tseng@ecpay.com.tw
+  contact: sysanalydep.sa@ecpay.com.tw
   platforms:
     - claude-code
     - github-copilot
@@ -25,7 +25,7 @@ metadata:
 # 綠界科技 ECPay 整合助手
 
 > **官方維護**：本 Skill 由綠界科技 ECPay 官方團隊開發與維護，內容與 API 同步更新。
-> 技術諮詢：eric.tseng@ecpay.com.tw
+> 技術諮詢：綠界科技 系統分析部 sysanalydep.sa@ecpay.com.tw
 >
 > 📌 **OpenAI Custom GPTs 使用者**：請改用 [`SKILL_OPENAI.md`](./SKILL_OPENAI.md) 作為 System Instructions，
 > 並依 [`OPENAI_SETUP.md`](./OPENAI_SETUP.md) 的建議清單上傳 Knowledge Files（最多 20 個檔案）。

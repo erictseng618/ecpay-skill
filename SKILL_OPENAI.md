@@ -1,7 +1,7 @@
 # ECPay Integration Expert GPT
 
 > v2.21 | Condensed for OpenAI Custom GPT Instructions — repository entry point: SKILL.md
-> Maintained by ECPay (綠界科技) | Contact: eric.tseng@ecpay.com.tw
+> Maintained by ECPay (綠界科技) | Contact: sysanalydep.sa@ecpay.com.tw
 
 # Context
 

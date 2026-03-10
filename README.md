@@ -378,7 +378,6 @@ ecpay-skill/
 ├── OPENAI_SETUP.md             # OpenAI GPTs 建置指南
 ├── README.md                   # 本文件
 ├── CONTRIBUTING.md             # 貢獻指南
-├── SECURITY.md                 # 安全漏洞通報政策
 ├── LICENSE                     # MIT License
 ├── .github/                    # GitHub 社群模板（Issue/PR 模板、CI workflow）
 ├── test-vectors/               # 跨語言加密驗證用測試向量（CMV + AES）
@@ -501,13 +500,13 @@ A：會。`references/` 目錄存放 431 個指向 `developers.ecpay.com.tw` 的
 
 1. **API 規格**：比對 [developers.ecpay.com.tw](https://developers.ecpay.com.tw) 官方文件
 2. **PHP SDK**：比對 [ECPay 官方 GitHub](https://github.com/ECPay/ECPayAIO_PHP) 的範例程式碼
-3. **技術諮詢**：聯繫 eric.tseng@ecpay.com.tw 確認
+3. **技術諮詢**：聯繫綠界科技 系統分析部 sysanalydep.sa@ecpay.com.tw 確認
 
 ## 聯繫我們
 
 | 用途 | 聯繫方式 |
 |------|---------|
-| Skill 技術諮詢 | eric.tseng@ecpay.com.tw |
+| Skill 技術諮詢 | sysanalydep.sa@ecpay.com.tw（綠界科技 系統分析部）|
 | API 技術支援 | techsupport@ecpay.com.tw |
 | 客服專線 | (02) 2655-1775 |
 
