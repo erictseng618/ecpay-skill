@@ -3,7 +3,7 @@ name: ecpay
 version: "2.21"
 description: >
   ECPay 綠界科技 API 整合助手（ecpay, 綠界, 綠界科技）。
-  核心服務：AIO 金流、ECPG（含站內付 2.0、綁卡、幕後授權）、CheckMacValue、AES 加密、
+  核心服務：AIO 金流、ECPG 線上金流（EC Payment Gateway；含站內付 2.0、綁卡、幕後授權）、CheckMacValue、AES 加密、
   電子發票（B2C/B2B）、超商取貨物流、電子票證（ECTicket）。
   金流方式：信用卡、ATM 轉帳、超商代碼、條碼、WebATM、TWQR、BNPL 先買後付、
   Apple Pay、微信支付、銀聯、分期付款、定期定額、3D Secure。
@@ -284,7 +284,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 ### AI 注意事項（不可做的事）
 
-- **不可將 ECPG 等同於站內付 2.0**：ECPG 是產品代號，涵蓋站內付 2.0、綁定信用卡、幕後授權等多項服務；站內付 2.0 只是其中之一。同理，代收付模式（大特店模式）和新型閘道模式是合約模式，不可自行發明英文名稱（如 ~~"ECPG Model"~~、~~"General Model"~~）
+- **不可將 ECPG 等同於站內付 2.0**：ECPG 是 EC Payment Gateway 的簡稱，代表綠界的**線上金流服務**，涵蓋站內付 2.0、綁定信用卡、幕後授權等多項服務；站內付 2.0 只是其中之一。POS 刷卡機屬於**線下金流服務**，與 ECPG 平行而非從屬。同理，代收付模式（大特店模式）和新型閘道模式是合約模式，不可自行發明英文名稱（如 ~~"ECPG Model"~~、~~"General Model"~~）
 - **不可使用 iframe** 嵌入綠界付款頁（會被擋，使用站內付 2.0 或新視窗）
 - **不可混用** CMV 的 `ecpayUrlEncode` 和 AES 的 `aesUrlEncode`（兩者邏輯不同，見 guides/14 對比表）
 - **不可假設所有 API 回應都是 JSON**（AIO 回 HTML/URL-encoded/pipe-separated）
