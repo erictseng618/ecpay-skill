@@ -244,7 +244,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 └── 不確定該讀哪份文件 → 讀 guides/00 總覽
 ```
 
-> **⚡ 效能提醒**：預估日交易量 >1,000 筆、有高併發需求、或遇到 API 被限速（HTTP 429）？→ 請先讀 [guides/23](./guides/23-performance-scaling.md)（Rate Limiting 閾值 + Callback 佇列架構 + 批次 API 最佳實踐）。
+> **⚡ 效能提醒**：預估日交易量 >1,000 筆、有高併發需求、或遇到 API 被限速（HTTP 429）？→ 請先讀 [guides/23](./guides/23-performance-scaling.md)（Rate Limiting 門檻值 + Callback 佇列架構 + 批次 API 最佳實踐）。
 
 #### 快速指令（跨平台）
 

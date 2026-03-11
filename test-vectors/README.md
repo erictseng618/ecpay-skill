@@ -6,7 +6,7 @@
 - CheckMacValue: [guides/13-checkmacvalue.md](../guides/13-checkmacvalue.md) §測試向量
 - AES 加密: [guides/14-aes-encryption.md](../guides/14-aes-encryption.md) §測試向量
 
-## 驗證腳本
+## 驗證指令碼
 
 ```bash
 pip install pycryptodome

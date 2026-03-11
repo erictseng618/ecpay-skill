@@ -822,7 +822,7 @@ curl -X POST https://payment-stage.ecpay.com.tw/Cashier/QueryTradeInfo/V5 \
   -d "MerchantID=3002607&MerchantTradeNo=你的訂單編號&TimeStamp=$(date +%s)&CheckMacValue=計算後的值"
 ```
 
-> CheckMacValue 計算方式見 [guides/13](./13-checkmacvalue.md)。手動計算不便時，建議先用 Python/Node.js 腳本產生。
+> CheckMacValue 計算方式見 [guides/13](./13-checkmacvalue.md)。手動計算不便時，建議先用 Python/Node.js 指令碼產生。
 
 ### AES-JSON（B2C 發票開立）
 

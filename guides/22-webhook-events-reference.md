@@ -783,9 +783,9 @@ ECPay 的 callback 重試行為：
 | 交易對帳檔下載 | `/PaymentMedia/TradeNoAio` |
 | 信用卡撥款對帳 | `/CreditDetail/FundingReconDetail` |
 
-### 3. 監控告警
+### 3. 監控警示
 
-設定 callback 接收頻率監控，異常時觸發告警。建議監控項目：
+設定 callback 接收頻率監控，異常時觸發警示。建議監控項目：
 
 - Callback 接收頻率驟降
 - RtnCode 非成功的比例異常

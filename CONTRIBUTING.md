@@ -59,7 +59,7 @@
 1. **URL 可達性驗證**：抽查 references/ 中的 URL 是否仍可存取（建議每季抽查 10-20 個 URL）
 2. **AI 即時讀取測試**：使用 `web_fetch` 讀取 2-3 個 reference URL，確認回傳內容包含預期的 API 參數表
 3. **PHP SDK 版本檢查**：比對 `scripts/SDK_PHP/composer.json` 與 [ECPay 官方 PHP SDK](https://github.com/ECPay/ECPayAIO_PHP) 最新版本
-4. **AI Section Index 校驗**：執行 `bash scripts/validate-ai-index.sh` 確認行號索引正確
+4. **AI Section Index 驗證**：執行 `bash scripts/validate-ai-index.sh` 確認行號索引正確
 
 > **URL 失效回退策略**：若 `developers.ecpay.com.tw` 單一 URL 失效（404/重新導向），先在該站搜尋替代頁面更新 reference 檔案。
 > 若大量 URL 同時失效（網站改版），聯繫綠界技術支援 (techsupport@ecpay.com.tw) 取得新 URL 結構。

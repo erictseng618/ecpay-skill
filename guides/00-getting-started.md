@@ -233,7 +233,7 @@ sequenceDiagram
 測試帳號 MerchantID=3002607，需要完整的 CheckMacValue 計算。」
 ```
 
-AI 會產出**可直接運行**的完整程式碼，包含 CheckMacValue 簽名計算。
+AI 會產出**可直接執行**的完整程式碼，包含 CheckMacValue 簽名計算。
 
 ## 選擇指引
 

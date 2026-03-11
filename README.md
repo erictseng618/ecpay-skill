@@ -294,7 +294,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 ### 維護工具
 
-- **`scripts/validate-ai-index.sh`**：驗證 guides/13、14、24 中的 AI Section Index 行號是否準確（確認行號指向的行為 `#` 開頭的標題）。維護者更新這些 guide 的章節結構後建議執行此腳本確認行號索引無誤。
+- **`scripts/validate-ai-index.sh`**：驗證 guides/13、14、24 中的 AI Section Index 行號是否準確（確認行號指向的行為 `#` 開頭的標題）。維護者更新這些 guide 的章節結構後建議執行此指令碼確認行號索引無誤。
 
 ### HTTP 協議模式
 
@@ -410,7 +410,7 @@ ecpay-skill/
 │   ├── Ecticket/  (3 個)
 │   └── Cart/      (1 個)
 └── scripts/
-    ├── validate-ai-index.sh    # AI Section Index 行號驗證腳本
+    ├── validate-ai-index.sh    # AI Section Index 行號驗證指令碼
     └── SDK_PHP/                # 官方 PHP SDK + 134 個範例
         └── example/
             ├── Payment/Aio/        (20 個)
