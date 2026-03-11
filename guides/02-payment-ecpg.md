@@ -328,7 +328,7 @@ ReturnURL / OrderResultURL 收到的 POST 需要 AES 解密。
 > ⚠️ **常見陷阱：回傳格式是 Form POST，不是 JSON**
 > 3D 驗證完成後，綠界透過瀏覽器 Form POST（`Content-Type: application/x-www-form-urlencoded`）將結果送至 OrderResultURL / ReturnURL。
 > 資料放在表單欄位 **`ResultData`**（內含 AES 加密的 Base64 字串），**不是** JSON body。
-> 非 PHP 語言常見錯誤：用 `request.json()` 解析 → 報錯 → 誤判為交易失敗。
+> 非 PHP 語言常見錯誤：用 `request.json()` 解析 → 出錯 → 誤判為交易失敗。
 > **正確做法**：優先用 form data 方式讀取（如 Python 的 `request.form['ResultData']`、Node.js 的 `req.body.ResultData`），再解密。
 
 綠界回傳的完整 JSON 結構：
@@ -866,7 +866,7 @@ class PaymentViewController: UIViewController, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        // 攔截付款完成的回調 URL
+        // 攔截付款完成的回呼 URL
         if let url = navigationAction.request.url,
            url.host == "你的網站" && url.path.contains("/payment/complete") {
             handlePaymentResult(url: url)
@@ -895,7 +895,7 @@ class PaymentActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return false
-                // 攔截付款完成的回調 URL
+                // 攔截付款完成的回呼 URL
                 if (url.contains("/payment/complete")) {
                     handlePaymentResult(url)
                     return true
@@ -937,8 +937,8 @@ function PaymentScreen({ payToken, onComplete }) {
 | 項目 | 說明 |
 |------|------|
 | WebView User-Agent | 建議設定自訂 User-Agent，避免被當作爬蟲攔截 |
-| Deep Link 回調 | iOS 使用 Universal Link、Android 使用 App Links 處理付款完成回調 |
-| 外部瀏覽器 vs WebView | WebView 嵌入體驗好但需處理回調；外部瀏覽器相容性高但體驗較差 |
+| Deep Link 回呼 | iOS 使用 Universal Link、Android 使用 App Links 處理付款完成回呼 |
+| 外部瀏覽器 vs WebView | WebView 嵌入體驗好但需處理回呼；外部瀏覽器相容性高但體驗較差 |
 | 3D Secure | 3D 驗證會在 WebView 中開啟，確保 WebView 支援 JavaScript 和 DOM Storage |
 | Cookie 設定 | iOS 需允許 third-party cookies（`WKWebViewConfiguration.websiteDataStore`） |
 

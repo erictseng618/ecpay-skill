@@ -120,7 +120,7 @@ async function callAesApi(url, requestBody, hashKey, hashIv) {
 }
 ```
 
-## HTTP Client 配置
+## HTTP Client 設定
 
 ```javascript
 // Node.js 18+ 內建 fetch，適合大部分場景

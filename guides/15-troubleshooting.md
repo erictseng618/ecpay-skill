@@ -200,7 +200,7 @@ AES-JSON 服務回傳：
 **原因**：連續 **6 次**授權失敗會自動取消。
 
 **解決**：
-- 在失敗時通知用戶更新信用卡
+- 在失敗時通知使用者更新信用卡
 - 使用 `CreditCardPeriodAction` 的 `ReAuth` 重新授權
 - 監控 `PeriodReturnURL` 的每期通知
 

@@ -117,7 +117,7 @@ public async Task<JsonDocument> CallAesApiAsync(
 }
 ```
 
-## HTTP Client 配置
+## HTTP Client 設定
 
 ```csharp
 // ⚠️ 使用 IHttpClientFactory（ASP.NET Core），勿手動 new HttpClient

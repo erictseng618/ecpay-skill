@@ -166,7 +166,7 @@ func CallAESAPI(ctx context.Context, url string, req AESRequest, hashKey, hashIV
 }
 ```
 
-## HTTP Client 配置
+## HTTP Client 設定
 
 ```go
 var httpClient = &http.Client{

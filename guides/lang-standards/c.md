@@ -152,7 +152,7 @@ ecpay_error_t ecpay_call_aes_api(
 }
 ```
 
-## HTTP Client 配置（libcurl）
+## HTTP Client 設定（libcurl）
 
 ```c
 #include <curl/curl.h>

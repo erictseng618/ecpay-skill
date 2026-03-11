@@ -173,7 +173,7 @@ nlohmann::json callAesApi(
 } // namespace ecpay
 ```
 
-## HTTP Client 配置（libcurl RAII）
+## HTTP Client 設定（libcurl RAII）
 
 ```cpp
 #include <curl/curl.h>

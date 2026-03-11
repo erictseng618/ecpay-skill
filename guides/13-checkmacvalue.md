@@ -11,7 +11,7 @@ CI/自動化驗證: test-vectors/checkmacvalue.json (7 vectors) + test-vectors/v
 
 # CheckMacValue 完整解說
 
-> 📌 **語言規範**：生成目標語言程式碼時，同時載入 `guides/lang-standards/{語言}.md`（命名慣例、型別定義、錯誤處理、HTTP 配置等），確保產出的程式碼為 idiomatic 且生產就緒。
+> 📌 **語言規範**：生成目標語言程式碼時，同時載入 `guides/lang-standards/{語言}.md`（命名慣例、型別定義、錯誤處理、HTTP 設定等），確保產出的程式碼為 idiomatic 且生產就緒。
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
 
@@ -899,7 +899,7 @@ subtle = "2.5"
 import Foundation
 import CryptoKit  // iOS 13+ / macOS 10.15+
 
-// Xcode 專案配置：CryptoKit 是 Apple 原生框架，不需額外安裝
+// Xcode 專案設定：CryptoKit 是 Apple 原生框架，不需額外安裝
 
 func ecpayUrlEncode(_ source: String) -> String {
     // 使用明確白名單，確保 ~ 等字元正確編碼

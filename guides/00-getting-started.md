@@ -389,7 +389,7 @@ func main() {
 | Node.js / Python 開發者 | Quick Start | 30 分鐘 | 本頁 Node.js/Python Quick Start |
 | Go / Java / C# / Kotlin 開發者 | E2E 範例 | 1-2 小時 | [guides/13](./13-checkmacvalue.md) → [guides/24](./24-multi-language-integration.md) |
 | 需要收款+開發票+出貨 | 完整電商 | 3-4 小時 | [guides/11](./11-cross-service-scenarios.md) |
-| 不確定，先快速體驗 | 零配置測試 | 5 分鐘 | 本頁 Quick Start（設 SimulatePaid=1，無需 ReturnURL） |
+| 不確定，先快速體驗 | 零設定測試 | 5 分鐘 | 本頁 Quick Start（設 SimulatePaid=1，無需 ReturnURL） |
 
 ### AIO 信用卡付款流程
 

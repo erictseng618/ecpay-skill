@@ -136,7 +136,7 @@ public Map<String, Object> callAesApi(String url, AesRequest request, String has
 }
 ```
 
-## HTTP Client 配置
+## HTTP Client 設定
 
 ```java
 // Java 11+ HttpClient（推薦全域共用實例）

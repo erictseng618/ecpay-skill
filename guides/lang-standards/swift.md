@@ -194,7 +194,7 @@ func routes(_ app: Application) throws {
         let expectedCmv = generateCheckMacValue(params: mutableParams, hashKey: hashKey, hashIV: hashIV)
 
         // timing-safe：CryptoKit 的 isValidAuthenticationCode 為 constant-time 實作
-        // 原理：HMAC(received, key) == HMAC(expected, key) → 間接實現 constant-time 字串比較
+        // 原理：HMAC(received, key) == HMAC(expected, key) → 間接實作 constant-time 字串比較
         // Swift 標準庫無直接 constantTimeEquals，此為官方推薦作法
         let key = SymmetricKey(data: Data(hashKey.utf8))
         let isValid = HMAC<SHA256>.isValidAuthenticationCode(

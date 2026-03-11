@@ -98,7 +98,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | **API 串接差異** | 無 — API 技術文件完全相同，串接方式不變 | 無 — 同左 |
 
 > **開發者注意**：兩種模式的 API 端點、參數、加密方式完全一致，無需為不同模式寫不同程式碼。
-> 差異僅在綠界後台的合約設定與銀行閘道配置。不確定選哪個？**先用代收付模式**（門檻最低）。
+> 差異僅在綠界後台的合約設定與銀行閘道設定。不確定選哪個？**先用代收付模式**（門檻最低）。
 
 #### 付款方式 × 金流服務 支援矩陣
 
@@ -340,7 +340,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 5. **注意不同付款方式/服務之間的語意差異**：相同參數名在不同服務中可能有不同單位（如 `StoreExpireDate` 在超商代碼=分鐘、條碼=天）、不同最低金額（BNPL ≥ 3000）、不同回傳值（`PaymentType` 回傳 `Credit_CreditCard` ≠ 送出的 `Credit`）、不同 Content-Type（金流=form-urlencoded、發票=json）。讀取 API 頁面時必須注意這些隱含差異
 6. **Timestamp 一律使用 Unix 秒數**（非毫秒）：JavaScript `Date.now()` 回傳毫秒，必須除以 1000 並取整
 7. **首次串接某服務時**（本次對話中第一次涉及該服務），同時 web_fetch 該服務的「介接注意事項」頁面（見下方 [§介接注意事項 URL 速查表](#介接注意事項-url-速查表)），摘取所有關鍵限制告知開發者
-8. **載入目標語言的程式規範**：如果開發者不用 PHP，翻譯前**先**讀取 `guides/lang-standards/{語言}.md`，遵循其命名慣例、型別定義、錯誤處理、HTTP Client 配置、Callback Handler 模板等規範，確保產出的程式碼為 idiomatic 且生產就緒
+8. **載入目標語言的程式規範**：如果開發者不用 PHP，翻譯前**先**讀取 `guides/lang-standards/{語言}.md`，遵循其命名慣例、型別定義、錯誤處理、HTTP Client 設定、Callback Handler 模板等規範，確保產出的程式碼為 idiomatic 且生產就緒
 9. 將 PHP 範例翻譯為目標語言，翻譯時保留所有參數名、端點 URL、加密邏輯
 10. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
 11. HTTP 協議細節參考 `guides/20-http-protocol-reference.md`（端點 URL、回應格式、認證方式）
@@ -553,7 +553,7 @@ composer require "ecpay/sdk:^4.0"
 
 ### 程式語言規範（guides/lang-standards/）
 
-> 生成目標語言程式碼時，同時載入對應規範檔。每份 ~150-250 行，涵蓋命名慣例、型別定義、錯誤處理、HTTP 配置、Callback Handler、環境變數、單元測試。
+> 生成目標語言程式碼時，同時載入對應規範檔。每份 ~150-250 行，涵蓋命名慣例、型別定義、錯誤處理、HTTP 設定、Callback Handler、環境變數、單元測試。
 
 | 語言 | 檔案 |
 |------|------|

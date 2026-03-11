@@ -13,7 +13,7 @@ CI/自動化驗證: test-vectors/aes-encryption.json (6 vectors) + test-vectors/
 
 # AES 加解密完整解說
 
-> 📌 **語言規範**：生成目標語言程式碼時，同時載入 `guides/lang-standards/{語言}.md`（命名慣例、型別定義、錯誤處理、HTTP 配置等），確保產出的程式碼為 idiomatic 且生產就緒。
+> 📌 **語言規範**：生成目標語言程式碼時，同時載入 `guides/lang-standards/{語言}.md`（命名慣例、型別定義、錯誤處理、HTTP 設定等），確保產出的程式碼為 idiomatic 且生產就緒。
 
 ## 概述
 
@@ -374,7 +374,7 @@ export { aesEncrypt, aesDecrypt };
 
 ### Java
 
-> **JSON 序列化注意**：Java 的 `HashMap` 不保證 key 順序，必須使用 `LinkedHashMap` 保序（`LinkedHashMap` 遍歷順序穩定但略慢於 `HashMap`；此處必須保序，無替代方案）。
+> **JSON 序列化注意**：Java 的 `HashMap` 不保證 key 順序，必須使用 `LinkedHashMap` 保序（`LinkedHashMap` 走訪順序穩定但略慢於 `HashMap`；此處必須保序，無替代方案）。
 > 使用 `GsonBuilder().disableHtmlEscaping()` 避免 `<`, `>`, `&` 被轉義為 `\uXXXX`。
 
 ```java
@@ -1016,7 +1016,7 @@ serde_json = "1"
 import Foundation
 import CommonCrypto
 
-// Xcode 專案配置：CommonCrypto 已內建
+// Xcode 專案設定：CommonCrypto 已內建
 
 func aesEncrypt(data: [String: Any], hashKey: String, hashIv: String) -> String? {
     // 1. JSON encode

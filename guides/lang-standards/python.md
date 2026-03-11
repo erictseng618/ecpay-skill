@@ -118,7 +118,7 @@ def call_aes_api(url: str, request_body: dict, hash_key: str, hash_iv: str) -> d
     return data
 ```
 
-## HTTP Client 配置
+## HTTP Client 設定
 
 ```python
 import requests
