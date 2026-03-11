@@ -220,7 +220,7 @@ struct tm tw_time;
 // localtime_r(&now, &tw_time);
 // 方法 2：手動加 8 小時（簡易）
 now += 8 * 3600;
-gmtime_r(&now, &tw_time);
+gmtime_r(&now, &tw_time);  // ⚠️ Windows 使用 gmtime_s(&tw_time, &now)（參數順序相反）
 strftime(merchant_trade_date, sizeof(merchant_trade_date),
          "%Y/%m/%d %H:%M:%S", &tw_time);
 // → "2026/03/11 12:10:41"

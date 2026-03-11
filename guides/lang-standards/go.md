@@ -146,7 +146,9 @@ func CallAESAPI(ctx context.Context, url string, req AESRequest, hashKey, hashIV
     }
 
     var result AESResponse
-    json.NewDecoder(resp.Body).Decode(&result)
+    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+        return nil, fmt.Errorf("decode response: %w", err)
+    }
 
     // 雙層錯誤檢查
     if result.TransCode != 1 {
