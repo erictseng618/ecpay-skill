@@ -139,7 +139,7 @@ ECPG Callback 收到後需回應 JSON：
 > **注意**：各服務的 Callback 回應格式不同：
 >
 > 完整 Callback 總覽表見 [guides/22-webhook-events-reference.md](./22-webhook-events-reference.md) §Callback 總覽表。
-> 快速對照：AIO/非信用卡幕後取號 → `1|OK`，ECPG/信用卡幕後授權 → JSON `{ "TransCode": 1 }`，全方位/跨境物流 → AES 加密 JSON，國內物流 → `1|OK`（MD5），電子票證 → `1|OK`。
+> 快速對照：AIO/非信用卡幕後取號 → `1|OK`，ECPG/信用卡幕後授權 → JSON `{ "TransCode": 1 }`，全方位/跨境物流 → AES 加密 JSON，國內物流 → `1|OK`（MD5），電子票證 → AES 加密 JSON（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`）。
 
 ### ECPG 雙 Domain 注意事項
 

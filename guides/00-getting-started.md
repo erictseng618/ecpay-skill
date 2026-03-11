@@ -85,7 +85,9 @@ ECPay 官方僅提供 PHP SDK。其他語言需自行實作：
 
 > **非 PHP 開發者建議閱讀順序**：先讀 [guides/13](./13-checkmacvalue.md) / [guides/14](./14-aes-encryption.md) 完成加密函式實作，再讀 [guides/20](./20-http-protocol-reference.md) 了解 HTTP 協議細節，最後對照目標服務的 guide（如 guides/01）完成串接。PHP 開發者使用官方 SDK，加密已封裝，可略過 guides/13-14 直接使用 Factory Service。
 
-本 Skill 提供 Python、Node.js、TypeScript、Java、C#、Go、C、C++、Rust、Swift、Kotlin、Ruby 共 12 種語言的完整實作函式。
+本 Skill 提供 Python、Node.js、TypeScript、Java、C#、Go、C、C++、Rust、Swift、Kotlin、Ruby 共 12 種語言的完整實作函式（PHP 為官方 SDK 基底語言，不計入此 12 種，但 Skill 同樣支援 PHP 整合）。
+
+> ⚠️ **SNAPSHOT 2026-03** | 來源：多個服務（測試帳號、環境 URL、HTTP 協議模式）
 
 ## HTTP 協議模式
 

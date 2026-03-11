@@ -239,7 +239,7 @@ AES-JSON 的 Callback 處理因服務而異：
 | ECPG（PeriodReturnURL） | JSON POST | JSON `{ "TransCode": 1 }` |
 | 全方位物流 v2 | JSON POST（三層結構，Data 需 AES 解密） | **AES 加密 JSON**（三層結構，含 TransCode + Data） |
 | 跨境物流 | JSON POST（三層結構，Data 需 AES 解密） | **AES 加密 JSON**（三層結構，含 TransCode + Data） |
-| 電子票證 | JSON POST（四層結構，含 CheckMacValue） | `1|OK` |
+| 電子票證 | JSON POST（四層結構，含 CheckMacValue） | **AES 加密 JSON**（三層結構，Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`） |
 | B2C 發票（線上折讓 ReturnURL） | **Form POST**（含 CheckMacValue **MD5**） | `1|OK` |
 
 > ⚠️ B2C 發票的 `AllowanceByCollegiate` 是電子發票中唯一帶有 CheckMacValue 的 API。其 ReturnURL Callback 使用 Form POST + CheckMacValue（**MD5**，非 SHA256），格式同 AIO 金流但雜湊演算法不同。詳見 [guides/04](./04-invoice-b2c.md) 及[檢查碼機制](https://developers.ecpay.com.tw/38242/)。
@@ -726,7 +726,7 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 | CMV-SHA256（AIO 金流、非信用卡幕後取號） | Form POST（`application/x-www-form-urlencoded`） | 純字串 `1|OK` |
 | AES-JSON（ECPG、信用卡幕後授權） | JSON POST（三層結構，Data 需 AES 解密） | JSON `{ "TransCode": 1 }` |
 | AES-JSON（全方位/跨境物流 v2） | JSON POST（三層結構，Data 需 AES 解密） | AES 加密 JSON（三層結構，含 TransCode） |
-| AES-JSON + CMV（電子票證） | JSON POST（四層結構，含 CheckMacValue） | 純字串 `1|OK` |
+| AES-JSON + CMV（電子票證） | JSON POST（四層結構，含 CheckMacValue） | **AES 加密 JSON**（三層結構，Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`） |
 | AES-JSON（發票：線上折讓 ReturnURL） | Form POST + CheckMacValue（**MD5**） | 純字串 `1|OK` |
 | AES-JSON（發票：其他 API） | API 主動查詢（非 callback） | — |
 | CMV-MD5（國內物流） | Form POST（`application/x-www-form-urlencoded`） | 純字串 `1|OK` |

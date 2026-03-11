@@ -80,10 +80,16 @@ All crypto verification code **must** use timing-safe comparison functions. Neve
 | PHP | `hash_equals()` |
 | Python | `hmac.compare_digest()` |
 | Node.js | `crypto.timingSafeEqual()` |
+| TypeScript | `crypto.timingSafeEqual()` |
 | Go | `subtle.ConstantTimeCompare()` |
 | Java | `MessageDigest.isEqual()` |
+| Kotlin | `MessageDigest.isEqual()` |
 | C# | `CryptographicOperations.FixedTimeEquals()` |
-| Ruby | `Rack::Utils.secure_compare()` |
+| C | `CRYPTO_memcmp()` |
+| C++ | `CRYPTO_memcmp()` |
+| Rust | `subtle::ConstantTimeEq` |
+| Swift | `HMAC<SHA256>.isValidAuthenticationCode()` |
+| Ruby | `OpenSSL.secure_compare()` |
 
 ### URL Encoding: Two Different Functions
 

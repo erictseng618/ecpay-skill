@@ -27,7 +27,7 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 |------|------------|--------|----------|
 | **CMV-SHA256** | CheckMacValue + SHA256 | Form POST | AIO payment |
 | **AES-JSON** | AES-128-CBC | JSON POST | ECPG, invoice, logistics v2 |
-| **AES-JSON + CMV** | AES + CheckMacValue (SHA256) | JSON POST | E-ticket (CMV formula differs from AIO) |
+| **AES-JSON + CMV** | AES-128-CBC + CheckMacValue (SHA256) | JSON POST | E-ticket (CMV formula differs from AIO) |
 | **CMV-MD5** | CheckMacValue + MD5 | Form POST | Domestic logistics |
 
 # Decision Trees
@@ -42,7 +42,11 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 - TWQR mobile payment → AIO (`ChoosePayment=TWQR`) (guides/01 §TWQR)
 - WeChat Pay → AIO (`ChoosePayment=WeiXin`) (guides/01)
 - UnionPay → ECPG (`ChoosePaymentList="6"`, guides/02) or AIO (`ChoosePayment=Credit`, `UnionPay=1`, guides/01)
+- BNPL (Buy Now Pay Later) → AIO (`ChoosePayment=BNPL`, minimum 3,000 TWD) (guides/01)
+- Bind card for quick pay → ECPG Bind Card (guides/02 §綁卡付款流程)
+- Mobile App (iOS/Android) → 站內付 2.0 (guides/02 + guides/24 Mobile App section)
 - Physical POS → guides/17 | Live streaming → guides/18 | Shopify → guides/10
+- Order query / reconciliation → guides/16 (AIO query) / guides/03 (ECPG query)
 - Collection vs Gateway mode (same API) → SKILL.md §代收付 vs 新型閘道
 
 ## Logistics
@@ -81,7 +85,7 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 4. **Never expose** HashKey/HashIV in frontend code or version control.
 5. **Never treat** ATM `RtnCode=2` or CVS `RtnCode=10100073` as errors — they mean "awaiting payment."
 6. **ECPG uses two domains** — Token APIs use `ecpg.ecpay.com.tw`, transaction APIs use `ecpayment.ecpay.com.tw`. Mixing causes 404.
-7. **Callback responses differ by protocol**: CMV-SHA256 returns `1|OK`; ECPG returns JSON `{"TransCode":1}`; logistics v2 returns AES-encrypted JSON; e-ticket returns `1|OK`; domestic logistics returns `1|OK`. **Common `1|OK` mistakes** (cause 4 retries): `"1|OK"` (with quotes), `1|ok` (lowercase), `_OK`, `1OK` (no separator), whitespace/newline.
+7. **Callback responses differ by protocol**: CMV-SHA256 returns `1|OK`; ECPG returns JSON `{"TransCode":1}`; logistics v2 returns AES-encrypted JSON; e-ticket returns **AES-encrypted JSON** (Data contains `{"RtnCode":1,"RtnMsg":"成功"}`); domestic logistics returns `1|OK`. **Common `1|OK` mistakes** (cause 4 retries): `"1|OK"` (with quotes), `1|ok` (lowercase), `_OK`, `1OK` (no separator), whitespace/newline.
 8. **AES-JSON APIs require double-layer error checking**: check `TransCode` first, then `RtnCode`. E-ticket adds a third check: verify `CheckMacValue`. See guides/24.
 9. Only TWD is supported. Reject requests for other currencies.
 10. If a feature is outside this Skill's scope, direct the user to ECPay support: 02-2655-1775.
@@ -134,7 +138,7 @@ Other traps (PKCS7 padding, JSON key order, compact JSON, `'` encoding, HTML esc
 3. Preserve exactly: endpoint URLs, parameter names, JSON structure, encryption logic, callback response format.
 4. Reference guides/20 for HTTP details, guides/13 or 14 for encryption.
 5. **Unwrap PHP SDK abstractions**: Before translating, verify each `$_POST`/`$_GET`'s actual Content-Type (form-urlencoded vs JSON), SDK methods' underlying HTTP behavior, return value types (string vs object), and implicit behaviors (3D Secure redirect, auto-decryption). These are hidden by PHP SDK and absent from API docs.
-6. **Load language coding standards**: When generating non-PHP code, load `guides/lang-standards/{language}.md` first — it specifies naming conventions, type definitions, error handling, HTTP client config, callback handler template, and timing-safe comparison for that language.
+6. **Load language coding standards**: When generating non-PHP code, load `guides/lang-standards/{language}.md` first — it specifies naming conventions, type definitions, error handling, HTTP client config, callback handler template, and timing-safe comparison for that language. If the lang-standards file is not in your uploaded Knowledge Files, use Web Search to find idiomatic conventions for the target language, and always apply timing-safe comparison (see rule 18 in Safety Rules).
 
 # Response Format
 
