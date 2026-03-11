@@ -162,7 +162,9 @@ public class EcpayCallbackController {
         // 1. Timing-safe CMV 驗證
         String receivedCmv = params.remove("CheckMacValue");
         String expectedCmv = generateCheckMacValue(params, hashKey, hashIv);
-        if (!MessageDigest.isEqual(receivedCmv.getBytes(), expectedCmv.getBytes())) {
+        if (!MessageDigest.isEqual(
+                receivedCmv.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                expectedCmv.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
             return ResponseEntity.badRequest().body("CheckMacValue Error");
         }
 
@@ -187,7 +189,9 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws I
 
     String receivedCmv = params.remove("CheckMacValue");
     String expectedCmv = generateCheckMacValue(params, hashKey, hashIv);
-    if (!MessageDigest.isEqual(receivedCmv.getBytes(), expectedCmv.getBytes())) {
+    if (!MessageDigest.isEqual(
+            receivedCmv.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+            expectedCmv.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
         resp.sendError(400, "CheckMacValue Error");
         return;
     }
@@ -196,6 +200,28 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws I
     resp.setCharacterEncoding("UTF-8");
     resp.getWriter().write("1|OK");
 }
+```
+
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```java
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+private static final ZoneId TW_ZONE = ZoneId.of("Asia/Taipei");
+private static final DateTimeFormatter TRADE_DATE_FMT =
+    DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+String merchantTradeDate = ZonedDateTime.now(TW_ZONE).format(TRADE_DATE_FMT);
+// → "2026/03/11 12:10:41"
+
+// AES RqHeader.Timestamp：Unix 秒數（非毫秒）
+// ⚠️ System.currentTimeMillis() 回傳毫秒，必須除以 1000
+long timestamp = Instant.now().getEpochSecond();
 ```
 
 ## 環境變數

@@ -201,6 +201,34 @@ if (encrypted) {
 OPENSSL_cleanse(hash_key_buf, sizeof(hash_key_buf));
 ```
 
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```c
+#include <time.h>
+#include <stdio.h>
+
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+char merchant_trade_date[20];
+time_t now = time(NULL);
+struct tm tw_time;
+// 方法 1：設定環境變數（推薦）
+// setenv("TZ", "Asia/Taipei", 1); tzset();
+// localtime_r(&now, &tw_time);
+// 方法 2：手動加 8 小時（簡易）
+now += 8 * 3600;
+gmtime_r(&now, &tw_time);
+strftime(merchant_trade_date, sizeof(merchant_trade_date),
+         "%Y/%m/%d %H:%M:%S", &tw_time);
+// → "2026/03/11 12:10:41"
+
+// AES RqHeader.Timestamp：Unix 秒數
+long timestamp = (long)time(NULL); // 已為秒數
+```
+
 ## 環境變數
 
 ```c

@@ -88,12 +88,13 @@ public class EcpayApiException : Exception
 }
 
 public async Task<JsonDocument> CallAesApiAsync(
-    string url, AesRequest request, string hashKey, string hashIv)
+    string url, AesRequest request, string hashKey, string hashIv,
+    CancellationToken cancellationToken = default)
 {
     using var content = new StringContent(
         JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
-    using var resp = await _httpClient.PostAsync(url, content);
+    using var resp = await _httpClient.PostAsync(url, content, cancellationToken);
 
     if (resp.StatusCode == System.Net.HttpStatusCode.Forbidden)
         throw new EcpayApiException(-1, null, "Rate Limited — 需等待約 30 分鐘");
@@ -157,6 +158,24 @@ app.MapPost("/ecpay/callback", async (HttpContext ctx) =>
     // 3. HTTP 200 + "1|OK"
     return Results.Text("1|OK", "text/plain");
 });
+```
+
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```csharp
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+var twZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Taipei");
+// 注意：Windows 也可用 "Taipei Standard Time"
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+var twNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, twZone);
+string merchantTradeDate = twNow.ToString("yyyy/MM/dd HH:mm:ss");
+// → "2026/03/11 12:10:41"
+
+// AES RqHeader.Timestamp：Unix 秒數
+long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 ```
 
 ## 環境變數

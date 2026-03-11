@@ -223,6 +223,38 @@ void secureZero(std::string& s) {
 auto data = nlohmann::json::parse(ecpayAesDecrypt(encrypted, hashKey, hashIv));
 ```
 
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```cpp
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+std::string getMerchantTradeDate() {
+    auto now = std::chrono::system_clock::now();
+    // 加 8 小時偏移
+    now += std::chrono::hours(8);
+    auto time_t_now = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf{};
+    gmtime_r(&time_t_now, &tm_buf);  // Windows: gmtime_s(&tm_buf, &time_t_now)
+    std::ostringstream oss;
+    oss << std::put_time(&tm_buf, "%Y/%m/%d %H:%M:%S");
+    return oss.str();
+    // → "2026/03/11 12:10:41"
+}
+
+// AES RqHeader.Timestamp：Unix 秒數
+auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+    std::chrono::system_clock::now().time_since_epoch()
+).count();
+```
+
 ## 環境變數
 
 ```cpp

@@ -129,8 +129,18 @@ var (
     ErrCMVMismatch = errors.New("ecpay: CheckMacValue verification failed")
 )
 
-func CallAESAPI(url string, req AESRequest, hashKey, hashIV string) (map[string]interface{}, error) {
-    // ... HTTP POST ...
+func CallAESAPI(ctx context.Context, url string, req AESRequest, hashKey, hashIV string) (map[string]interface{}, error) {
+    // ... HTTP POST（使用 http.NewRequestWithContext(ctx, ...) ）...
+    httpReq, err := http.NewRequestWithContext(ctx, "POST", url, body)
+    if err != nil {
+        return nil, fmt.Errorf("create request: %w", err)
+    }
+    resp, err := httpClient.Do(httpReq)
+    if err != nil {
+        return nil, fmt.Errorf("http post: %w", err)
+    }
+    defer resp.Body.Close()
+
     if resp.StatusCode == 403 {
         return nil, ErrRateLimit
     }
@@ -166,6 +176,16 @@ var httpClient = &http.Client{
     },
 }
 // ⚠️ 使用全域 http.Client，勿每次請求 new 一個
+
+// 呼叫端錯誤判斷：使用 errors.Is / errors.As
+//   data, err := CallAESAPI(ctx, url, req, key, iv)
+//   if errors.Is(err, ErrRateLimit) {
+//       // 等待重試
+//   }
+//   var ecpayErr *EcpayError
+//   if errors.As(err, &ecpayErr) {
+//       log.Printf("ECPay error: TransCode=%d, RtnCode=%s", ecpayErr.TransCode, ecpayErr.RtnCode)
+//   }
 ```
 
 ## Callback Handler 模板
@@ -212,6 +232,27 @@ jsonStr := strings.TrimRight(buf.String(), "\n")
 
 // ⚠️ map[string]interface{} 的 key 會按字母序排列
 // 若需保證插入順序，使用 struct
+```
+
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```go
+import "time"
+
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+var twLoc = time.FixedZone("Asia/Taipei", 8*60*60)
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+// Go 使用 reference time "2006/01/02 15:04:05"
+func merchantTradeDate() string {
+    return time.Now().In(twLoc).Format("2006/01/02 15:04:05")
+    // → "2026/03/11 12:10:41"
+}
+
+// AES RqHeader.Timestamp：Unix 秒數
+timestamp := time.Now().Unix() // int64，已為秒數
 ```
 
 ## 環境變數

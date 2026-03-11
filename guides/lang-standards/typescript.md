@@ -155,11 +155,15 @@ app.post('/ecpay/callback', (req: Request, res: Response) => {
   const params = req.body as AioCallbackParams;
 
   // 1. Timing-safe CMV 驗證
-  const receivedCmv = params.CheckMacValue;
+  const receivedCmv = params.CheckMacValue ?? '';
   const { CheckMacValue: _, ...paramsWithoutCmv } = params;
   const expectedCmv = generateCheckMacValue(paramsWithoutCmv, HASH_KEY, HASH_IV);
 
-  if (!crypto.timingSafeEqual(Buffer.from(receivedCmv), Buffer.from(expectedCmv))) {
+  // ⚠️ timingSafeEqual 在長度不同時會 throw — 必須先檢查長度
+  const receivedBuf = Buffer.from(receivedCmv);
+  const expectedBuf = Buffer.from(expectedCmv);
+  if (receivedBuf.length !== expectedBuf.length ||
+      !crypto.timingSafeEqual(receivedBuf, expectedBuf)) {
     return res.status(400).send('CheckMacValue Error');
   }
 
@@ -181,6 +185,29 @@ app.post('/ecpay/callback', (req: Request, res: Response) => {
 // ECPay CheckMacValue 要求：%20 → +、~ → %7e、' → %27
 // guides/13 的 ecpayUrlEncode 已處理這些轉換
 // 請直接使用 guides/13 提供的函式，勿自行實作
+```
+
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```typescript
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+function getMerchantTradeDate(): string {
+  return new Date().toLocaleString('sv-SE', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).replace(/-/g, '/').replace('T', ' ');
+  // → "2026/03/11 12:10:41"
+}
+
+// AES RqHeader.Timestamp：Unix 秒數（非毫秒）
+// ⚠️ Date.now() 回傳毫秒，必須除以 1000
+const timestamp: number = Math.floor(Date.now() / 1000);
 ```
 
 ## 環境變數

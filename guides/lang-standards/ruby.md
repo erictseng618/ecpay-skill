@@ -25,6 +25,9 @@ gem 'net-http'             # Ruby 3.1+ 獨立 gem
 ## 命名慣例
 
 ```ruby
+# frozen_string_literal: true
+# ⚠️ 所有 .rb 檔案開頭加此 pragma — Ruby 效能最佳實踐
+
 # 方法 / 變數：snake_case
 def generate_check_mac_value(params, hash_key, hash_iv)
   # ...
@@ -179,6 +182,23 @@ class EcpayCallbacksController < ApplicationController
     render plain: '1|OK'
   end
 end
+```
+
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```ruby
+require 'time'
+
+# ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+
+# MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+merchant_trade_date = Time.now.getlocal('+08:00').strftime('%Y/%m/%d %H:%M:%S')
+# → "2026/03/11 12:10:41"
+
+# AES RqHeader.Timestamp：Unix 秒數
+timestamp = Time.now.to_i  # 已為整數秒數
 ```
 
 ## 環境變數

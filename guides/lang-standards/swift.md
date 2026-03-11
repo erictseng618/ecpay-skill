@@ -216,6 +216,29 @@ func routes(_ app: Application) throws {
 }
 ```
 
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```swift
+import Foundation
+
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+let twTimeZone = TimeZone(identifier: "Asia/Taipei")!
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+func merchantTradeDate() -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
+    formatter.timeZone = twTimeZone
+    return formatter.string(from: Date())
+    // → "2026/03/11 12:10:41"
+}
+
+// AES RqHeader.Timestamp：Unix 秒數
+let timestamp = Int(Date().timeIntervalSince1970) // Double → Int 截斷
+```
+
 ## 環境變數
 
 ```swift
@@ -249,6 +272,43 @@ struct EcpayConfig {
 // ECPay CheckMacValue 要求：%20 → +
 // guides/13 的 ecpayUrlEncode 已處理此轉換
 // 請直接使用 guides/13 提供的函式，勿自行實作
+```
+
+## CommonCrypto 替代方案
+
+```swift
+import CommonCrypto
+
+// ⚠️ CommonCrypto 為系統內建框架，無需第三方依賴
+// 適用於 iOS/macOS 專案不想引入 CryptoSwift 的情況
+// SHA256 範例：
+func sha256(_ string: String) -> String {
+    let data = Data(string.utf8)
+    var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+    data.withUnsafeBytes { _ = CC_SHA256($0.baseAddress, CC_LONG(data.count), &hash) }
+    return hash.map { String(format: "%02X", $0) }.joined()
+}
+
+// AES-128-CBC 範例：
+func aesCBCEncrypt(data: Data, key: Data, iv: Data) -> Data? {
+    var outLength = 0
+    var outBytes = [UInt8](repeating: 0, count: data.count + kCCBlockSizeAES128)
+    let status = key.withUnsafeBytes { keyBytes in
+        iv.withUnsafeBytes { ivBytes in
+            data.withUnsafeBytes { dataBytes in
+                CCCrypt(CCOperation(kCCEncrypt), CCAlgorithm(kCCAlgorithmAES),
+                        CCOptions(kCCOptionPKCS7Padding),
+                        keyBytes.baseAddress, kCCKeySizeAES128,
+                        ivBytes.baseAddress,
+                        dataBytes.baseAddress, data.count,
+                        &outBytes, outBytes.count, &outLength)
+            }
+        }
+    }
+    guard status == kCCSuccess else { return nil }
+    return Data(outBytes.prefix(outLength))
+}
+// 完整實作詳見 guides/14 §Swift
 ```
 
 ## 單元測試模式

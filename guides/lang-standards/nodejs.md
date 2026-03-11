@@ -125,9 +125,7 @@ async function callAesApi(url, requestBody, hashKey, hashIv) {
 ```javascript
 // Node.js 18+ 內建 fetch，適合大部分場景
 // 若需連線池管理，使用 undici（Node.js 底層 HTTP 引擎）
-
-// ⚠️ Timestamp 必須是 Unix 秒數，非毫秒
-const timestamp = Math.floor(Date.now() / 1000);
+// Timestamp 生成範例見「日期與時區」章節
 ```
 
 ## Callback Handler 模板
@@ -143,14 +141,15 @@ app.post('/ecpay/callback', (req, res) => {
   const params = { ...req.body };
 
   // 1. 驗證 CheckMacValue（timing-safe）
-  const receivedCmv = params.CheckMacValue;
+  const receivedCmv = params.CheckMacValue || '';
   delete params.CheckMacValue;
   const expectedCmv = generateCheckMacValue(params, HASH_KEY, HASH_IV);
 
-  if (!crypto.timingSafeEqual(
-    Buffer.from(receivedCmv),
-    Buffer.from(expectedCmv)
-  )) {
+  // ⚠️ timingSafeEqual 在長度不同時會 throw — 必須先檢查長度
+  const receivedBuf = Buffer.from(receivedCmv);
+  const expectedBuf = Buffer.from(expectedCmv);
+  if (receivedBuf.length !== expectedBuf.length ||
+      !crypto.timingSafeEqual(receivedBuf, expectedBuf)) {
     return res.status(400).send('CheckMacValue Error');
   }
 
@@ -168,6 +167,27 @@ app.post('/ecpay/callback', (req, res) => {
 
 // ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)
 // 開發環境使用 ngrok 轉發到本機任意 port
+```
+
+## 日期與時區
+
+```javascript
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+function getMerchantTradeDate() {
+  return new Date().toLocaleString('sv-SE', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).replace(/-/g, '/').replace('T', ' ');
+  // → "2026/03/11 12:10:41"
+}
+
+// AES RqHeader.Timestamp：Unix 秒數（非毫秒）
+// ⚠️ Date.now() 回傳毫秒，必須除以 1000
+const timestamp = Math.floor(Date.now() / 1000);
 ```
 
 ## 環境變數

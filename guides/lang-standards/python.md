@@ -164,6 +164,26 @@ def ecpay_callback():
     return Response("1|OK", status=200, content_type="text/plain")
 ```
 
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```python
+from datetime import datetime, timezone, timedelta
+
+# ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+TW_TZ = timezone(timedelta(hours=8))
+
+# MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+merchant_trade_date = datetime.now(TW_TZ).strftime('%Y/%m/%d %H:%M:%S')
+# → "2026/03/11 12:10:41"
+
+# AES RqHeader.Timestamp：Unix 秒數（非毫秒）
+import time
+timestamp = int(time.time())
+# ⚠️ time.time() 回傳 float，需 int() 截斷
+```
+
 ## 環境變數
 
 ```python
@@ -243,14 +263,23 @@ def test_payment_api(mock_post):
 ## Linter / Formatter
 
 ```bash
-pip install ruff
+pip install ruff mypy
+
 # pyproject.toml
 # [tool.ruff]
 # target-version = "py311"
 # line-length = 120
 
+# [tool.mypy]
+# python_version = "3.11"
+# strict = true
+# warn_return_any = true
+# warn_unused_configs = true
+
 # 格式化
 ruff format .
 # 檢查
 ruff check .
+# 型別檢查（搭配 TypedDict 使用）
+mypy --strict .
 ```

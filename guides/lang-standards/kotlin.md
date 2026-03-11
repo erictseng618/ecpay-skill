@@ -113,11 +113,14 @@ private val httpClient = java.net.http.HttpClient.newBuilder()
     .connectTimeout(java.time.Duration.ofSeconds(10))
     .build()
 
+// ⚠️ 必須禁用 HTML escaping — ECPay 不預期 \u003c 格式
+private val gson = GsonBuilder().disableHtmlEscaping().create()
+
 fun callAesApi(url: String, request: AesRequest, hashKey: String, hashIv: String): Map<String, Any> {
     val httpReq = java.net.http.HttpRequest.newBuilder()
         .uri(java.net.URI.create(url))
         .header("Content-Type", "application/json")
-        .POST(java.net.http.HttpRequest.BodyPublishers.ofString(Gson().toJson(request)))
+        .POST(java.net.http.HttpRequest.BodyPublishers.ofString(gson.toJson(request)))
         .timeout(java.time.Duration.ofSeconds(30))
         .build()
     val resp = httpClient.send(httpReq, java.net.http.HttpResponse.BodyHandlers.ofString())
@@ -126,7 +129,7 @@ fun callAesApi(url: String, request: AesRequest, hashKey: String, hashIv: String
         throw EcpayApiException(-1, null, "Rate Limited — 需等待約 30 分鐘")
     }
 
-    val result = Gson().fromJson(resp.body(), AesResponse::class.java)
+    val result = gson.fromJson(resp.body(), AesResponse::class.java)
 
     // 雙層錯誤檢查
     if (result.transCode != 1) {
@@ -189,6 +192,27 @@ fun Application.configureRouting() {
 }
 ```
 
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```kotlin
+import java.time.*
+import java.time.format.DateTimeFormatter
+
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+private val TW_ZONE = ZoneId.of("Asia/Taipei")
+private val TRADE_DATE_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+val merchantTradeDate: String = ZonedDateTime.now(TW_ZONE).format(TRADE_DATE_FMT)
+// → "2026/03/11 12:10:41"
+
+// AES RqHeader.Timestamp：Unix 秒數（非毫秒）
+// ⚠️ System.currentTimeMillis() 回傳毫秒，必須除以 1000
+val timestamp: Long = Instant.now().epochSecond
+```
+
 ## 環境變數
 
 ```kotlin
@@ -209,6 +233,22 @@ val config = EcpayConfig(
 // ECPay CheckMacValue 要求 ~ 編碼為 %7e
 // guides/13 的 ecpayUrlEncode 已處理此轉換（toLowerCase + ~ → %7e）
 // 請直接使用 guides/13 提供的函式，勿自行實作
+```
+
+## JSON 序列化注意
+
+```kotlin
+// ⚠️ 預設 Gson 實例會 HTML 轉義 < > & = 為 \u003c 等格式
+// ECPay API 不預期此轉義 — 必須禁用
+// ✅ 正確：
+val gson = GsonBuilder().disableHtmlEscaping().create()
+
+// ❌ 錯誤：Gson() 預設開啟 HTML escaping
+// val gson = Gson()
+
+// 🔄 替代方案：kotlinx.serialization（Kotlin 原生，無 HTML escaping 問題）
+// @Serializable data class AesRequest(...)
+// Json.encodeToString(request)
 ```
 
 ## 單元測試模式

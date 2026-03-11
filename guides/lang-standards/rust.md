@@ -147,16 +147,26 @@ pub enum EcpayError {
     CmvMismatch,
 }
 
+## HTTP Client
+
+```rust
+use once_cell::sync::Lazy;
+
+// ⚠️ reqwest::Client 內建連線池，應全域共用，勿每次請求建立新實例
+static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
+    reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .expect("Failed to create HTTP client")
+});
+
 pub async fn call_aes_api(
+    client: &reqwest::Client,  // 接收共用 Client 或使用 &*HTTP_CLIENT
     url: &str,
     request: &AesRequest,
     hash_key: &str,
     hash_iv: &str,
 ) -> Result<serde_json::Value, EcpayError> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
-        .build()?;
-
     let resp = client.post(url).json(request).send().await?;
 
     if resp.status() == 403 {
@@ -208,6 +218,27 @@ async fn ecpay_callback(Form(mut params): Form<BTreeMap<String, String>>) -> imp
     // 3. HTTP 200 + "1|OK"
     (StatusCode::OK, "1|OK")
 }
+```
+
+> ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## 日期與時區
+
+```rust
+use chrono::{Utc, FixedOffset};
+
+// ⚠️ ECPay 所有時間欄位皆為台灣時間（UTC+8）
+let tw_offset = FixedOffset::east_opt(8 * 3600).unwrap();
+
+// MerchantTradeDate 格式：yyyy/MM/dd HH:mm:ss（非 ISO 8601）
+let merchant_trade_date = Utc::now()
+    .with_timezone(&tw_offset)
+    .format("%Y/%m/%d %H:%M:%S")
+    .to_string();
+// → "2026/03/11 12:10:41"
+
+// AES RqHeader.Timestamp：Unix 秒數
+let timestamp = Utc::now().timestamp(); // i64，已為秒數
 ```
 
 ## 環境變數
