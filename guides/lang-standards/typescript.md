@@ -183,6 +183,30 @@ app.post('/ecpay/callback', (req: Request, res: Response) => {
 // 請直接使用 guides/13 提供的函式，勿自行實作
 ```
 
+## 環境變數
+
+```typescript
+// .env（不可提交至版控）
+// ECPAY_MERCHANT_ID=3002607
+// ECPAY_HASH_KEY=pwFHCqoQZGmho4w6
+// ECPAY_HASH_IV=EkRm7iFT261dpevs
+// ECPAY_ENV=stage
+
+import dotenv from 'dotenv';
+dotenv.config();
+
+const config: EcpayConfig = {
+  merchantId: process.env.ECPAY_MERCHANT_ID!,
+  hashKey: process.env.ECPAY_HASH_KEY!,
+  hashIv: process.env.ECPAY_HASH_IV!,
+  baseUrl: process.env.ECPAY_ENV === 'stage'
+    ? 'https://payment-stage.ecpay.com.tw'
+    : 'https://payment.ecpay.com.tw',
+};
+
+// ⚠️ 正式環境建議使用 zod 驗證環境變數，避免 undefined 導致執行期錯誤
+```
+
 ## 單元測試模式
 
 ```bash

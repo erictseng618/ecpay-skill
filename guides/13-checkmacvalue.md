@@ -1,15 +1,17 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 106-160 | Node.js: line 161-222 | TypeScript: line 223-290
-Java: line 291-355 | C#: line 356-437 | Go: line 438-514
-C: line 515-683 | C++: line 684-806 | Rust: line 807-887
-Swift: line 888-972 | Kotlin: line 973-1033 | Ruby: line 1034-1084
-Test vectors: line 1085-1196
+Python: line 108-162 | Node.js: line 163-224 | TypeScript: line 225-292
+Java: line 293-357 | C#: line 358-439 | Go: line 440-516
+C: line 517-685 | C++: line 686-808 | Rust: line 809-889
+Swift: line 890-974 | Kotlin: line 975-1035 | Ruby: line 1036-1086
+Test vectors: line 1087-1198
 CI/自動化驗證: test-vectors/checkmacvalue.json (7 vectors) + test-vectors/verify.py
 -->
 
 # CheckMacValue 完整解說
+
+> 📌 **語言規範**：生成目標語言程式碼時，同時載入 `guides/lang-standards/{語言}.md`（命名慣例、型別定義、錯誤處理、HTTP 配置等），確保產出的程式碼為 idiomatic 且生產就緒。
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
 

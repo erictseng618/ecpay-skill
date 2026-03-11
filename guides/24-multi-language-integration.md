@@ -1,18 +1,20 @@
 > 對應 ECPay API 版本 | 最後更新：2026-03
 
 <!-- AI Section Index（精確行號，2026-03-09 校準）
-Go E2E: line 111-458 (CMV: 113-248, AES: 250-458)
-Java 差異指南: line 461-503 | C# 差異指南: line 505-545
-TypeScript: line 547-604
-Kotlin 差異指南: line 607-647 | Ruby 差異指南: line 649-688
-Swift 差異指南: line 690-728 | Rust 差異指南: line 730-769
-Mobile App: line 771-807 | 非 PHP CMV Checklist: line 809-828
-非 PHP AES-JSON Checklist: line 829-845
-E2E 組裝步驟: line 848-859 | C/C++ 注意事項: line 861-977
-跨語言測試: line 979-985 | Production 環境切換: line 987-993
+Go E2E: line 113-460 (CMV: 115-250, AES: 252-460)
+Java 差異指南: line 463-505 | C# 差異指南: line 507-547
+TypeScript: line 549-606
+Kotlin 差異指南: line 609-649 | Ruby 差異指南: line 651-690
+Swift 差異指南: line 692-730 | Rust 差異指南: line 732-771
+Mobile App: line 773-809 | 非 PHP CMV Checklist: line 811-830
+非 PHP AES-JSON Checklist: line 831-847
+E2E 組裝步驟: line 850-861 | C/C++ 注意事項: line 863-979
+跨語言測試: line 981-987 | Production 環境切換: line 989-995
 -->
 
 # 多語言整合完整指南
+
+> 📌 **語言規範**：生成目標語言程式碼時，同時載入 `guides/lang-standards/{語言}.md`（命名慣例、型別定義、錯誤處理、HTTP 配置等），確保產出的程式碼為 idiomatic 且生產就緒。
 
 ## 語言快速導航
 

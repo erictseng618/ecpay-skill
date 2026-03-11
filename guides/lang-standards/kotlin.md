@@ -108,18 +108,19 @@ class EcpayApiException(
     override val message: String,
 ) : RuntimeException("TransCode=$transCode, RtnCode=$rtnCode: $message")
 
+// ⚠️ 使用全域共用 HttpClient，勿每次請求建立新實例
+private val httpClient = java.net.http.HttpClient.newBuilder()
+    .connectTimeout(java.time.Duration.ofSeconds(10))
+    .build()
+
 fun callAesApi(url: String, request: AesRequest, hashKey: String, hashIv: String): Map<String, Any> {
-    // 使用 java.net.http.HttpClient（Java 11+ / Kotlin 推薦）
-    val client = java.net.http.HttpClient.newBuilder()
-        .connectTimeout(java.time.Duration.ofSeconds(10))
-        .build()
     val httpReq = java.net.http.HttpRequest.newBuilder()
         .uri(java.net.URI.create(url))
         .header("Content-Type", "application/json")
         .POST(java.net.http.HttpRequest.BodyPublishers.ofString(Gson().toJson(request)))
         .timeout(java.time.Duration.ofSeconds(30))
         .build()
-    val resp = client.send(httpReq, java.net.http.HttpResponse.BodyHandlers.ofString())
+    val resp = httpClient.send(httpReq, java.net.http.HttpResponse.BodyHandlers.ofString())
 
     if (resp.statusCode() == 403) {
         throw EcpayApiException(-1, null, "Rate Limited — 需等待約 30 分鐘")

@@ -340,12 +340,11 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 5. **注意不同付款方式/服務之間的語意差異**：相同參數名在不同服務中可能有不同單位（如 `StoreExpireDate` 在超商代碼=分鐘、條碼=天）、不同最低金額（BNPL ≥ 3000）、不同回傳值（`PaymentType` 回傳 `Credit_CreditCard` ≠ 送出的 `Credit`）、不同 Content-Type（金流=form-urlencoded、發票=json）。讀取 API 頁面時必須注意這些隱含差異
 6. **Timestamp 一律使用 Unix 秒數**（非毫秒）：JavaScript `Date.now()` 回傳毫秒，必須除以 1000 並取整
 7. **首次串接某服務時**（本次對話中第一次涉及該服務），同時 web_fetch 該服務的「介接注意事項」頁面（見下方 [§介接注意事項 URL 速查表](#介接注意事項-url-速查表)），摘取所有關鍵限制告知開發者
-8. 如果開發者不用 PHP，將範例翻譯為目標語言
-9. **載入目標語言的程式規範**：翻譯前先讀取 `guides/lang-standards/{語言}.md`，遵循其命名慣例、型別定義、錯誤處理、HTTP Client 配置、Callback Handler 模板等規範，確保產出的程式碼為 idiomatic 且生產就緒
-10. 翻譯時保留所有參數名、端點 URL、加密邏輯
-11. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
-12. HTTP 協議細節參考 `guides/20-http-protocol-reference.md`（端點 URL、回應格式、認證方式）
-13. 標註原始範例路徑供開發者查閱
+8. **載入目標語言的程式規範**：如果開發者不用 PHP，翻譯前**先**讀取 `guides/lang-standards/{語言}.md`，遵循其命名慣例、型別定義、錯誤處理、HTTP Client 配置、Callback Handler 模板等規範，確保產出的程式碼為 idiomatic 且生產就緒
+9. 將 PHP 範例翻譯為目標語言，翻譯時保留所有參數名、端點 URL、加密邏輯
+10. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
+11. HTTP 協議細節參考 `guides/20-http-protocol-reference.md`（端點 URL、回應格式、認證方式）
+12. 標註原始範例路徑供開發者查閱
 
 > **語言規範檔案對照**：`python.md` · `nodejs.md` · `typescript.md` · `java.md` · `csharp.md` · `go.md` · `kotlin.md` · `ruby.md` · `rust.md` · `swift.md` · `c.md` · `cpp.md` — 均位於 `guides/lang-standards/` 目錄
 

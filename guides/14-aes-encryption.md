@@ -1,17 +1,19 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 221-268 | Node.js: line 269-317 | TypeScript: line 318-372
-Java: line 373-451 | C#: line 452-514 | Go: line 515-620
-C: line 621-779 | C++: line 780-934 | Rust: line 935-1000
-Swift: line 1001-1078 | Kotlin: line 1079-1127 | Ruby: line 1128-1177
-Test vectors: line 1178-1323 | 常見錯誤: line 1324-1355
+Python: line 223-270 | Node.js: line 271-319 | TypeScript: line 320-374
+Java: line 375-453 | C#: line 454-516 | Go: line 517-622
+C: line 623-781 | C++: line 782-936 | Rust: line 937-1002
+Swift: line 1003-1080 | Kotlin: line 1081-1129 | Ruby: line 1130-1179
+Test vectors: line 1180-1325 | 常見錯誤: line 1326-1357
 CI/自動化驗證: test-vectors/aes-encryption.json (6 vectors) + test-vectors/url-encode-comparison.json (4 vectors) + test-vectors/verify.py
 -->
 
 **快速跳轉**: [Python](#python) | [Node.js](#nodejs) | [TypeScript](#typescript) | [Java](#java) | [C#](#c) | [Go](#go) | [C](#c-1) | [C++](#c-2) | [Rust](#rust) | [Swift](#swift) | [Kotlin](#kotlin) | [Ruby](#ruby)
 
 # AES 加解密完整解說
+
+> 📌 **語言規範**：生成目標語言程式碼時，同時載入 `guides/lang-standards/{語言}.md`（命名慣例、型別定義、錯誤處理、HTTP 配置等），確保產出的程式碼為 idiomatic 且生產就緒。
 
 ## 概述
 
