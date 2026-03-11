@@ -81,4 +81,4 @@ ECPay 官方 API 變更公告請見：[developers.ecpay.com.tw](https://develope
 
 ## 授權
 
-貢獻即同意以 CC BY-SA 4.0 授權您的修改。
+貢獻即同意將您的修改之著作權讓與綠界科技股份有限公司。詳見 [LICENSE](LICENSE)。

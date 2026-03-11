@@ -9,7 +9,7 @@ description: >
   Apple Pay、微信支付、銀聯、分期付款、定期定額、3D Secure。
   進階功能：Token 綁卡、退款、折讓、對帳、發票作廢、物流追蹤、跨境物流。
   整合情境：Shopify、WooCommerce、POS 刷卡機、直播收款
-license: CC-BY-SA-4.0
+license: All-Rights-Reserved
 metadata:
   author: ECPay (綠界科技)
   contact: sysanalydep.sa@ecpay.com.tw
