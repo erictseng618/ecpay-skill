@@ -723,7 +723,8 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 
 | 協議模式 | Callback 發送格式 | 商家回應格式 |
 |----------|-----------------|------------|
-| CMV-SHA256（AIO 金流、非信用卡幕後取號） | Form POST（`application/x-www-form-urlencoded`） | 純字串 `1|OK` |
+| CMV-SHA256（AIO 金流） | Form POST（`application/x-www-form-urlencoded`） | 純字串 `1|OK` |
+| AES-JSON（非信用卡幕後取號） | JSON POST（三層結構，Data 需 AES 解密） | 純字串 `1|OK` |
 | AES-JSON（ECPG、信用卡幕後授權） | JSON POST（三層結構，Data 需 AES 解密） | JSON `{ "TransCode": 1 }` |
 | AES-JSON（全方位/跨境物流 v2） | JSON POST（三層結構，Data 需 AES 解密） | AES 加密 JSON（三層結構，含 TransCode） |
 | AES-JSON + CMV（電子票證） | JSON POST（四層結構，含 CheckMacValue） | **AES 加密 JSON**（三層結構，Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`） |

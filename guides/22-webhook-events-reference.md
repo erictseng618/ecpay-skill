@@ -9,7 +9,7 @@
 
 本文件彙整所有 ECPay 服務的 Callback（Webhook）機制，提供統一的欄位定義和安全處理指引。
 
-> **⚠️ 認證方式依服務而異**：金流 AIO → SHA256，國內物流 → **MD5**，ECPG / 發票 / 物流 v2 → AES 解密（無 CheckMacValue），票證 → AES 解密 + CheckMacValue (SHA256)。
+> **⚠️ 認證方式依服務而異**：金流 AIO → SHA256，國內物流 → **MD5**，ECPG / 幕後授權 / 幕後取號 / 發票 / 物流 v2 → AES 解密（無 CheckMacValue），票證 → AES 解密 + CheckMacValue (SHA256)。
 > 錯用演算法（如把國內物流當 SHA256 計算）會導致所有 callback 驗證永遠失敗。
 
 ## ⚡ Callback 回應格式速查（跨服務整合必讀）
@@ -52,7 +52,7 @@
 | AIO 金流 | OrderResultURL | 前端跳轉（非 server-to-server） | CheckMacValue (SHA256) | HTML 頁面 | 不重試 |
 | ECPG 站內付 | OrderResultURL | 付款完成 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試（次數未公開）|
 | 信用卡幕後授權 | ReturnURL | 授權結果 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試（次數未公開）|
-| 非信用卡幕後取號 | ReturnURL | ATM/CVS/BARCODE 付款完成 | CheckMacValue (SHA256) | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次 |
+| 非信用卡幕後取號 | ReturnURL | ATM/CVS/BARCODE 付款完成 | AES 解密 Data | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次 |
 | 國內物流 | ServerReplyURL | 物流狀態變更 | CheckMacValue (**MD5**) | `1\|OK` | 約每 2 小時重試（次數未公開）|
 | 國內物流（逆物流） | ServerReplyURL | 逆物流狀態變更 | CheckMacValue (**MD5**) | `1\|OK` | 約每 2 小時重試（次數未公開）|
 | 國內物流 | ClientReplyURL | 消費者選店結果（前端跳轉） | CheckMacValue (MD5) | HTML 頁面 | 不重試 |
@@ -77,7 +77,7 @@
 > **最常見錯誤**：國內物流的 CheckMacValue 使用 **MD5**（不是 SHA256）。用錯雜湊演算法會導致驗證永遠失敗。
 > - 金流 AIO → SHA256
 > - 國內物流 → MD5
-> - ECPG / 發票 / 全方位物流 / 跨境物流 → AES 解密（無 CheckMacValue）
+> - ECPG / 信用卡幕後授權 / 非信用卡幕後取號 / 發票 / 全方位物流 / 跨境物流 → AES 解密（無 CheckMacValue）
 > - 票證 → AES 解密 + CheckMacValue (SHA256)
 
 ## AIO ReturnURL — 付款成功通知

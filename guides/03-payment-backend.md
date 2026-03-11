@@ -278,6 +278,9 @@ $response = $postService->post($input, 'https://ecpayment-stage.ecpay.com.tw/1.0
 - RtnCode（1=付款成功）
 - 付款方式相關欄位（BankCode/vAccount 或 PaymentNo 或 Barcode1~3）
 
+> ⚠️ **回應格式**：雖然收到的 Callback 是 AES-JSON 格式，但商家必須回應純字串 **`1|OK`**（與 AIO 金流相同），
+> **不是** JSON `{ "TransCode": 1 }`。未正確回應 `1|OK` 會導致綠界每 5-15 分鐘重送，每日最多 4 次。
+
 > 完整參數規格請查閱 `references/Payment/非信用卡幕後取號API技術文件.md` 中的官方文件連結。
 
 ## 相關文件
