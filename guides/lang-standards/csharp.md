@@ -7,7 +7,7 @@
 ## 版本與環境
 
 - **最低版本**：.NET 6+（C# 10）
-- **推薦版本**：.NET 8 LTS+（C# 12，global using）
+- **推薦版本**：.NET 8 LTS+（C# 12，global using，nullable reference types 預設啟用）
 - **加密**：`System.Security.Cryptography` 內建，無需 NuGet 套件
 - **JSON**：`System.Text.Json`（內建）或 `Newtonsoft.Json`
 
@@ -219,6 +219,23 @@ var json = JsonSerializer.Serialize(request, jsonOptions);
 // 🔄 替代方案：Newtonsoft.Json 預設不做 HTML 轉義
 // JsonConvert.SerializeObject(request)
 ```
+
+## 日誌與監控
+
+```csharp
+// ASP.NET Core 內建 ILogger（推薦搭配 Serilog 做結構化日誌）
+private readonly ILogger<EcpayPaymentService> _logger;
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+_logger.LogInformation("ECPay API 呼叫成功: MerchantTradeNo={TradeNo}", merchantTradeNo);
+_logger.LogError("ECPay API 錯誤: TransCode={TransCode}, RtnCode={RtnCode}", transCode, rtnCode);
+
+// Serilog 設定範例（Program.cs）：
+// builder.Host.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
 
 ## URL Encode 注意
 

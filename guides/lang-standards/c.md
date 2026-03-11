@@ -164,7 +164,9 @@ curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 curl_easy_setopt(curl, CURLOPT_USERAGENT, "ECPay-Integration/1.0");
 
 // ⚠️ 務必驗證 SSL 憑證（正式環境）
-// ⚠️ 記得 curl_global_init / curl_global_cleanup
+// ⚠️ 程式啟動時呼叫一次 curl_global_init，結束時呼叫 curl_global_cleanup
+// curl_global_init(CURL_GLOBAL_DEFAULT);  // main() 開頭
+// curl_global_cleanup();                   // main() 結尾或 atexit
 ```
 
 ## CMV Timing-Safe 比較
@@ -256,6 +258,60 @@ ecpay_config_t load_config(void) {
     return config;
 }
 ```
+
+## 日誌與監控
+
+```c
+#include <stdio.h>
+#include <time.h>
+
+// C 語言使用 fprintf(stderr, ...) 或 syslog
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+
+#define ECPAY_LOG_INFO(fmt, ...)  fprintf(stderr, "[INFO] ecpay: " fmt "\n", ##__VA_ARGS__)
+#define ECPAY_LOG_ERROR(fmt, ...) fprintf(stderr, "[ERROR] ecpay: " fmt "\n", ##__VA_ARGS__)
+
+// 用法：
+// ECPAY_LOG_INFO("API 呼叫成功: MerchantTradeNo=%s", merchant_trade_no);
+// ECPAY_LOG_ERROR("API 錯誤: TransCode=%d, RtnCode=%s", trans_code, rtn_code);
+
+// POSIX 環境可使用 syslog：
+// #include <syslog.h>
+// openlog("ecpay", LOG_PID, LOG_USER);
+// syslog(LOG_INFO, "API 呼叫成功: MerchantTradeNo=%s", merchant_trade_no);
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
+
+## Callback Handler 模板（libmicrohttpd）
+
+```c
+// 安裝：apt install libmicrohttpd-dev / brew install libmicrohttpd
+// 編譯：gcc -o callback callback.c -lmicrohttpd -lssl -lcrypto
+
+#include <microhttpd.h>
+
+static enum MHD_Result handle_callback(void *cls, struct MHD_Connection *connection,
+    const char *url, const char *method, const char *version,
+    const char *upload_data, size_t *upload_data_size, void **con_cls)
+{
+    // 解析 POST form data → 取得 params
+    // 1. Timing-safe CMV 驗證（CRYPTO_memcmp）
+    // 2. RtnCode 是字串：strcmp(rtn_code, "1") == 0
+    // 3. 回傳 HTTP 200 + "1|OK"
+    const char *ok = "1|OK";
+    struct MHD_Response *response = MHD_create_response_from_buffer(
+        strlen(ok), (void *)ok, MHD_RESPMEM_PERSISTENT);
+    MHD_add_response_header(response, "Content-Type", "text/plain");
+    int ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+    MHD_destroy_response(response);
+    return ret;
+}
+
+// 啟動：MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, 8080, NULL, NULL, &handle_callback, NULL, MHD_OPTION_END);
+```
+
+> ⚠️ 完整 POST body 解析請參考 libmicrohttpd 官方文件的 `MHD_PostProcessor` 範例。
 
 ## URL Encode 注意
 

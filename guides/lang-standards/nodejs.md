@@ -42,6 +42,14 @@ const ECPAY_PAYMENT_URL = 'https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5';
 // ⚠️ ECPay 參數名保持 PascalCase（MerchantID, HashKey）— 這是 API 規格，不可轉換
 ```
 
+```javascript
+// ⚠️ ESM 語法（Node.js 20+ / package.json 中 "type": "module"）
+// import crypto from 'node:crypto';
+// import express from 'express';
+// export function generateCheckMacValue(...) { }
+// 本文件範例以 CommonJS 為主，ESM 使用者請自行替換 require → import
+```
+
 ## 型別定義（JSDoc）
 
 ```javascript
@@ -145,7 +153,7 @@ app.post('/ecpay/callback', (req, res) => {
   delete params.CheckMacValue;
   const expectedCmv = generateCheckMacValue(params, HASH_KEY, HASH_IV);
 
-  // ⚠️ timingSafeEqual 在長度不同時會 throw — 必須先檢查長度
+  // ⚠️ timingSafeEqual 在長度不同時會 throw ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH — 必須先檢查長度
   const receivedBuf = Buffer.from(receivedCmv);
   const expectedBuf = Buffer.from(expectedCmv);
   if (receivedBuf.length !== expectedBuf.length ||
@@ -210,6 +218,22 @@ const config = {
     : 'https://payment.ecpay.com.tw',
 };
 ```
+
+## 日誌與監控
+
+```javascript
+// 推薦：pino（高效能結構化日誌）
+// npm install pino
+const pino = require('pino');
+const logger = pino({ name: 'ecpay' });
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+logger.info({ merchantTradeNo }, 'ECPay API 呼叫成功');
+logger.error({ transCode, rtnCode }, 'ECPay API 錯誤');
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
 
 ## URL Encode 注意
 

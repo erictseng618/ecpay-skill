@@ -178,6 +178,7 @@ var httpClient = &http.Client{
     },
 }
 // ⚠️ 使用全域 http.Client，勿每次請求 new 一個
+// http.Client 為 goroutine-safe，可安全在多個 goroutine 間共用
 
 // 呼叫端錯誤判斷：使用 errors.Is / errors.As
 //   data, err := CallAESAPI(ctx, url, req, key, iv)
@@ -278,6 +279,22 @@ func LoadConfig() Config {
     }
 }
 ```
+
+## 日誌與監控
+
+```go
+import "log/slog"
+
+// 推薦 slog（Go 1.21+ 標準庫結構化日誌）
+logger := slog.Default()
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+logger.Info("ECPay API 呼叫成功", "merchantTradeNo", merchantTradeNo)
+logger.Error("ECPay API 錯誤", "transCode", result.TransCode, "rtnCode", rtnCode)
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
 
 ## URL Encode 注意
 

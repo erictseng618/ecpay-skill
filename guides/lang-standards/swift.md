@@ -153,7 +153,9 @@ func callAesAPI(url: String, request: AesRequest, hashKey: String, hashIV: Strin
     urlRequest.timeoutInterval = 30
 
     let (data, response) = try await URLSession.shared.data(for: urlRequest)
-    let httpResp = response as! HTTPURLResponse
+    guard let httpResp = response as? HTTPURLResponse else {
+        throw EcpayError.httpError(statusCode: 0)
+    }
 
     if httpResp.statusCode == 403 { throw EcpayError.rateLimited }
     guard (200..<300).contains(httpResp.statusCode) else {
@@ -193,15 +195,8 @@ func routes(_ app: Application) throws {
         }
         let expectedCmv = generateCheckMacValue(params: mutableParams, hashKey: hashKey, hashIV: hashIV)
 
-        // timing-safe：CryptoKit 的 isValidAuthenticationCode 為 constant-time 實作
-        // 原理：HMAC(received, key) == HMAC(expected, key) → 間接實作 constant-time 字串比較
-        // Swift 標準庫無直接 constantTimeEquals，此為官方推薦作法
-        let key = SymmetricKey(data: Data(hashKey.utf8))
-        let isValid = HMAC<SHA256>.isValidAuthenticationCode(
-            HMAC<SHA256>.authenticationCode(for: Data(receivedCmv.utf8), using: key),
-            authenticating: Data(expectedCmv.utf8), using: key
-        )
-        guard isValid else {
+        // timing-safe 字串比較：逐位元 XOR 累積，避免 timing side-channel
+        guard constantTimeEqual(receivedCmv, expectedCmv) else {
             throw Abort(.badRequest, reason: "CheckMacValue Error")
         }
 
@@ -217,6 +212,45 @@ func routes(_ app: Application) throws {
 ```
 
 > ⚠️ ECPay Callback URL 僅支援 port 80 (HTTP) / 443 (HTTPS)，開發環境使用 ngrok 轉發到本機任意 port。
+
+## Timing-Safe 比較函式
+
+```swift
+/// Constant-time 字串比較 — 防止 timing side-channel attack
+/// Swift 標準庫無內建 constantTimeEquals，需自行實作
+func constantTimeEqual(_ a: String, _ b: String) -> Bool {
+    let aBytes = Array(a.utf8)
+    let bBytes = Array(b.utf8)
+    guard aBytes.count == bBytes.count else { return false }
+    var result: UInt8 = 0
+    for i in 0..<aBytes.count {
+        result |= aBytes[i] ^ bBytes[i]
+    }
+    return result == 0
+}
+```
+
+> ⚠️ 請勿使用 `==` 比較 CheckMacValue — 標準字串比較會因第一個不同字元而提前返回，造成 timing leak。
+
+## 日誌與監控
+
+```swift
+import os
+
+// 推薦 os.Logger（Apple 平台）或 swift-log（Server-side）
+let logger = Logger(subsystem: "com.example.ecpay", category: "payment")
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+logger.info("ECPay API 呼叫成功: MerchantTradeNo=\(merchantTradeNo)")
+logger.error("ECPay API 錯誤: TransCode=\(transCode), RtnCode=\(rtnCode)")
+
+// Server-side (Vapor) 使用 swift-log：
+// import Logging
+// let logger = Logger(label: "ecpay")
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
 
 ## 日期與時區
 

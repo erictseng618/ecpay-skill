@@ -67,6 +67,13 @@ public class AioParams {
     // getters, setters, toMap()
 }
 
+// Java 17+ 可使用 record（不可變型別，自動生成 getter / equals / hashCode）
+// record AesRequest(
+//     @SerializedName("MerchantID") String merchantID,
+//     @SerializedName("RqHeader") RqHeader rqHeader,
+//     @SerializedName("Data") String data
+// ) {}
+
 public class AesRequest {
     @SerializedName("MerchantID")
     private String merchantID;
@@ -253,6 +260,22 @@ String baseUrl = "stage".equals(env)
 // ⚠️ 必須禁用 HTML escaping — ECPay 不預期 \u003c 格式
 Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 ```
+
+## 日誌與監控
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+private static final Logger log = LoggerFactory.getLogger(EcpayPaymentService.class);
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+log.info("ECPay API 呼叫成功: MerchantTradeNo={}", merchantTradeNo);
+log.error("ECPay API 錯誤: TransCode={}, RtnCode={}", transCode, rtnCode);
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。SLF4J 推薦使用 Logback 作為實作。
 
 ## URL Encode 注意
 

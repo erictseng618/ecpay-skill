@@ -17,7 +17,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "commonjs",          // ESM 專案改用 "module": "nodenext"
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -182,6 +182,22 @@ app.post('/ecpay/callback', (req: Request, res: Response) => {
 });
 ```
 
+## 日誌與監控
+
+```typescript
+// 推薦：pino（高效能結構化日誌，完整 TypeScript 支援）
+// npm install pino @types/pino
+import pino from 'pino';
+const logger = pino({ name: 'ecpay' });
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+logger.info({ merchantTradeNo }, 'ECPay API 呼叫成功');
+logger.error({ transCode, rtnCode }, 'ECPay API 錯誤');
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
+
 ## URL Encode 注意
 
 ```typescript
@@ -237,6 +253,14 @@ const config: EcpayConfig = {
 };
 
 // ⚠️ 正式環境建議使用 zod 驗證環境變數，避免 undefined 導致執行期錯誤
+// import { z } from 'zod';
+// const envSchema = z.object({
+//   ECPAY_MERCHANT_ID: z.string().min(1),
+//   ECPAY_HASH_KEY: z.string().length(16),
+//   ECPAY_HASH_IV: z.string().length(16),
+//   ECPAY_ENV: z.enum(['stage', 'production']).default('stage'),
+// });
+// const env = envSchema.parse(process.env);
 ```
 
 ## 單元測試模式

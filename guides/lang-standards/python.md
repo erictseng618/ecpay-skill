@@ -130,6 +130,15 @@ session.headers.update({
 })
 # 超時建議 30 秒（ECPay 部分 API 處理較慢）
 # 403 = Rate Limit，需等待約 30 分鐘
+
+# Retry 策略（建議用於 transient errors）
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+retry_strategy = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503])
+adapter = HTTPAdapter(max_retries=retry_strategy)
+session.mount("https://", adapter)
+# ⚠️ 403 (Rate Limit) 不可自動重試 — 需等待約 30 分鐘
 ```
 
 ## Callback Handler 模板
@@ -208,7 +217,32 @@ BASE_URL = (
     if os.getenv("ECPAY_ENV") == "stage"
     else "https://payment.ecpay.com.tw"
 )
+
+# ⚠️ 啟動時驗證必要環境變數
+for var in ("ECPAY_MERCHANT_ID", "ECPAY_HASH_KEY", "ECPAY_HASH_IV"):
+    if not os.environ.get(var):
+        raise RuntimeError(f"Missing required environment variable: {var}")
 ```
+
+## 日誌與監控
+
+```python
+import logging
+
+logger = logging.getLogger("ecpay")
+
+# ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+# ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+logger.info("ECPay API 呼叫成功: MerchantTradeNo=%s", merchant_trade_no)
+logger.error("ECPay API 錯誤: TransCode=%d, RtnCode=%s", trans_code, rtn_code)
+
+# 推薦：structlog（結構化日誌，適合 production）
+# pip install structlog
+# import structlog
+# logger = structlog.get_logger("ecpay")
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
 
 ## URL Encode 注意
 

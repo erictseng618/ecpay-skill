@@ -87,6 +87,14 @@ end
 # ⚠️ RtnCode 為字串
 # params['RtnCode'] == '1'  ← 正確
 # params['RtnCode'] == 1    ← 錯誤
+
+# RBS 型別簽名（Ruby 3.1+，放在 sig/ 目錄）
+# # sig/ecpay.rbs
+# class EcpayPaymentClient
+#   def generate_check_mac_value: (Hash[String, String], String, String) -> String
+#   def aes_encrypt: (Hash[String, String], String, String) -> String
+#   def aes_decrypt: (String, String, String) -> Hash[String, untyped]
+# end
 ```
 
 ## 錯誤處理
@@ -237,6 +245,21 @@ hash = { MerchantID: '2000132' }
 JSON.generate(hash)  # → {"MerchantID":"2000132"} — 新版 Ruby OK，但建議用 String key
 ```
 
+## 日誌與監控
+
+```ruby
+require 'logger'
+
+LOGGER = Logger.new($stdout, progname: 'ecpay')
+
+# ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+# ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+LOGGER.info("ECPay API 呼叫成功: MerchantTradeNo=#{merchant_trade_no}")
+LOGGER.error("ECPay API 錯誤: TransCode=#{trans_code}, RtnCode=#{rtn_code}")
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
+
 ## URL Encode 注意
 
 ```ruby
@@ -269,6 +292,16 @@ class EcpayTest < Minitest::Test
     assert_equal '2000132', decrypted['MerchantID']
   end
 end
+
+# RSpec 替代方案（Rails 生態系標準）
+# spec/ecpay_spec.rb
+# RSpec.describe 'CheckMacValue' do
+#   it 'matches SHA256 test vector' do
+#     params = { 'MerchantID' => '3002607', ... }
+#     result = generate_check_mac_value(params, 'pwFHCqoQZGmho4w6', 'EkRm7iFT261dpevs')
+#     expect(result).to eq('291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2')
+#   end
+# end
 ```
 
 ## Linter / Formatter

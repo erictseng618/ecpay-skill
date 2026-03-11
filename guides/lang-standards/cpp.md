@@ -191,7 +191,25 @@ std::pair<long, std::string> httpPost(const std::string& url, const std::string&
     curl_easy_setopt(curl.get(), CURLOPT_POSTFIELDS, body.c_str());
     curl_easy_setopt(curl.get(), CURLOPT_TIMEOUT, 30L);
     curl_easy_setopt(curl.get(), CURLOPT_CONNECTTIMEOUT, 10L);
-    // ... response handling ...
+    std::string response;
+    curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION,
+        +[](char* ptr, size_t size, size_t nmemb, std::string* data) -> size_t {
+            data->append(ptr, size * nmemb);
+            return size * nmemb;
+        });
+    curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, &response);
+
+    struct curl_slist* headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
+
+    CURLcode res = curl_easy_perform(curl.get());
+    curl_slist_free_all(headers);
+    if (res != CURLE_OK) throw std::runtime_error(curl_easy_strerror(res));
+
+    long httpCode = 0;
+    curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &httpCode);
+    return {httpCode, response};
 }
 ```
 
@@ -278,6 +296,53 @@ ecpay::Config loadConfig() {
             : "https://payment.ecpay.com.tw",
     };
 }
+```
+
+## 日誌與監控
+
+```cpp
+// 推薦 spdlog（高效能結構化日誌，header-only 可選）
+// vcpkg install spdlog / apt install libspdlog-dev
+#include <spdlog/spdlog.h>
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+spdlog::info("ECPay API 呼叫成功: MerchantTradeNo={}", merchantTradeNo);
+spdlog::error("ECPay API 錯誤: TransCode={}, RtnCode={}", transCode, rtnCode);
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
+
+## Callback Handler 模板（cpp-httplib）
+
+```cpp
+// cpp-httplib：header-only HTTP server（https://github.com/yhirose/cpp-httplib）
+#include <httplib.h>
+
+httplib::Server svr;
+svr.Post("/ecpay/callback", [&](const httplib::Request& req, httplib::Response& res) {
+    auto params = req.params;  // multimap<string, string>
+
+    // 1. Timing-safe CMV 驗證
+    auto receivedCmv = params.find("CheckMacValue")->second;
+    params.erase("CheckMacValue");
+    ecpay::ParamMap paramMap(params.begin(), params.end());
+    auto expectedCmv = ecpay::generateCheckMacValue(paramMap, hashKey, hashIv);
+    if (!ecpay::verifyCmv(receivedCmv, expectedCmv)) {
+        res.status = 400;
+        res.set_content("CheckMacValue Error", "text/plain");
+        return;
+    }
+
+    // 2. RtnCode 是字串
+    if (params.find("RtnCode")->second == "1") {
+        // 處理成功
+    }
+
+    // 3. HTTP 200 + "1|OK"
+    res.set_content("1|OK", "text/plain");
+});
+svr.listen("0.0.0.0", 8080);
 ```
 
 ## URL Encode 注意

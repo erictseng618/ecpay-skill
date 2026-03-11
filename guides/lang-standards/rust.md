@@ -157,6 +157,7 @@ pub enum EcpayError {
 use once_cell::sync::Lazy;
 
 // ⚠️ reqwest::Client 內建連線池，應全域共用，勿每次請求建立新實例
+// reqwest::Client 為 Send + Sync，可安全跨 async task 共用
 static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
     reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(30))
@@ -273,6 +274,21 @@ fn load_config() -> EcpayConfig {
 // ⚠️ serde_json 預設不會轉義 < > &（與 Go 不同）— 符合 ECPay 預期
 // ⚠️ BTreeMap 自動按 key 排序（CMV 不需要，但 AES 不依賴排序所以無害）
 ```
+
+## 日誌與監控
+
+```rust
+// 推薦 tracing（tokio 生態系標準，支援結構化日誌）
+// Cargo.toml: tracing = "0.1", tracing-subscriber = "0.3"
+use tracing::{info, error};
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+info!(merchant_trade_no = %merchant_trade_no, "ECPay API 呼叫成功");
+error!(trans_code = result.trans_code, rtn_code = %rtn_code, "ECPay API 錯誤");
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
 
 ## URL Encode 注意
 

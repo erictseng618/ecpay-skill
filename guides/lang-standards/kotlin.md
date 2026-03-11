@@ -7,7 +7,7 @@
 ## 版本與環境
 
 - **最低版本**：Kotlin 1.8+、JDK 11+
-- **推薦版本**：Kotlin 1.9+、JDK 17+
+- **推薦版本**：Kotlin 1.9+、JDK 17+（支援 coroutines 搭配 Ktor 非同步 HTTP）
 - **建置工具**：Gradle（Kotlin DSL）或 Maven
 - **加密**：`javax.crypto` 標準庫（與 Java 共用）
 
@@ -158,7 +158,7 @@ class EcpayCallbackController(
         // 1. Timing-safe CMV 驗證
         val receivedCmv = params.remove("CheckMacValue") ?: return ResponseEntity.badRequest().body("Missing CMV")
         val expectedCmv = generateCheckMacValue(params, hashKey, hashIv)
-        if (!MessageDigest.isEqual(receivedCmv.toByteArray(), expectedCmv.toByteArray())) {
+        if (!MessageDigest.isEqual(receivedCmv.toByteArray(Charsets.UTF_8), expectedCmv.toByteArray(Charsets.UTF_8))) {
             return ResponseEntity.badRequest().body("CheckMacValue Error")
         }
 
@@ -182,7 +182,7 @@ fun Application.configureRouting() {
             val params = call.receiveParameters().toMap().mapValues { it.value.first() }.toMutableMap()
             val receivedCmv = params.remove("CheckMacValue") ?: return@post call.respond(HttpStatusCode.BadRequest)
             val expectedCmv = generateCheckMacValue(params, hashKey, hashIv)
-            if (!MessageDigest.isEqual(receivedCmv.toByteArray(), expectedCmv.toByteArray())) {
+            if (!MessageDigest.isEqual(receivedCmv.toByteArray(Charsets.UTF_8), expectedCmv.toByteArray(Charsets.UTF_8))) {
                 return@post call.respondText("CheckMacValue Error", status = HttpStatusCode.BadRequest)
             }
             if (params["RtnCode"] == "1") { /* 處理成功 */ }
@@ -225,6 +225,21 @@ val config = EcpayConfig(
     else "https://payment.ecpay.com.tw",
 )
 ```
+
+## 日誌與監控
+
+```kotlin
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger("ecpay")
+
+// ⚠️ 絕不記錄 HashKey / HashIV / CheckMacValue
+// ✅ 記錄：API 呼叫結果、交易編號、錯誤訊息
+logger.info("ECPay API 呼叫成功: MerchantTradeNo={}", merchantTradeNo)
+logger.error("ECPay API 錯誤: TransCode={}, RtnCode={}", transCode, rtnCode)
+```
+
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。SLF4J + Logback 為 JVM 標準日誌方案。
 
 ## URL Encode 注意
 
