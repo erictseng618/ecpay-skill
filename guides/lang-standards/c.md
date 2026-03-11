@@ -196,7 +196,7 @@ if (encrypted) {
 }
 
 // ⚠️ 敏感資料（HashKey/HashIV）用完後清零
-// ⚠️ 不可使用 memset — 編譯器可能優化掉（dead store elimination）
+// ⚠️ 不可使用 memset — 編譯器可能最佳化掉（dead store elimination）
 #include <openssl/crypto.h>
 OPENSSL_cleanse(hash_key_buf, sizeof(hash_key_buf));
 ```
