@@ -1,0 +1,207 @@
+# COMPREHENSIVE DECISION TREE COMPARISON: SKILL.md vs SKILL_OPENAI.md
+
+## EXECUTIVE SUMMARY
+SKILL.md is a comprehensive Chinese reference guide (~30 payment features in detailed tree)
+SKILL_OPENAI.md is a condensed English version for GPT instructions (~9 payment features)
+
+CRITICAL GAPS FOUND IN SKILL_OPENAI.md:
+  • guides/23 (Performance scaling) - MISSING entirely
+  • guides/24 (Multi-language) - In rules but NOT in decision tree
+  • BNPL payment feature - MISSING
+  • Mobile App routing - MISSING
+  • Bind Card as separate entry - MISSING
+  • Query/Reconciliation - MISSING
+
+---
+
+## DETAILED COMPARISON BY SECTION
+
+## 1. PAYMENT ROUTING - FEATURES ONLY IN SKILL.md:
+  ✗ BNPL 先買後付 → AIO (min 3,000 TWD) [SKILL.md line ~156]
+  ✗ Mobile App (iOS/Android) → guides/02 + guides/24 [SKILL.md line ~168]
+  ✗ 綁卡快速付 (Bind Card) → guides/02 [SKILL.md line ~158]
+  ✗ Query Orders (查詢訂單狀態) → guides/01 or 02 [SKILL.md line ~179]
+  ✗ Reconciliation (下載對帳檔) → guides/01 [SKILL.md line ~180]
+  ✗ PlatformID Multi-Merchant → guides/01, 02 [SKILL.md line ~181]
+  ✗ Non-PHP Examples (guides/24) → explicit routing [SKILL.md line ~178]
+  ✗ SPA/SSR recommendation logic → guides/02 vs guides/01 [SKILL.md line ~161-164]
+  ✗ guides/23 timeout warnings → ReturnURL 10sec limits [SKILL.md line ~162-163]
+
+## 2. PAYMENT ROUTING - FEATURES IN BOTH (MATCHING):
+  ✓ Standard checkout (AIO) → guides/01
+  ✓ Embedded payment (ECPG/站內付 2.0) → guides/02
+  ✓ Backend auth (幕後授權) → guides/03
+  ✓ Subscription/Periodic → guides/01 or 02
+  ✓ Credit card installment → guides/01
+  ✓ Apple Pay → guides/01 or 02
+  ✓ TWQR mobile payment → guides/01
+  ✓ WeChat Pay → guides/01
+  ✓ UnionPay → guides/02 or guides/01
+  ✓ POS (guides/17), Live streaming (guides/18), Shopify (guides/10)
+
+## 3. LOGISTICS ROUTING:
+  ✓ PERFECT MATCH in both documents
+  ✓ Domestic CVS/Home → guides/06
+  ✓ All-in-One → guides/07
+  ✓ Cross-border → guides/08
+  ✓ Query status routing matches
+
+## 4. E-INVOICE ROUTING:
+  ✓ PERFECT MATCH in both documents
+  ✓ B2C → guides/04
+  ✓ B2B → guides/05
+  ✓ Offline POS → guides/19
+
+## 5. E-TICKET ROUTING:
+  ✓ PERFECT MATCH in both documents
+  ✓ guides/09 (AES-JSON + CMV)
+  ✓ Both mention formula differences from AIO
+  ✓ Both reference test accounts
+
+## 6. DEBUGGING ROUTING:
+  ✓ PERFECT MATCH in both documents
+  ✓ CheckMacValue → guides/13 + 15
+  ✓ AES decryption → guides/14
+  ✓ Error codes → guides/21
+  ✓ Callbacks → guides/22
+
+## 7. CROSS-SERVICE ROUTING:
+  ✓ PERFECT MATCH
+  ✓ Payment + Invoice + Shipping → guides/11
+
+## 8. REFUND/VOID ROUTING:
+  ✓ PERFECT MATCH in both documents
+  ✓ Void vs Refund actions match
+  ✓ Non-CC refund handling matches
+  ✓ Subscription cancel guidance matches
+
+---
+
+## SPECIAL GUIDES CONSISTENCY CHECK
+
+guides/10-cart-plugins.md (Shopify):
+  ✓ SKILL.md: 2 references (lines ~96, ~174)
+  ✓ SKILL_OPENAI.md: 1 reference (line 45)
+  ✓ VERDICT: CONSISTENTLY REFERENCED
+
+guides/17-pos-integration.md (POS):
+  ✓ SKILL.md: 2 references (lines ~11, ~172)
+  ✓ SKILL_OPENAI.md: 1 reference (line 45)
+  ✓ VERDICT: CONSISTENTLY REFERENCED
+
+guides/18-livestream-payment.md (Live streaming):
+  ✓ SKILL.md: 2 references (lines ~11, ~173)
+  ✓ SKILL_OPENAI.md: 1 reference (line 45)
+  ✓ VERDICT: CONSISTENTLY REFERENCED
+
+guides/11-cross-service-scenarios.md:
+  ✓ SKILL.md: 7 references across payment, invoice, refund sections
+  ✓ SKILL_OPENAI.md: 1 reference (line 67)
+  ✓ commands/ecpay-pay.md: ✓ referenced
+  ✓ commands/ecpay-logistics.md: ✓ referenced
+  ✓ commands/ecpay-invoice.md: ✓ referenced
+  ✓ commands/ecpay-go-live.md: ✓ referenced
+  ✓ VERDICT: CONSISTENTLY REFERENCED ACROSS ALL FILES
+
+---
+
+## CRITICAL DIFFERENCES FOUND
+
+### 1. guides/23 (Performance & Scaling) - MISSING FROM SKILL_OPENAI.md
+   Location in SKILL.md: Lines ~162-163, ~175, index ~499
+   Content: ReturnURL 10-second timeout warning, callback queue architecture, rate limiting
+   IMPACT: GPT users won't receive performance/scaling guidance
+   SEVERITY: HIGH (affects production deployments)
+
+### 2. guides/24 (Multi-Language Integration) - INCOMPLETE IN SKILL_OPENAI.md
+   SKILL.md: Explicit decision tree entry (line ~178)
+   SKILL_OPENAI.md: Only in Critical Rules (Rule 8), NOT in decision tree
+   IMPACT: Users asking for non-PHP examples won't get directed to guides/24 via decision tree
+   SEVERITY: MEDIUM (rule mentions it but decision tree doesn't)
+
+### 3. BNPL Payment Feature - MISSING FROM SKILL_OPENAI.md
+   SKILL.md: Full entry with 3,000 TWD minimum (line ~156)
+   SKILL_OPENAI.md: ✗ Not mentioned anywhere
+   IMPACT: Users asking about buy-now-pay-later won't get proper routing
+   SEVERITY: MEDIUM (feature gap)
+
+### 4. Mobile App (iOS/Android) - MISSING FROM SKILL_OPENAI.md
+   SKILL.md: Explicit entry → guides/02 + guides/24 Mobile App (line ~168)
+   SKILL_OPENAI.md: ✗ Not in decision tree
+   IMPACT: Mobile app developers get generic "embedded payment" guidance instead of specific routing
+   SEVERITY: MEDIUM (feature gap)
+
+### 5. Bind Card (綁卡快速付) - HIDDEN IN SKILL_OPENAI.md
+   SKILL.md: Separate decision tree entry (line ~158)
+   SKILL_OPENAI.md: Only mentioned in "Subscription" context (line 39)
+   IMPACT: Users specifically asking about bind card payment flow get subscription guidance
+   SEVERITY: LOW (information exists but context wrong)
+
+### 6. Query Orders / Reconciliation - MISSING FROM SKILL_OPENAI.md
+   SKILL.md: Two separate entries (lines ~179-180)
+   SKILL_OPENAI.md: ✗ Not in decision tree
+   IMPACT: Users need to search SKILL.md directly
+   SEVERITY: LOW (supplementary features)
+
+### 7. PlatformID Multi-Merchant - MISSING FROM SKILL_OPENAI.md
+   SKILL.md: Mentioned in decision tree (line ~181)
+   SKILL_OPENAI.md: ✗ Not mentioned
+   IMPACT: Platform merchants won't find guidance in GPT
+   SEVERITY: LOW (specialized feature)
+
+---
+
+## COMMANDS FILES CONSISTENCY
+
+All command files route to appropriate guides consistently:
+
+✓ ecpay-pay.md → guides/01, 02, 03, 13, 14, 20, 22, 11
+✓ ecpay-logistics.md → guides/06, 07, 08, 13, 14, 11
+✓ ecpay-invoice.md → guides/04, 05, 19, 14, 11
+✓ ecpay-ecticket.md → guides/09, 14
+✓ ecpay-debug.md → guides/13, 14, 15, 21, 22, 16
+✓ ecpay-go-live.md → guides/11
+
+VERDICT: No conflicts with SKILL.md routing
+
+NOTE: Command files intentionally don't reference guides/10, 17, 18 because they are task-specific.
+      This is appropriate design - not an error.
+
+---
+
+## RECOMMENDATIONS FOR FIXES
+
+### PRIORITY 1 - Add to SKILL_OPENAI.md Decision Tree:
+  1. Create guides/23 entry for high-concurrency/callback queue scenarios
+  2. Create guides/24 entry for multi-language integration (move from rules)
+  3. Add BNPL payment entry with 3,000 TWD minimum
+  4. Add Mobile App (iOS/Android) with guides/02 + guides/24 routing
+
+### PRIORITY 2 - Enhance decision tree clarity:
+  5. Move Bind Card to separate entry (not just in subscription context)
+  6. Add Query Orders / Reconciliation entries
+  7. Add PlatformID multi-merchant guidance
+
+### PRIORITY 3 - Documentation:
+  8. Add version/sync markers to both files explaining intentional differences
+  9. Document "condensed for GPT" vs "comprehensive reference" design philosophy
+  10. Consider adding table comparing which features appear in each document
+
+---
+
+## VERIFICATION RESULTS
+
+✓ guides/11: CONSISTENT across all files
+✓ guides/10: CONSISTENT in both decision documents
+✓ guides/17: CONSISTENT in both decision documents
+✓ guides/18: CONSISTENT in both decision documents
+✓ guides/19: CONSISTENT in both decision documents
+✓ guides/06-08: CONSISTENT logistics routing
+✓ guides/04-05: CONSISTENT invoice routing
+
+⚠️ guides/23: MISSING from SKILL_OPENAI.md
+⚠️ guides/24: INCOMPLETE in SKILL_OPENAI.md (rules only, not decision tree)
+
+---
+
+EOF
