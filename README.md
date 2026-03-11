@@ -397,6 +397,7 @@ ecpay-skill/
 ├── OPENAI_SETUP.md             # OpenAI GPTs 建置指南
 ├── README.md                   # 本文件
 ├── CONTRIBUTING.md             # 貢獻指南
+├── SECURITY.md                 # 安全政策（漏洞通報、憑證安全須知）
 ├── LICENSE                     # CC BY-SA 4.0 License
 ├── .github/                    # GitHub 社群模板（Issue/PR 模板、CI workflow）
 ├── test-vectors/               # 跨語言加密驗證用測試向量（CMV + AES）
@@ -533,6 +534,10 @@ A：會。`references/` 目錄存放 431 個指向 `developers.ecpay.com.tw` 的
 ## 貢獻
 
 歡迎貢獻！詳見 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+## 安全政策
+
+安全漏洞通報與憑證安全須知請見 [SECURITY.md](./SECURITY.md)。
 
 ## 已知限制
 

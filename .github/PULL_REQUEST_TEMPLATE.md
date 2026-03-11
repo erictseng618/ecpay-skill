@@ -20,6 +20,12 @@
 - [ ] 若修改加密實作：已用測試向量驗證正確性
 - [ ] SKILL.md / SKILL_OPENAI.md / README.md 版本號一致
 
+## 安全確認
+
+- [ ] **未包含真實的 MerchantID / HashKey / HashIV**（範例一律使用官方測試帳號）
+- [ ] **未提交 `.env` 或含有真實憑證的設定檔**
+- [ ] 若涉及加密驗證：使用 timing-safe 比較函式（見 [SECURITY.md](../SECURITY.md)）
+
 ## 相關 Issue
 
 <!-- 如有相關 Issue 請連結 -->
