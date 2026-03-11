@@ -218,12 +218,15 @@ func routes(_ app: Application) throws {
 ```swift
 /// Constant-time 字串比較 — 防止 timing side-channel attack
 /// Swift 標準庫無內建 constantTimeEquals，需自行實作
+/// ⚠️ 長度比較也必須避免 early-return，以防洩漏長度資訊
 func constantTimeEqual(_ a: String, _ b: String) -> Bool {
     let aBytes = Array(a.utf8)
     let bBytes = Array(b.utf8)
-    guard aBytes.count == bBytes.count else { return false }
-    var result: UInt8 = 0
-    for i in 0..<aBytes.count {
+    // 長度不同時仍走完迴圈，避免 timing leak
+    let lengthMatch = aBytes.count == bBytes.count
+    let compareLength = lengthMatch ? aBytes.count : 0
+    var result: UInt8 = lengthMatch ? 0 : 1
+    for i in 0..<compareLength {
         result |= aBytes[i] ^ bBytes[i]
     }
     return result == 0

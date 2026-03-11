@@ -290,6 +290,7 @@ ecpay_config_t load_config(void) {
 // 編譯：gcc -o callback callback.c -lmicrohttpd -lssl -lcrypto
 
 #include <microhttpd.h>
+#include <string.h>
 
 static enum MHD_Result handle_callback(void *cls, struct MHD_Connection *connection,
     const char *url, const char *method, const char *version,

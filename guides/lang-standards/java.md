@@ -275,7 +275,9 @@ log.info("ECPay API 呼叫成功: MerchantTradeNo={}", merchantTradeNo);
 log.error("ECPay API 錯誤: TransCode={}, RtnCode={}", transCode, rtnCode);
 ```
 
-> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。SLF4J 推薦使用 Logback 作為實作。
+> **日誌安全規則**：HashKey、HashIV、CheckMacValue 為機敏資料，嚴禁出現在任何日誌、錯誤回報或前端回應中。
+
+> 💡 SLF4J 推薦搭配 Logback 作為實作。
 
 ## URL Encode 注意
 

@@ -200,7 +200,7 @@ std::pair<long, std::string> httpPost(const std::string& url, const std::string&
     curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, &response);
 
     struct curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "Content-Type: application/json");  // AES-JSON 協定用 JSON
     curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers);
 
     CURLcode res = curl_easy_perform(curl.get());
@@ -324,7 +324,13 @@ svr.Post("/ecpay/callback", [&](const httplib::Request& req, httplib::Response& 
     auto params = req.params;  // multimap<string, string>
 
     // 1. Timing-safe CMV 驗證
-    auto receivedCmv = params.find("CheckMacValue")->second;
+    auto cmvIt = params.find("CheckMacValue");
+    if (cmvIt == params.end()) {
+        res.status = 400;
+        res.set_content("Missing CheckMacValue", "text/plain");
+        return;
+    }
+    auto receivedCmv = cmvIt->second;
     params.erase("CheckMacValue");
     ecpay::ParamMap paramMap(params.begin(), params.end());
     auto expectedCmv = ecpay::generateCheckMacValue(paramMap, hashKey, hashIv);
@@ -335,7 +341,8 @@ svr.Post("/ecpay/callback", [&](const httplib::Request& req, httplib::Response& 
     }
 
     // 2. RtnCode 是字串
-    if (params.find("RtnCode")->second == "1") {
+    auto rtnIt = params.find("RtnCode");
+    if (rtnIt != params.end() && rtnIt->second == "1") {
         // 處理成功
     }
 
