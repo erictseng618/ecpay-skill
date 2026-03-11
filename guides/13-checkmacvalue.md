@@ -1,11 +1,11 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 108-162 | Node.js: line 163-224 | TypeScript: line 225-292
-Java: line 293-357 | C#: line 358-439 | Go: line 440-516
-C: line 517-685 | C++: line 686-808 | Rust: line 809-889
-Swift: line 890-974 | Kotlin: line 975-1035 | Ruby: line 1036-1086
-Test vectors: line 1087-1198
+Python: line 109-163 | Node.js: line 164-225 | TypeScript: line 226-293
+Java: line 294-358 | C#: line 359-440 | Go: line 441-517
+C: line 518-686 | C++: line 687-809 | Rust: line 810-890
+Swift: line 891-975 | Kotlin: line 976-1036 | Ruby: line 1037-1087
+Test vectors: line 1088-1199
 CI/自動化驗證: test-vectors/checkmacvalue.json (7 vectors) + test-vectors/verify.py
 -->
 
@@ -27,6 +27,7 @@ CheckMacValue 是 ECPay 用於驗證請求/回應完整性的檢查碼。用於 
 |------|----------|---------|
 | AIO 金流 | SHA256 | 送出請求時附加 / 接收通知時驗證 |
 | 國內物流 | MD5 | 送出請求時附加 / 接收通知時驗證 |
+| 電子票證 | SHA256 | 送出請求與回應都需附加（**公式與 AIO 不同**，見 [guides/09 §CheckMacValue 計算](./09-ecticket.md)） |
 | ECPG / 發票 / 全方位物流 | **不使用** | 改用 AES 加密 |
 
 ## 計算流程

@@ -71,11 +71,11 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 | 正式環境 | `https://ecticket.ecpay.com.tw` |
 | 回應結構 | 三層 JSON（TransCode → 驗證 CheckMacValue → 解密 Data → RtnCode） |
 | 測試帳號 | 官方提供公開測試帳號（見 §測試帳號 或 references/Ecticket/ §準備事項/測試介接資訊） |
-| UseStatusNotifyURL 回應格式 | 收到核退通知後，回應 AES 加密 JSON 三層結構（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`）|
+| UseStatusNotifyURL 回應格式 | 收到核退通知後，回應 AES 加密 JSON + **CheckMacValue**（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`）|
 
 > **核退通知（UseStatusNotifyURL）**：電子票證退款/核退時，ECPay 會 POST AES-JSON 通知到你的 UseStatusNotifyURL。
 > 驗證方式：AES 解密 Data 欄位 + **驗證 CheckMacValue**（與發送 API 相同的 HashKey/HashIV）。
-> 必須回應 AES 加密 JSON 三層結構（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`），否則約每 2 小時重試。詳見 [guides/22 §Callback 總覽表](./22-webhook-events-reference.md)。
+> 必須回應 AES 加密 JSON + **CheckMacValue**（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`），否則每 5-15 分鐘重送，每日最多 4 次。詳見 [guides/22 §Callback 總覽表](./22-webhook-events-reference.md)。
 
 ## 模式選擇決策樹
 

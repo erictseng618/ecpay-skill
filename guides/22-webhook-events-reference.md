@@ -26,7 +26,7 @@
 | 非信用卡幕後取號 | ReturnURL | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次 |
 | 國內物流 | ServerReplyURL | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
 | 全方位 / 跨境物流 | ServerReplyURL | AES 加密 JSON 三層結構 | application/json | 約每 2 小時重試 |
-| 電子票證 | UseStatusNotifyURL | AES 加密 JSON 三層結構（Data 內 `RtnCode=1`）| application/json | 約每 2 小時重試 |
+| 電子票證 | UseStatusNotifyURL | AES 加密 JSON + **CheckMacValue**（Data 內 `RtnCode=1`）| application/json | 每 5-15 分鐘重送，每日最多 4 次 |
 
 > **跨服務整合注意**：如果你同時使用金流 + 發票 + 物流，建議為各服務使用**不同的 callback URL**，
 > 各自回應對應的正確格式。在同一 URL 判斷服務類型雖可行但容易出錯。
@@ -58,7 +58,7 @@
 | 國內物流 | ClientReplyURL | 消費者選店結果（前端跳轉） | CheckMacValue (MD5) | HTML 頁面 | 不重試 |
 | 全方位物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON | 約每 2 小時重試（次數未公開）|
 | 跨境物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON（與全方位物流相同） | 約每 2 小時重試（次數未公開）|
-| 電子票證 | UseStatusNotifyURL | 退款/核退通知 | AES 解密 Data + CheckMacValue (SHA256) | AES 加密 JSON（Data 內 `RtnCode=1`） | 約每 2 小時重試（次數未公開）|
+| 電子票證 | UseStatusNotifyURL | 退款/核退通知 | AES 解密 Data + CheckMacValue (SHA256) | AES 加密 JSON + **CheckMacValue**（Data 內 `RtnCode=1`） | 每 5-15 分鐘重送，每日最多 4 次 |
 | 電子發票 | — | 通常由 API 主動查詢 | AES 解密 | JSON | — |
 
 > **重試觸發條件**：HTTP 超時、回應非 200 狀態碼、或回應格式不符（如應回 `1|OK` 但回了其他內容）時觸發重試。AIO 的重試次數有上限（每日 4 次），其他服務的重試上限未公開，建議實作冪等處理（見下方 §冪等性處理建議）。
