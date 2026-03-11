@@ -321,7 +321,7 @@ git clone https://github.com/erictseng618/ecpay-skill.git ~/.openclaw/skills/ecp
 
 | 服務 | 內容 | 對應指南 |
 |------|------|---------|
-| **金流** | 全方位金流（AIO, All-In-One）、站內付 2.0（ECPG）、幕後授權、幕後取號 | guides/01-03 |
+| **金流** | AIO 全方位金流（All-In-One）、ECPG 線上金流（含站內付 2.0、綁卡扣款）、幕後授權、幕後取號 | guides/01-03 |
 | **物流** | 國內物流（超商取貨 + 宅配）、全方位物流、跨境物流 | guides/06-08 |
 | **電子發票** | B2C（企業對消費者）、B2B（企業對企業，交換 + 存證模式）、離線 | guides/04-05, 19 |
 | **電子票證** | 價金保管（使用後核銷 / 分期核銷）、純發行 | guides/09 |
@@ -356,7 +356,7 @@ ECPay API 使用不同的認證和請求格式，本 Skill 完整涵蓋：
 | 模式 | 認證方式 | 請求格式 | 適用服務 |
 |------|---------|---------|---------|
 | **CMV-SHA256** | CheckMacValue + SHA256 | Form POST | AIO 金流 |
-| **AES-JSON** | AES-128-CBC 加密 | JSON POST | ECPG、電子發票、全方位/跨境物流 |
+| **AES-JSON** | AES-128-CBC 加密 | JSON POST | ECPG 線上金流、電子發票、全方位/跨境物流 |
 | **AES-JSON + CMV** | AES-128-CBC + CheckMacValue（SHA256） | JSON POST | 電子票證（CMV 公式與 AIO 不同） |
 | **CMV-MD5** | CheckMacValue + MD5 | Form POST | 國內物流 |
 
@@ -374,7 +374,7 @@ ECPay API 使用不同的認證和請求格式，本 Skill 完整涵蓋：
 | # | 檔案 | 主題 |
 |---|------|------|
 | 01 | guides/01-payment-aio.md | 全方位金流 AIO（20 個 PHP 範例） |
-| 02 | guides/02-payment-ecpg.md | 站內付 2.0 ECPG（24 個 PHP 範例） |
+| 02 | guides/02-payment-ecpg.md | ECPG 線上金流：站內付 2.0（24 個 PHP 範例） |
 | 03 | guides/03-payment-backend.md | 幕後授權 + 幕後取號 |
 | 17 | guides/17-pos-integration.md | POS 刷卡機串接指引 |
 | 18 | guides/18-livestream-payment.md | 直播收款指引 |
