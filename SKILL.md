@@ -102,7 +102,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 
 #### 付款方式 × 金流服務 支援矩陣
 
-> 來源：[developers.ecpay.com.tw](https://developers.ecpay.com.tw/) 開發者導覽首頁（SNAPSHOT 2026-03）
+> ⚠️ **SNAPSHOT 2026-03** | 來源：[developers.ecpay.com.tw](https://developers.ecpay.com.tw/) 開發者導覽首頁
 
 ##### 代收付模式 / 大特店模式（廠商僅與綠界簽約）
 

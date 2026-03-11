@@ -16,6 +16,8 @@
 
 ### URL 對照
 
+> ⚠️ **SNAPSHOT 2026-03** | 來源：`references/` 各服務對應檔案
+
 | 服務 | 測試 | 正式 |
 |------|------|------|
 | 金流 AIO | payment**-stage**.ecpay.com.tw | payment.ecpay.com.tw |

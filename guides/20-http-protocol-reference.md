@@ -443,10 +443,10 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 >
 > 📊 **合計約 150+ 個 API 端點**，涵蓋 7 個 domain（各有 staging/production 對應）。
 >
-> 🔄 **本表為快照摘要（SNAPSHOT 2026-03）**，端點新增/異動以官方開發者文件為準。
+> ⚠️ **SNAPSHOT 2026-03** | 來源：`references/` 各服務對應檔案 — 端點新增/異動以官方開發者文件為準
 > AI 助手：使用前請透過 `references/` 索引讀取 `developers.ecpay.com.tw` 最新規格。
 
-> ⚠️ **以下 §3.1-3.4 所有端點表均為 SNAPSHOT**，僅供端點查找導航。
+> ⚠️ **SNAPSHOT 2026-03** | 以下 §3.1-3.4 所有端點表均為快照，僅供端點查找導航
 > 生成程式碼前，必須從對應的 `references/` 檔案 web_fetch 最新端點路徑與參數規格。
 
 ### 3.1 Payment（金流）端點

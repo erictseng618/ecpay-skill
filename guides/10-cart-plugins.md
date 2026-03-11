@@ -75,7 +75,7 @@ Shopify 使用專用 API 串接，非模組安裝：
 
 ## 模組功能支援矩陣
 
-> 來源：[developers.ecpay.com.tw](https://developers.ecpay.com.tw/) 開發者導覽首頁（SNAPSHOT 2026-03）
+> ⚠️ **SNAPSHOT 2026-03** | 來源：[developers.ecpay.com.tw](https://developers.ecpay.com.tw/) 開發者導覽首頁
 
 ### 金流支援
 

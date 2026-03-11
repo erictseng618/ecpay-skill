@@ -16,6 +16,8 @@
 
 > **各服務要求不同的回應格式，回應錯誤會導致綠界持續重送。** 確認你的回應 HTTP Status 為 **200**，否則 ECPay 視為失敗。
 
+> ⚠️ **SNAPSHOT 2026-03** | 來源：`references/` 各服務對應檔案
+
 | 服務 | 你的 Callback URL | 必須回應的格式 | Content-Type | 錯誤後果 |
 |------|-----------------|--------------|-------------|---------|
 | AIO 金流（ReturnURL / PaymentInfoURL / PeriodReturnURL） | ReturnURL | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次（持續天數有上限，重試停止後需手動補查） |

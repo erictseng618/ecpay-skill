@@ -208,7 +208,7 @@ try {
 
 ### 前端 JavaScript SDK 整合
 
-After the backend GetToken call returns a Token, use ECPay's JavaScript SDK on the frontend:
+後端 GetToken 呼叫取得 Token 後，在前端使用 ECPay JavaScript SDK：
 
 ```
 > 原始範例：scripts/SDK_PHP/example/Payment/Ecpg/CreateCreditOrder/WebJS.html
