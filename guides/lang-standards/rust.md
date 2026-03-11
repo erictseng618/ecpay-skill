@@ -146,6 +146,7 @@ pub enum EcpayError {
     #[error("CheckMacValue mismatch")]
     CmvMismatch,
 }
+```
 
 ## HTTP Client
 

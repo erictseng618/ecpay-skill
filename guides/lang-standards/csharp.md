@@ -201,6 +201,25 @@ var baseUrl = config["Env"] == "stage"
 // export Ecpay__HashKey=pwFHCqoQZGmho4w6
 ```
 
+## JSON 序列化注意
+
+```csharp
+// ⚠️ System.Text.Json 預設會 HTML 轉義 <, >, &, +, ' 為 \uXXXX
+// ECPay 不預期此轉義 — 必須設定 UnsafeRelaxedJsonEscaping
+// ✅ 正確：
+var jsonOptions = new JsonSerializerOptions
+{
+    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+};
+var json = JsonSerializer.Serialize(request, jsonOptions);
+
+// ❌ 錯誤：預設 JsonSerializerOptions 會 HTML 轉義
+// var json = JsonSerializer.Serialize(request);
+
+// 🔄 替代方案：Newtonsoft.Json 預設不做 HTML 轉義
+// JsonConvert.SerializeObject(request)
+```
+
 ## URL Encode 注意
 
 ```csharp
