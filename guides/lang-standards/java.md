@@ -52,6 +52,8 @@ package com.example.ecpay;
 ## 型別定義
 
 ```java
+import com.google.gson.annotations.SerializedName;
+
 public class AioParams {
     private String merchantID;        // MerchantID
     private String merchantTradeNo;
@@ -66,14 +68,20 @@ public class AioParams {
 }
 
 public class AesRequest {
+    @SerializedName("MerchantID")
     private String merchantID;
+    @SerializedName("RqHeader")
     private RqHeader rqHeader;
+    @SerializedName("Data")
     private String data;  // AES 加密後 Base64
 }
 
 public class AesResponse {
+    @SerializedName("TransCode")
     private int transCode;
+    @SerializedName("TransMsg")
     private String transMsg;
+    @SerializedName("Data")
     private String data;
 }
 

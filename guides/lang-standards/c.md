@@ -121,14 +121,20 @@ ecpay_error_t ecpay_call_aes_api(
         return ECPAY_ERR_HTTP;
     }
 
-    // 解密 Data → 檢查 RtnCode
+    // 解密 Data → 檢查 RtnCode（可能為字串或數字）
     const char* encrypted_data = cJSON_GetObjectItem(root, "Data")->valuestring;
     char* decrypted = ecpay_aes_decrypt(encrypted_data, hash_key, hash_iv);
     cJSON* data = cJSON_Parse(decrypted);
-    const char* rtn_code = cJSON_GetObjectItem(data, "RtnCode")->valuestring;
-    if (strcmp(rtn_code, "1") != 0) {
+    cJSON* rtn_code_item = cJSON_GetObjectItem(data, "RtnCode");
+    char rtn_code_str[32] = {0};
+    if (cJSON_IsString(rtn_code_item)) {
+        strncpy(rtn_code_str, rtn_code_item->valuestring, sizeof(rtn_code_str) - 1);
+    } else {
+        snprintf(rtn_code_str, sizeof(rtn_code_str), "%d", rtn_code_item->valueint);
+    }
+    if (strcmp(rtn_code_str, "1") != 0) {
         snprintf(out_error_msg, out_error_size, "RtnCode=%s: %s",
-                 rtn_code, cJSON_GetObjectItem(data, "RtnMsg")->valuestring);
+                 rtn_code_str, cJSON_GetObjectItem(data, "RtnMsg")->valuestring);
         cJSON_Delete(data);
         free(decrypted);
         cJSON_Delete(root);
