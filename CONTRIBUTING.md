@@ -47,9 +47,10 @@
 
 ## 新增語言支援
 
-- 加密函式（guides/13, 14）：需提供 timing-safe 比較 + 測試向量驗證
-- E2E 範例（guides/24）：提供安裝指令、框架選擇、與 Go 參考版的差異點
-- 更新 SKILL.md 語言計數和語言特定陷阱表
+1. **語言規範**：建立 `guides/lang-standards/{language}.md`（命名、型別、錯誤處理、HTTP、Callback、URL Encode 注意）
+2. **加密函式**（guides/13, 14）：需提供 timing-safe 比較 + 測試向量驗證
+3. **E2E 範例**（guides/24）：提供安裝指令、框架選擇、與 Go 參考版的差異點
+4. 更新 SKILL.md 語言計數、語言特定陷阱表和 lang-standards 對照表
 
 ## 維護指引
 
@@ -92,4 +93,4 @@ ECPay 官方 API 變更公告請見：[developers.ecpay.com.tw](https://develope
 
 ## 授權
 
-貢獻即同意以 MIT License 授權您的修改。
+貢獻即同意以 CC BY-SA 4.0 授權您的修改。
