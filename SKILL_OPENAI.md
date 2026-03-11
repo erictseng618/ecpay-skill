@@ -67,8 +67,8 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 - Payment + Invoice + Shipping (full e-commerce) → guides/11
 
 ## Refund / Void
-- Same-day credit card → **Void**: guides/01 §DoAction `Action=N` (AIO) / guides/02 (ECPG)
-- After settlement → **Refund**: guides/01 §DoAction `Action=R` / guides/02
+- Same-day credit card → **Void**: guides/01 §信用卡請款/退款/取消 `Action=N` (AIO) / guides/02 §請款/退款 (ECPG)
+- After settlement → **Refund**: guides/01 §信用卡請款/退款/取消 `Action=R` / guides/02 §請款/退款
 - Partial refund → AIO: `Action=R` with partial `TotalAmount` / ECPG: guides/02 §Refund
 - Non-credit-card (ATM/CVS/BARCODE) → ⚠️ No API refund — handle via ECPay merchant dashboard or contact support
 - Subscription cancel/pause → guides/01 §Periodic CreditCardPeriodAction
@@ -93,6 +93,11 @@ Every ECPay API uses one of these four modes. Identify the correct mode first.
 16. **RtnCode is STRING, not integer** — all callbacks/queries return `"1"` not `1`. Use `RtnCode === '1'` or loose comparison, never strict `=== 1`.
 17. **ATM/CVS/Barcode have TWO callbacks** — first to `PaymentInfoURL` (取號成功, RtnCode=2 or 10100073), second to `ReturnURL` (付款成功, RtnCode=1). Must implement both endpoints.
 18. **Validate every crypto step** — (1) Verify JSON serialization before AES encryption (key order, no HTML escape); (2) Verify AES decryption returns valid JSON (not null/empty); (3) Use standard Base64 alphabet (`+/=`), NOT URL-safe (`-_`); (4) If `NeedExtraPaidInfo=Y`, ALL extra callback fields MUST be included in CheckMacValue verification.
+19. **LINE/Facebook in-app WebView causes payment failure** — WebView cannot POST form to ECPay, resulting in MerchantID is Null. Must open payment URL in external browser.
+20. **DoAction (capture/refund/void) is credit card only** — ATM/CVS/BARCODE do not support API refunds. Check original `PaymentType` first; non-credit-card refunds require ECPay merchant dashboard or contact support (02-2655-1775).
+21. **ECPG is not the same as 站內付 2.0** — ECPG (EC Payment Gateway) covers 站內付 2.0, bind-card, backend auth and more. 站內付 2.0 is just one ECPG service. POS is offline, separate from ECPG.
+22. **Annotate data source in generated code** — Comment whether parameter values come from SNAPSHOT or Web Search (e.g., `// Source: SNAPSHOT 2026-03`).
+23. **Guide parameter tables are SNAPSHOT (2026-03)** — Sufficient for initial development. Before production, verify latest specs via Web Search on `developers.ecpay.com.tw`.
 
 # Test Accounts
 

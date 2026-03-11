@@ -1,0 +1,200 @@
+# TypeScript — ECPay 整合程式規範
+
+> 本檔為 AI 生成 ECPay 整合程式碼時的 TypeScript 專屬規範。
+> 加密函式：[guides/13 §TypeScript](../13-checkmacvalue.md) + [guides/14 §TypeScript](../14-aes-encryption.md)
+> E2E 範例：[guides/24 §TypeScript](../24-multi-language-integration.md)
+
+## 版本與環境
+
+- **最低版本**：TypeScript 5.0+、Node.js 18+
+- **推薦版本**：TypeScript 5.4+、Node.js 20 LTS+
+- **安裝**：`npm install -D typescript @types/node @types/express ts-node`
+
+## tsconfig 關鍵設定
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2020",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "outDir": "./dist"
+  }
+}
+```
+
+## 命名慣例
+
+與 Node.js 相同：函式 `camelCase`、類別 `PascalCase`、常數 `UPPER_SNAKE_CASE`。
+ECPay 參數名保持原始 PascalCase（`MerchantID`、`HashKey`）。
+
+## 型別定義（核心優勢）
+
+```typescript
+// ecpay-types.ts — ECPay 共用型別定義
+
+/** AIO 金流送出參數 */
+interface AioParams {
+  MerchantID: string;
+  MerchantTradeNo: string;
+  MerchantTradeDate: string;
+  PaymentType: 'aio';
+  TotalAmount: string;
+  TradeDesc: string;
+  ItemName: string;
+  ReturnURL: string;
+  ChoosePayment: string;
+  EncryptType: '1';
+  CheckMacValue?: string;
+  [key: string]: string | undefined;  // 動態額外欄位
+}
+
+/** AES-JSON 請求結構 */
+interface AesRequest {
+  MerchantID: string;
+  RqHeader: { Timestamp: number; Revision?: string };
+  Data: string;
+}
+
+/** AES-JSON 回應結構 */
+interface AesResponse {
+  TransCode: number;
+  TransMsg: string;
+  Data: string;
+}
+
+/** AIO Callback 參數 */
+interface AioCallbackParams {
+  MerchantID: string;
+  MerchantTradeNo: string;
+  RtnCode: string;     // ⚠️ 字串
+  RtnMsg: string;
+  TradeNo: string;
+  TradeAmt: string;
+  PaymentDate: string;
+  PaymentType: string;
+  CheckMacValue: string;
+  SimulatePaid: string;
+  [key: string]: string;
+}
+
+/** 付款方式枚舉 */
+type ChoosePayment = 'ALL' | 'Credit' | 'ATM' | 'CVS' | 'BARCODE' | 'WebATM'
+  | 'TWQR' | 'BNPL' | 'ApplePay' | 'WeiXin';
+
+/** DoAction 操作類型（僅限信用卡） */
+type CreditAction = 'C' | 'R' | 'E' | 'N';
+// C=請款, R=退款, E=取消, N=放棄
+
+/** ECPay 環境設定 */
+interface EcpayConfig {
+  merchantId: string;
+  hashKey: string;
+  hashIv: string;
+  baseUrl: string;
+}
+
+export type {
+  AioParams, AesRequest, AesResponse, AioCallbackParams,
+  ChoosePayment, CreditAction, EcpayConfig,
+};
+```
+
+## 錯誤處理
+
+```typescript
+class EcpayApiError extends Error {
+  constructor(
+    public readonly transCode: number,
+    public readonly rtnCode: string | null,
+    message: string,
+  ) {
+    super(`TransCode=${transCode}, RtnCode=${rtnCode}: ${message}`);
+    this.name = 'EcpayApiError';
+  }
+}
+
+async function callAesApi<T>(
+  url: string,
+  requestBody: AesRequest,
+  hashKey: string,
+  hashIv: string,
+): Promise<T> {
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody),
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (resp.status === 403) throw new EcpayApiError(-1, null, 'Rate Limited');
+  if (!resp.ok) throw new EcpayApiError(-1, null, `HTTP ${resp.status}`);
+
+  const result: AesResponse = await resp.json();
+  if (result.TransCode !== 1) {
+    throw new EcpayApiError(result.TransCode, null, result.TransMsg);
+  }
+  const data = aesDecrypt(result.Data, hashKey, hashIv) as T;
+  return data;
+}
+```
+
+## Callback Handler 模板
+
+```typescript
+import express, { Request, Response } from 'express';
+import crypto from 'crypto';
+
+const app = express();
+app.use(express.urlencoded({ extended: false }));
+
+app.post('/ecpay/callback', (req: Request, res: Response) => {
+  const params = req.body as AioCallbackParams;
+
+  // 1. Timing-safe CMV 驗證
+  const receivedCmv = params.CheckMacValue;
+  const { CheckMacValue: _, ...paramsWithoutCmv } = params;
+  const expectedCmv = generateCheckMacValue(paramsWithoutCmv, HASH_KEY, HASH_IV);
+
+  if (!crypto.timingSafeEqual(Buffer.from(receivedCmv), Buffer.from(expectedCmv))) {
+    return res.status(400).send('CheckMacValue Error');
+  }
+
+  // 2. RtnCode 是字串
+  if (params.RtnCode === '1') {
+    // 處理成功
+  }
+
+  // 3. HTTP 200 + "1|OK"
+  res.status(200).type('text/plain').send('1|OK');
+});
+```
+
+## 單元測試模式
+
+```bash
+npm install -D jest ts-jest @types/jest
+# jest.config.ts: preset: 'ts-jest'
+```
+
+```typescript
+import { generateCheckMacValue, aesEncrypt, aesDecrypt } from './ecpay-crypto';
+
+describe('CMV SHA256', () => {
+  it('matches test vector', () => {
+    const params = { /* ... test vector params ... */ };
+    expect(generateCheckMacValue(params, 'pwFHCqoQZGmho4w6', 'EkRm7iFT261dpevs'))
+      .toBe('291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2');
+  });
+});
+```
+
+## Linter / Formatter
+
+```bash
+npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier
+# 推薦啟用 strict mode + noUncheckedIndexedAccess
+```

@@ -1,0 +1,291 @@
+# C++ — ECPay 整合程式規範
+
+> 本檔為 AI 生成 ECPay 整合程式碼時的 C++ 專屬規範。
+> 加密函式：[guides/13 §C++](../13-checkmacvalue.md) + [guides/14 §C++](../14-aes-encryption.md)
+> E2E 範例：[guides/24](../24-multi-language-integration.md)
+
+## 版本與環境
+
+- **標準**：C++17+（`std::optional`、`std::string_view`、structured bindings）
+- **推薦**：C++20（`std::format`、concepts）
+- **編譯器**：GCC 10+ / Clang 12+ / MSVC 2019+
+- **加密**：OpenSSL 1.1+ 或 3.0+
+- **JSON**：nlohmann/json（header-only）
+
+## 推薦依賴
+
+```bash
+# Ubuntu/Debian
+sudo apt install libssl-dev libcurl4-openssl-dev nlohmann-json3-dev
+
+# macOS
+brew install openssl curl nlohmann-json
+
+# 或使用 vcpkg / conan
+vcpkg install openssl curl nlohmann-json
+```
+
+## 命名慣例
+
+```cpp
+// 命名空間：snake_case
+namespace ecpay {
+
+// 類別 / 結構體：PascalCase
+class PaymentClient { };
+struct AioParams { };
+
+// 函式 / 方法：camelCase 或 snake_case（擇一一致）
+std::string generateCheckMacValue(const ParamMap& params, std::string_view hashKey, std::string_view hashIv);
+// 或 generate_check_mac_value（Google Style / STL Style）
+
+// 成員變數：snake_case 或 snake_case_（Google Style 加底線）
+std::string merchant_id_;
+std::string hash_key_;
+
+// 常數：kPascalCase 或 UPPER_SNAKE_CASE
+constexpr const char* kPaymentUrl = "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5";
+
+// 檔案：snake_case.cpp / .hpp
+// ecpay_payment.cpp, ecpay_aes.hpp
+
+} // namespace ecpay
+```
+
+## 型別定義
+
+```cpp
+#include <string>
+#include <map>
+#include <optional>
+#include <nlohmann/json.hpp>
+
+namespace ecpay {
+
+using ParamMap = std::map<std::string, std::string>;
+
+struct AioParams {
+    std::string merchant_id;
+    std::string merchant_trade_no;
+    std::string merchant_trade_date;  // yyyy/MM/dd HH:mm:ss
+    std::string total_amount;         // ⚠️ 整數字串
+    std::string trade_desc;
+    std::string item_name;
+    std::string return_url;
+    std::string choose_payment = "ALL";
+
+    ParamMap toParamMap() const {
+        return {
+            {"MerchantID", merchant_id},
+            {"MerchantTradeNo", merchant_trade_no},
+            {"MerchantTradeDate", merchant_trade_date},
+            {"PaymentType", "aio"},
+            {"TotalAmount", total_amount},
+            {"TradeDesc", trade_desc},
+            {"ItemName", item_name},
+            {"ReturnURL", return_url},
+            {"ChoosePayment", choose_payment},
+            {"EncryptType", "1"},
+        };
+    }
+};
+
+struct AesResponse {
+    int TransCode;
+    std::string TransMsg;
+    std::string Data;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(AesResponse, TransCode, TransMsg, Data)
+};
+
+// ⚠️ RtnCode 為 std::string
+struct CallbackParams {
+    std::string rtn_code;             // "1" 非 int — 用 == "1" 比較
+    std::string merchant_trade_no;
+    std::string check_mac_value;
+};
+
+struct Config {
+    std::string merchant_id;
+    std::string hash_key;
+    std::string hash_iv;
+    std::string base_url;
+};
+
+} // namespace ecpay
+```
+
+## 錯誤處理
+
+```cpp
+#include <stdexcept>
+#include <string>
+
+namespace ecpay {
+
+class ApiError : public std::runtime_error {
+public:
+    int trans_code;
+    std::string rtn_code;
+
+    ApiError(int tc, const std::string& rc, const std::string& msg)
+        : std::runtime_error("TransCode=" + std::to_string(tc) + ", RtnCode=" + rc + ": " + msg),
+          trans_code(tc), rtn_code(rc) {}
+};
+
+class RateLimitError : public std::runtime_error {
+public:
+    RateLimitError() : std::runtime_error("Rate Limited (403) — retry after ~30 min") {}
+};
+
+nlohmann::json callAesApi(
+    const std::string& url,
+    const nlohmann::json& request,
+    const std::string& hashKey,
+    const std::string& hashIv
+) {
+    auto [httpCode, body] = httpPost(url, request.dump());
+
+    if (httpCode == 403) throw RateLimitError();
+    if (httpCode != 200) throw ApiError(-1, "", "HTTP " + std::to_string(httpCode));
+
+    auto result = nlohmann::json::parse(body);
+    int transCode = result["TransCode"].get<int>();
+
+    // 雙層錯誤檢查
+    if (transCode != 1) {
+        throw ApiError(transCode, "", result["TransMsg"].get<std::string>());
+    }
+
+    std::string decrypted = ecpayAesDecrypt(result["Data"].get<std::string>(), hashKey, hashIv);
+    auto data = nlohmann::json::parse(decrypted);
+
+    std::string rtnCode = data["RtnCode"].is_string()
+        ? data["RtnCode"].get<std::string>()
+        : std::to_string(data["RtnCode"].get<int>());
+
+    if (rtnCode != "1") {
+        throw ApiError(1, rtnCode, data.value("RtnMsg", ""));
+    }
+    return data;
+}
+
+} // namespace ecpay
+```
+
+## HTTP Client 配置（libcurl RAII）
+
+```cpp
+#include <curl/curl.h>
+#include <memory>
+
+// RAII wrapper for CURL handle
+struct CurlDeleter {
+    void operator()(CURL* curl) const { curl_easy_cleanup(curl); }
+};
+using CurlPtr = std::unique_ptr<CURL, CurlDeleter>;
+
+std::pair<long, std::string> httpPost(const std::string& url, const std::string& body) {
+    CurlPtr curl(curl_easy_init());
+    curl_easy_setopt(curl.get(), CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl.get(), CURLOPT_POSTFIELDS, body.c_str());
+    curl_easy_setopt(curl.get(), CURLOPT_TIMEOUT, 30L);
+    curl_easy_setopt(curl.get(), CURLOPT_CONNECTTIMEOUT, 10L);
+    // ... response handling ...
+}
+```
+
+## CMV Timing-Safe 比較
+
+```cpp
+#include <openssl/crypto.h>
+
+// OpenSSL CRYPTO_memcmp（timing-safe）
+bool verifyCmv(const std::string& received, const std::string& expected) {
+    if (received.size() != expected.size()) return false;
+    return CRYPTO_memcmp(received.data(), expected.data(), received.size()) == 0;
+}
+```
+
+## 記憶體與資源管理
+
+```cpp
+// ⚠️ 使用 RAII — 所有資源以 smart pointer 或 scope guard 管理
+// ⚠️ 敏感資料清零
+#include <openssl/crypto.h>
+
+void secureZero(std::string& s) {
+    OPENSSL_cleanse(s.data(), s.size());
+}
+
+// ⚠️ ecpayAesDecrypt 回傳已解密字串 — 不可再次呼叫 urlDecode
+// 正確用法：
+auto data = nlohmann::json::parse(ecpayAesDecrypt(encrypted, hashKey, hashIv));
+```
+
+## 環境變數
+
+```cpp
+#include <cstdlib>
+#include <stdexcept>
+
+ecpay::Config loadConfig() {
+    auto getEnv = [](const char* name) -> std::string {
+        const char* val = std::getenv(name);
+        if (!val) throw std::runtime_error(std::string("Missing ") + name);
+        return val;
+    };
+
+    std::string env = std::getenv("ECPAY_ENV") ? std::getenv("ECPAY_ENV") : "stage";
+    return {
+        getEnv("ECPAY_MERCHANT_ID"),
+        getEnv("ECPAY_HASH_KEY"),
+        getEnv("ECPAY_HASH_IV"),
+        env == "stage"
+            ? "https://payment-stage.ecpay.com.tw"
+            : "https://payment.ecpay.com.tw",
+    };
+}
+```
+
+## 單元測試模式
+
+```cpp
+// 使用 Google Test
+#include <gtest/gtest.h>
+
+TEST(EcpayTest, CmvSha256) {
+    ecpay::ParamMap params = {
+        {"MerchantID", "3002607"},
+        // ... test vector params ...
+    };
+    auto result = ecpay::generateCheckMacValue(params, "pwFHCqoQZGmho4w6", "EkRm7iFT261dpevs");
+    EXPECT_EQ(result, "291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2");
+}
+
+TEST(EcpayTest, AesRoundtrip) {
+    nlohmann::json data = {{"MerchantID", "2000132"}, {"BarCode", "/1234567"}};
+    auto encrypted = ecpay::ecpayAesEncrypt(data.dump(), "ejCk326UnaZWKisg", "q9jcZX8Ib9LM8wYk");
+    auto decrypted = ecpay::ecpayAesDecrypt(encrypted, "ejCk326UnaZWKisg", "q9jcZX8Ib9LM8wYk");
+    auto parsed = nlohmann::json::parse(decrypted);
+    EXPECT_EQ(parsed["MerchantID"], "2000132");
+}
+```
+
+## 編譯與靜態分析
+
+```bash
+# CMake 建置
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+# 靜態分析
+clang-tidy -checks='*,-fuchsia-*,-llvmlibc-*' ecpay_*.cpp
+cppcheck --enable=all --std=c++17 .
+
+# AddressSanitizer（開發環境）
+g++ -fsanitize=address -g -o ecpay ecpay.cpp -lssl -lcrypto -lcurl
+
+# Formatter
+clang-format -i ecpay_*.cpp ecpay_*.hpp
+```

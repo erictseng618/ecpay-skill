@@ -1,0 +1,279 @@
+# Swift — ECPay 整合程式規範
+
+> 本檔為 AI 生成 ECPay 整合程式碼時的 Swift 專屬規範。
+> 加密函式：[guides/13 §Swift](../13-checkmacvalue.md) + [guides/14 §Swift](../14-aes-encryption.md)
+> E2E 範例：[guides/24 §Swift](../24-multi-language-integration.md)
+
+## 版本與環境
+
+- **最低版本**：Swift 5.7+（`if let` shorthand、regex builder）
+- **推薦版本**：Swift 5.9+
+- **加密**：`CommonCrypto`（系統框架）或 `CryptoSwift`（第三方）
+- **平台**：iOS 15+ / macOS 12+ / Server-side (Vapor)
+
+## 推薦依賴
+
+```swift
+// Package.swift 或 SPM
+dependencies: [
+    .package(url: "https://github.com/krzyzanowskim/CryptoSwift", from: "1.8.0"),
+    // Server-side:
+    .package(url: "https://github.com/vapor/vapor", from: "4.90.0"),
+]
+```
+
+> **CommonCrypto vs CryptoSwift**：iOS 可用 `CommonCrypto`（系統內建），Server-side 建議用 `CryptoSwift`。guides/13、14 的範例使用 `CryptoSwift`。
+
+## 命名慣例
+
+```swift
+// 函式 / 變數 / 參數：camelCase（Swift API Design Guidelines）
+func generateCheckMacValue(params: [String: String], hashKey: String, hashIV: String) -> String
+let merchantTradeNo = "ORDER\(Int(Date().timeIntervalSince1970))"
+
+// 型別 / 協議 / 列舉：PascalCase
+struct EcpayPaymentClient { }
+protocol EcpayServiceProtocol { }
+enum PaymentMethod: String { case credit = "Credit" }
+
+// 常數 / 靜態屬性：camelCase（Swift 慣例，非 UPPER_SNAKE）
+static let paymentURL = "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"
+
+// 檔案：PascalCase.swift
+// EcpayPayment.swift, EcpayAES.swift, EcpayCallback.swift
+```
+
+## 型別定義
+
+```swift
+struct AioParams: Codable {
+    let merchantID: String
+    let merchantTradeNo: String
+    let merchantTradeDate: String   // yyyy/MM/dd HH:mm:ss
+    let paymentType: String         // "aio"
+    let totalAmount: String         // ⚠️ 整數字串
+    let tradeDesc: String
+    let itemName: String
+    let returnURL: String
+    let choosePayment: String
+    let encryptType: String         // "1"
+    var checkMacValue: String?
+
+    enum CodingKeys: String, CodingKey {
+        case merchantID = "MerchantID"
+        case merchantTradeNo = "MerchantTradeNo"
+        case merchantTradeDate = "MerchantTradeDate"
+        case paymentType = "PaymentType"
+        case totalAmount = "TotalAmount"
+        case tradeDesc = "TradeDesc"
+        case itemName = "ItemName"
+        case returnURL = "ReturnURL"
+        case choosePayment = "ChoosePayment"
+        case encryptType = "EncryptType"
+        case checkMacValue = "CheckMacValue"
+    }
+}
+
+struct AesRequest: Encodable {
+    let merchantID: String
+    let rqHeader: RqHeader
+    let data: String
+
+    enum CodingKeys: String, CodingKey {
+        case merchantID = "MerchantID"
+        case rqHeader = "RqHeader"
+        case data = "Data"
+    }
+}
+
+struct RqHeader: Encodable {
+    let timestamp: Int
+    let revision: String
+
+    enum CodingKeys: String, CodingKey {
+        case timestamp = "Timestamp"
+        case revision = "Revision"
+    }
+}
+
+struct AesResponse: Decodable {
+    let transCode: Int
+    let transMsg: String
+    let data: String
+
+    enum CodingKeys: String, CodingKey {
+        case transCode = "TransCode"
+        case transMsg = "TransMsg"
+        case data = "Data"
+    }
+}
+
+// ⚠️ RtnCode 為 String
+struct CallbackParams: Decodable {
+    let rtnCode: String         // "1" 非 Int
+    let merchantTradeNo: String
+    let checkMacValue: String
+
+    enum CodingKeys: String, CodingKey {
+        case rtnCode = "RtnCode"
+        case merchantTradeNo = "MerchantTradeNo"
+        case checkMacValue = "CheckMacValue"
+    }
+}
+```
+
+## 錯誤處理
+
+```swift
+enum EcpayError: Error, LocalizedError {
+    case httpError(statusCode: Int)
+    case rateLimited
+    case transportError(transCode: Int, message: String)
+    case businessError(rtnCode: String, message: String)
+    case aesError(String)
+    case cmvMismatch
+
+    var errorDescription: String? {
+        switch self {
+        case .httpError(let code): return "HTTP \(code)"
+        case .rateLimited: return "Rate Limited (403) — 需等待約 30 分鐘"
+        case .transportError(let tc, let msg): return "TransCode=\(tc): \(msg)"
+        case .businessError(let rc, let msg): return "RtnCode=\(rc): \(msg)"
+        case .aesError(let msg): return "AES: \(msg)"
+        case .cmvMismatch: return "CheckMacValue verification failed"
+        }
+    }
+}
+
+func callAesAPI(url: String, request: AesRequest, hashKey: String, hashIV: String) async throws -> [String: Any] {
+    var urlRequest = URLRequest(url: URL(string: url)!)
+    urlRequest.httpMethod = "POST"
+    urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    urlRequest.httpBody = try JSONEncoder().encode(request)
+    urlRequest.timeoutInterval = 30
+
+    let (data, response) = try await URLSession.shared.data(for: urlRequest)
+    let httpResp = response as! HTTPURLResponse
+
+    if httpResp.statusCode == 403 { throw EcpayError.rateLimited }
+    guard (200..<300).contains(httpResp.statusCode) else {
+        throw EcpayError.httpError(statusCode: httpResp.statusCode)
+    }
+
+    let result = try JSONDecoder().decode(AesResponse.self, from: data)
+
+    // 雙層錯誤檢查
+    guard result.transCode == 1 else {
+        throw EcpayError.transportError(transCode: result.transCode, message: result.transMsg)
+    }
+    let decrypted = try ecpayAesDecrypt(result.data, hashKey: hashKey, hashIV: hashIV)
+    guard let rtnCode = decrypted["RtnCode"] as? String, rtnCode == "1" else {
+        throw EcpayError.businessError(
+            rtnCode: "\(decrypted["RtnCode"] ?? "")",
+            message: decrypted["RtnMsg"] as? String ?? "")
+    }
+    return decrypted
+}
+```
+
+## Callback Handler 模板（Vapor）
+
+```swift
+import Vapor
+import CryptoKit  // for timing-safe HMAC comparison
+
+func routes(_ app: Application) throws {
+    app.post("ecpay", "callback") { req async throws -> Response in
+        let params = try req.content.decode([String: String].self)
+        var mutableParams = params
+
+        // 1. Timing-safe CMV 驗證
+        guard let receivedCmv = mutableParams.removeValue(forKey: "CheckMacValue") else {
+            throw Abort(.badRequest, reason: "Missing CheckMacValue")
+        }
+        let expectedCmv = generateCheckMacValue(params: mutableParams, hashKey: hashKey, hashIV: hashIV)
+
+        // timing-safe：用 HMAC 間接比較（CryptoKit isValidAuthenticationCode 為 constant-time）
+        let key = SymmetricKey(data: Data(hashKey.utf8))
+        let isValid = HMAC<SHA256>.isValidAuthenticationCode(
+            HMAC<SHA256>.authenticationCode(for: Data(receivedCmv.utf8), using: key),
+            authenticating: Data(expectedCmv.utf8), using: key
+        )
+        guard isValid else {
+            throw Abort(.badRequest, reason: "CheckMacValue Error")
+        }
+
+        // 2. RtnCode 是字串
+        if params["RtnCode"] == "1" {
+            // 處理成功
+        }
+
+        // 3. HTTP 200 + "1|OK"
+        return Response(status: .ok, body: .init(string: "1|OK"))
+    }
+}
+```
+
+## 環境變數
+
+```swift
+import Foundation
+
+struct EcpayConfig {
+    let merchantID: String
+    let hashKey: String
+    let hashIV: String
+    let baseURL: String
+
+    static func load() -> EcpayConfig {
+        let env = ProcessInfo.processInfo.environment
+        let ecpayEnv = env["ECPAY_ENV"] ?? "stage"
+        return EcpayConfig(
+            merchantID: env["ECPAY_MERCHANT_ID"] ?? "",
+            hashKey: env["ECPAY_HASH_KEY"] ?? "",
+            hashIV: env["ECPAY_HASH_IV"] ?? "",
+            baseURL: ecpayEnv == "stage"
+                ? "https://payment-stage.ecpay.com.tw"
+                : "https://payment.ecpay.com.tw"
+        )
+    }
+}
+```
+
+## 單元測試模式
+
+```swift
+import XCTest
+
+final class EcpayTests: XCTestCase {
+    func testCmvSha256() {
+        let params: [String: String] = [
+            "MerchantID": "3002607",
+            // ... test vector params ...
+        ]
+        let result = generateCheckMacValue(params: params, hashKey: "pwFHCqoQZGmho4w6", hashIV: "EkRm7iFT261dpevs")
+        XCTAssertEqual(result, "291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2")
+    }
+
+    func testAesRoundtrip() throws {
+        let data: [String: Any] = ["MerchantID": "2000132", "BarCode": "/1234567"]
+        let encrypted = try ecpayAesEncrypt(data, hashKey: "ejCk326UnaZWKisg", hashIV: "q9jcZX8Ib9LM8wYk")
+        let decrypted = try ecpayAesDecrypt(encrypted, hashKey: "ejCk326UnaZWKisg", hashIV: "q9jcZX8Ib9LM8wYk")
+        XCTAssertEqual(decrypted["MerchantID"] as? String, "2000132")
+    }
+}
+```
+
+## Linter / Formatter
+
+```bash
+# SwiftLint（推薦）
+# 安裝：brew install swiftlint
+# 設定：.swiftlint.yml
+# disabled_rules:
+#   - line_length
+# opt_in_rules:
+#   - force_unwrapping
+swiftlint
+swift-format format --in-place .
+```

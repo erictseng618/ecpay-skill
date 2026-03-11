@@ -269,16 +269,16 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 | CheckMacValue 驗證失敗 | guides/13 + guides/15 §1 |
 | AES 解密結果亂碼 | guides/14 §常見錯誤 |
 | Callback 收不到 | guides/15 §2 + guides/22 失敗恢復策略 |
-| 如何退款 | guides/01 §DoAction (AIO) / guides/02 §DoAction (站內付) |
-| 如何查訂單 | guides/01 §QueryTradeInfo / guides/02 §查詢 |
+| 如何退款 | guides/01 §信用卡請款 / 退款 / 取消 / guides/02 §請款 / 退款 |
+| 如何查訂單 | guides/01 §查詢訂單 / guides/02 §查詢 |
 | 如何對帳 | guides/01 §對帳（domain: vendor.ecpay.com.tw）|
 | 如何開發票 | guides/04 (B2C) / guides/05 (B2B) |
 | 處理 Callback / Webhook | guides/22（各服務 callback 回應格式彙總）|
 | 測試帳號是什麼 | guides/00 §測試帳號 |
 | 上線前檢查 / 切換正式環境 | guides/16 |
-| 日交易 > 1,000 筆 / 高併發 / Rate Limiting | guides/23 §Rate Limiting + §Callback 佇列 |
+| 日交易 > 1,000 筆 / 高併發 / Rate Limiting | guides/23 §Rate Limiting + §Webhook 佇列架構 |
 | ECPG 404 / Domain 打錯 | guides/02 端點表（ecpg vs ecpayment）+ guides/16 §ECPG |
-| AES-JSON 雙層錯誤檢查 | guides/21 §TransCode vs RtnCode + guides/04 §AES 請求格式 |
+| AES-JSON 雙層錯誤檢查 | guides/21 §錯誤碼閱讀方式 + guides/04 §AES 請求格式 |
 | 物流退貨 | guides/06 逆物流 / guides/07 逆物流 |
 | 非 PHP 完整範例 | guides/24（⚠️ 使用 AI Section Index 行號跳轉） |
 
@@ -340,11 +340,14 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 5. **注意不同付款方式/服務之間的語意差異**：相同參數名在不同服務中可能有不同單位（如 `StoreExpireDate` 在超商代碼=分鐘、條碼=天）、不同最低金額（BNPL ≥ 3000）、不同回傳值（`PaymentType` 回傳 `Credit_CreditCard` ≠ 送出的 `Credit`）、不同 Content-Type（金流=form-urlencoded、發票=json）。讀取 API 頁面時必須注意這些隱含差異
 6. **Timestamp 一律使用 Unix 秒數**（非毫秒）：JavaScript `Date.now()` 回傳毫秒，必須除以 1000 並取整
 7. **首次串接某服務時**（本次對話中第一次涉及該服務），同時 web_fetch 該服務的「介接注意事項」頁面（見下方 [§介接注意事項 URL 速查表](#介接注意事項-url-速查表)），摘取所有關鍵限制告知開發者
-6. 如果開發者不用 PHP，將範例翻譯為目標語言
-7. 翻譯時保留所有參數名、端點 URL、加密邏輯
-8. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
-9. HTTP 協議細節參考 `guides/20-http-protocol-reference.md`（端點 URL、回應格式、認證方式）
-10. 標註原始範例路徑供開發者查閱
+8. 如果開發者不用 PHP，將範例翻譯為目標語言
+9. **載入目標語言的程式規範**：翻譯前先讀取 `guides/lang-standards/{語言}.md`，遵循其命名慣例、型別定義、錯誤處理、HTTP Client 配置、Callback Handler 模板等規範，確保產出的程式碼為 idiomatic 且生產就緒
+10. 翻譯時保留所有參數名、端點 URL、加密邏輯
+11. 加密實作參考 `guides/13-checkmacvalue.md` 和 `guides/14-aes-encryption.md`
+12. HTTP 協議細節參考 `guides/20-http-protocol-reference.md`（端點 URL、回應格式、認證方式）
+13. 標註原始範例路徑供開發者查閱
+
+> **語言規範檔案對照**：`python.md` · `nodejs.md` · `typescript.md` · `java.md` · `csharp.md` · `go.md` · `kotlin.md` · `ruby.md` · `rust.md` · `swift.md` · `c.md` · `cpp.md` — 均位於 `guides/lang-standards/` 目錄
 
 ### 步驟 4：測試驗證
 
@@ -548,6 +551,25 @@ composer require "ecpay/sdk:^4.0"
 | 16 | guides/16-go-live-checklist.md | 上線檢查清單 | 20 分鐘 |
 | 23 | guides/23-performance-scaling.md | 效能與擴展性指引 | 15 分鐘 |
 | 24 | guides/24-multi-language-integration.md | 多語言整合完整指南（Go/Java/C#/TS/Kotlin/Ruby E2E + Mobile App） | 8-15 分鐘（用 Section Index） |
+
+### 程式語言規範（guides/lang-standards/）
+
+> 生成目標語言程式碼時，同時載入對應規範檔。每份 ~150-250 行，涵蓋命名慣例、型別定義、錯誤處理、HTTP 配置、Callback Handler、環境變數、單元測試。
+
+| 語言 | 檔案 |
+|------|------|
+| Python | guides/lang-standards/python.md |
+| Node.js | guides/lang-standards/nodejs.md |
+| TypeScript | guides/lang-standards/typescript.md |
+| Go | guides/lang-standards/go.md |
+| Java | guides/lang-standards/java.md |
+| C# | guides/lang-standards/csharp.md |
+| Kotlin | guides/lang-standards/kotlin.md |
+| Ruby | guides/lang-standards/ruby.md |
+| Rust | guides/lang-standards/rust.md |
+| Swift | guides/lang-standards/swift.md |
+| C | guides/lang-standards/c.md |
+| C++ | guides/lang-standards/cpp.md |
 
 ### 官方 API 文件索引（references/）
 

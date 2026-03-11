@@ -15,6 +15,6 @@ description: 串接綠界金流收款（AIO / 站內付 2.0 / 幕後授權）、
 6. **生成程式碼前**，必須從 `references/Payment/` 對應檔案 web_fetch 最新 API 規格
 
 擴充功能（依使用者需求選用）：
-- **查詢/對帳** → 對應 guide 的 §QueryTradeInfo 或 §對帳 區段
-- **退款/取消** → 對應 guide 的 §DoAction 區段；跨服務補償見 `guides/11-cross-service-scenarios.md`
-- **Callback** → `guides/22-webhook-events-reference.md`（各服務回應格式彙總）；收不到見 `guides/15-troubleshooting.md` §2
+- **查詢/對帳** → 對應 guide 的 §查詢訂單 或 §下載對帳檔 區段
+- **退款/取消** → 對應 guide 的 §信用卡請款 / 退款 / 取消 區段（僅限信用卡）；跨服務見 `guides/11`
+- **Callback** → `guides/22-webhook-events-reference.md`；收不到見 `guides/15` §2

@@ -1,0 +1,255 @@
+# Java — ECPay 整合程式規範
+
+> 本檔為 AI 生成 ECPay 整合程式碼時的 Java 專屬規範。
+> 加密函式：[guides/13 §Java](../13-checkmacvalue.md) + [guides/14 §Java](../14-aes-encryption.md)
+> E2E 範例：[guides/24 §Java](../24-multi-language-integration.md)
+
+## 版本與環境
+
+- **最低版本**：Java 11+（HttpClient 內建）
+- **推薦版本**：Java 17 LTS+（text blocks、sealed classes）
+- **建置工具**：Maven 或 Gradle
+
+## 推薦依賴
+
+```xml
+<!-- Maven — 大多數使用標準庫即可，僅需 JSON 處理 -->
+<dependency>
+  <groupId>com.google.code.gson</groupId>
+  <artifactId>gson</artifactId>
+  <version>2.10.1</version>
+</dependency>
+<!-- 或 Jackson -->
+<dependency>
+  <groupId>com.fasterxml.jackson.core</groupId>
+  <artifactId>jackson-databind</artifactId>
+  <version>2.17.0</version>
+</dependency>
+```
+
+> **加密：無需第三方庫**。`javax.crypto` + `java.security` 已包含 AES-128-CBC 和 SHA-256。
+
+## 命名慣例
+
+```java
+// 類別：PascalCase
+public class EcpayPaymentService { }
+
+// 方法 / 變數：camelCase
+public String generateCheckMacValue(Map<String, String> params, String hashKey, String hashIv) { }
+String merchantTradeNo = "ORDER" + System.currentTimeMillis();
+
+// 常數：UPPER_SNAKE_CASE
+public static final String ECPAY_PAYMENT_URL = "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5";
+
+// 套件名：反向域名（全小寫）
+package com.example.ecpay;
+
+// 檔案命名 = 類別名（PascalCase.java）
+// EcpayPaymentService.java, EcpayAesUtil.java
+```
+
+## 型別定義
+
+```java
+public class AioParams {
+    private String merchantID;        // MerchantID
+    private String merchantTradeNo;
+    private String merchantTradeDate; // yyyy/MM/dd HH:mm:ss
+    private String paymentType = "aio";
+    private String totalAmount;       // ⚠️ 整數字串
+    private String returnURL;
+    private String choosePayment;
+    private String encryptType = "1";
+    private String checkMacValue;
+    // getters, setters, toMap()
+}
+
+public class AesRequest {
+    private String merchantID;
+    private RqHeader rqHeader;
+    private String data;  // AES 加密後 Base64
+}
+
+public class AesResponse {
+    private int transCode;
+    private String transMsg;
+    private String data;
+}
+
+// ⚠️ RtnCode 為 String 型別
+public class CallbackParams {
+    private String rtnCode;   // "1" 表示成功，非 int
+    private String merchantTradeNo;
+    private String checkMacValue;
+}
+```
+
+## 錯誤處理
+
+```java
+public class EcpayApiException extends RuntimeException {
+    private final int transCode;
+    private final String rtnCode;
+
+    public EcpayApiException(int transCode, String rtnCode, String message) {
+        super(String.format("TransCode=%d, RtnCode=%s: %s", transCode, rtnCode, message));
+        this.transCode = transCode;
+        this.rtnCode = rtnCode;
+    }
+}
+
+public Map<String, Object> callAesApi(String url, AesRequest request, String hashKey, String hashIv) {
+    HttpRequest httpReq = HttpRequest.newBuilder()
+        .uri(URI.create(url))
+        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(request)))
+        .timeout(Duration.ofSeconds(30))
+        .build();
+
+    HttpResponse<String> resp = httpClient.send(httpReq, HttpResponse.BodyHandlers.ofString());
+
+    if (resp.statusCode() == 403) {
+        throw new EcpayApiException(-1, null, "Rate Limited — 需等待約 30 分鐘");
+    }
+
+    AesResponse result = gson.fromJson(resp.body(), AesResponse.class);
+
+    // 雙層錯誤檢查
+    if (result.getTransCode() != 1) {
+        throw new EcpayApiException(result.getTransCode(), null, result.getTransMsg());
+    }
+    Map<String, Object> data = aesDecrypt(result.getData(), hashKey, hashIv);
+    if (!"1".equals(String.valueOf(data.get("RtnCode")))) {
+        throw new EcpayApiException(1, String.valueOf(data.get("RtnCode")),
+            String.valueOf(data.get("RtnMsg")));
+    }
+    return data;
+}
+```
+
+## HTTP Client 配置
+
+```java
+// Java 11+ HttpClient（推薦全域共用實例）
+private static final HttpClient httpClient = HttpClient.newBuilder()
+    .connectTimeout(Duration.ofSeconds(10))
+    .followRedirects(HttpClient.Redirect.NORMAL)
+    .build();
+
+// ⚠️ HttpRequest 的 timeout 是每次請求獨立設定
+```
+
+## Callback Handler 模板（Spring Boot）
+
+```java
+@RestController
+public class EcpayCallbackController {
+
+    @PostMapping(value = "/ecpay/callback",
+                 consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                 produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> handleCallback(@RequestParam Map<String, String> params) {
+
+        // 1. Timing-safe CMV 驗證
+        String receivedCmv = params.remove("CheckMacValue");
+        String expectedCmv = generateCheckMacValue(params, hashKey, hashIv);
+        if (!MessageDigest.isEqual(receivedCmv.getBytes(), expectedCmv.getBytes())) {
+            return ResponseEntity.badRequest().body("CheckMacValue Error");
+        }
+
+        // 2. RtnCode 是字串
+        if ("1".equals(params.get("RtnCode"))) {
+            // 處理成功
+        }
+
+        // 3. HTTP 200 + "1|OK"
+        return ResponseEntity.ok("1|OK");
+    }
+}
+```
+
+## Callback Handler 模板（Servlet）
+
+```java
+@Override
+protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    Map<String, String> params = new TreeMap<>();
+    req.getParameterMap().forEach((k, v) -> params.put(k, v[0]));
+
+    String receivedCmv = params.remove("CheckMacValue");
+    String expectedCmv = generateCheckMacValue(params, hashKey, hashIv);
+    if (!MessageDigest.isEqual(receivedCmv.getBytes(), expectedCmv.getBytes())) {
+        resp.sendError(400, "CheckMacValue Error");
+        return;
+    }
+
+    resp.setContentType("text/plain");
+    resp.setCharacterEncoding("UTF-8");
+    resp.getWriter().write("1|OK");
+}
+```
+
+## 環境變數
+
+```java
+// 從環境變數或 application.properties 載入
+String merchantId = System.getenv("ECPAY_MERCHANT_ID");
+String hashKey = System.getenv("ECPAY_HASH_KEY");
+String hashIv = System.getenv("ECPAY_HASH_IV");
+String env = System.getenv().getOrDefault("ECPAY_ENV", "stage");
+
+String baseUrl = "stage".equals(env)
+    ? "https://payment-stage.ecpay.com.tw"
+    : "https://payment.ecpay.com.tw";
+
+// Spring Boot: application.yml
+// ecpay:
+//   merchant-id: ${ECPAY_MERCHANT_ID}
+//   hash-key: ${ECPAY_HASH_KEY}
+//   hash-iv: ${ECPAY_HASH_IV}
+```
+
+## JSON 序列化注意
+
+```java
+// Gson 有兩種轉義行為，不要混淆：
+// 1. Unicode 轉義：預設不轉義（中文保持原樣，等同 Python ensure_ascii=False）
+// 2. HTML 轉義：預設開啟（<, >, &, =, ' → \uXXXX）
+// ⚠️ 必須禁用 HTML escaping — ECPay 不預期 \u003c 格式
+Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+```
+
+## 單元測試模式
+
+```java
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+class EcpayTest {
+    @Test
+    void testCmvSha256() {
+        Map<String, String> params = new TreeMap<>();
+        params.put("MerchantID", "3002607");
+        // ... test vector params ...
+        String result = generateCheckMacValue(params, "pwFHCqoQZGmho4w6", "EkRm7iFT261dpevs");
+        assertEquals("291CBA324D31FB5A4BBBFDF2CFE5D32598524753AFD4959C3BF590C5B2F57FB2", result);
+    }
+
+    @Test
+    void testAesRoundtrip() {
+        String encrypted = aesEncrypt("{\"MerchantID\":\"2000132\"}", "ejCk326UnaZWKisg", "q9jcZX8Ib9LM8wYk");
+        String decrypted = aesDecrypt(encrypted, "ejCk326UnaZWKisg", "q9jcZX8Ib9LM8wYk");
+        assertTrue(decrypted.contains("2000132"));
+    }
+}
+```
+
+## Linter / Formatter
+
+```bash
+# 推薦使用 google-java-format
+# Maven: mvn com.spotify.fmt:fmt-maven-plugin:format
+# Gradle: plugins { id "com.diffplug.spotless" }
+# IntelliJ: Settings → Editor → Code Style → Scheme: GoogleStyle
+```

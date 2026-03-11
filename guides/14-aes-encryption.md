@@ -1,11 +1,11 @@
 > 對應 ECPay API 版本 | 基於 PHP SDK ecpay/sdk | 最後更新：2026-03
 
 <!-- AI Section Index（供 AI 部分讀取大檔案用）
-Python: line 221-267 | Node.js: line 268-316 | TypeScript: line 317-371
-Java: line 372-450 | C#: line 451-513 | Go: line 514-619
-C: line 620-778 | C++: line 779-933 | Rust: line 934-999
-Swift: line 1000-1077 | Kotlin: line 1078-1126 | Ruby: line 1127-1176
-Test vectors: line 1177-1322 | 常見錯誤: line 1323-1354
+Python: line 221-268 | Node.js: line 269-317 | TypeScript: line 318-372
+Java: line 373-451 | C#: line 452-514 | Go: line 515-620
+C: line 621-779 | C++: line 780-934 | Rust: line 935-1000
+Swift: line 1001-1078 | Kotlin: line 1079-1127 | Ruby: line 1128-1177
+Test vectors: line 1178-1323 | 常見錯誤: line 1324-1355
 CI/自動化驗證: test-vectors/aes-encryption.json (6 vectors) + test-vectors/url-encode-comparison.json (4 vectors) + test-vectors/verify.py
 -->
 
@@ -230,9 +230,10 @@ from Crypto.Util.Padding import pad, unpad
 def aes_encrypt(data: dict, hash_key: str, hash_iv: str) -> str:
     """對應 AesService::encrypt()"""
     # 1. JSON encode
-    # ⚠️ ensure_ascii=False 是關鍵（遺漏此參數是 Python 最常見的 AES 串接錯誤）：
-    #   True（預設）→ 中文轉為 \uXXXX → URL encode 結果不同 → ECPay 解密失敗
-    #   False → 保留原始中文 → 與 PHP json_encode 行為一致
+    # ⚠️ ensure_ascii=False 是推薦設定（遺漏此參數是 Python 最常見的 AES 串接問題）：
+    #   False → 保留原始 UTF-8 中文 → URL encode 產生較短結果，推薦使用
+    #   True（預設）→ 中文轉為 \uXXXX（等同 PHP json_encode 預設行為）→ 結果亦正確但字串較長
+    #   兩者 ECPay 皆可正常解密，但 False 在含中文時更節省位元組
     json_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
     # 2. URL encode（空格→+）
     # quote_plus 不編碼 ~，但 PHP urlencode 會編碼為 %7E
@@ -924,8 +925,8 @@ std::string ecpayAesDecrypt(const std::string& cipherText,
  * std::string encrypted = ecpayAesEncrypt(json_str, hashKey, hashIv);
  *
  * std::string decrypted = ecpayAesDecrypt(encrypted, hashKey, hashIv);
- * // decrypted 是 URL encoded JSON 字串，需 URL decode 後再 JSON parse
- * auto data = nlohmann::json::parse(urlDecode(decrypted));
+ * // decrypted 已完成 URL decode，直接是 JSON 字串
+ * auto data = nlohmann::json::parse(decrypted);
  */
 ```
 
@@ -1020,7 +1021,7 @@ func aesEncrypt(data: [String: Any], hashKey: String, hashIv: String) -> String?
     guard let jsonData = try? JSONSerialization.data(withJSONObject: data),
           let jsonStr = String(data: jsonData, encoding: .utf8) else { return nil }
     // 2. URL encode（空格→+）
-    // AES 專用：白名單 alnum + -_.（與 PHP urlencode safe characters 一致），確保 ~ 等字元正確編碼
+    // AES 專用：白名單 alnum + -_.（~ 不在白名單中，已被 addingPercentEncoding 編碼為 %7E，下方 replace 為冪等保險）
     var allowed = CharacterSet.alphanumerics
     allowed.insert(charactersIn: "-_.")
     guard let urlEncoded = jsonStr.addingPercentEncoding(
