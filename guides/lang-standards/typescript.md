@@ -134,10 +134,15 @@ async function callAesApi<T>(
   if (!resp.ok) throw new EcpayApiError(-1, null, `HTTP ${resp.status}`);
 
   const result: AesResponse = await resp.json();
+
+  // 雙層錯誤檢查
   if (result.TransCode !== 1) {
     throw new EcpayApiError(result.TransCode, null, result.TransMsg);
   }
-  const data = aesDecrypt(result.Data, hashKey, hashIv) as T;
+  const data = aesDecrypt(result.Data, hashKey, hashIv) as T & Record<string, unknown>;
+  if (String(data.RtnCode) !== '1') {
+    throw new EcpayApiError(1, String(data.RtnCode), String(data.RtnMsg ?? ''));
+  }
   return data;
 }
 ```

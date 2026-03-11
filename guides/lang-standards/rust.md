@@ -26,6 +26,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 subtle = "2.5"
 dotenv = "0.15"
+chrono = { version = "0.4", features = ["clock"] }
+once_cell = "1.19"
+thiserror = "1.0"
 ```
 
 ## 命名慣例
