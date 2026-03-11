@@ -33,7 +33,7 @@
    - **references/** 內為 URL 索引，維持 blockquote AI 指令標頭 + 章節 URL 列表格式
    - 更新 **guides/13、14、24** 的章節結構後，執行 `bash scripts/validate-ai-index.sh` 確認 AI Section Index 行號索引正確
    - **commands/** 為 Claude Code 快速指令，保持精簡（每個 ≤ 20 行）
-3. 確認 SKILL.md / SKILL_OPENAI.md / README.md 的版本號一致
+3. 確認 SKILL.md / SKILL_OPENAI.md / README.md / OPENAI_SETUP.md 的版本號一致
 4. 提交 Pull Request 並說明變更原因
 
 ## 目錄結構規範
@@ -41,7 +41,7 @@
 | 目錄 | 用途 | 修改注意事項 |
 |------|------|-------------|
 | `guides/` | AI 知識文件 | 保持 SNAPSHOT 標記一致，參數表附來源 reference 路徑 |
-| `references/` | 官方 API URL 索引 | 維持 YAML front-matter + URL 列表格式 |
+| `references/` | 官方 API URL 索引 | 維持 blockquote AI 指令標頭 + 章節 URL 列表格式 |
 | `scripts/SDK_PHP/` | 官方 PHP 範例 | 僅追蹤官方 SDK 更新，不自行修改 |
 | `commands/` | Claude Code 指令 | 指令負責導航，不重複 SKILL.md 的 SNAPSHOT 邏輯 |
 
@@ -80,7 +80,7 @@
 當 ECPay 更新 API 規格時（棄用端點、新增參數、變更格式）：
 1. 更新 `references/` 對應文件中的 URL 索引
 2. 更新對應 `guides/` 的 SNAPSHOT 日期戳記
-3. 在對應 `guides/` 更新 SNAPSHOT 日期戳記
+3. 若為新服務類型，更新 SKILL.md 決策樹與文件索引表
 
 ECPay 官方 API 變更公告請見：[developers.ecpay.com.tw](https://developers.ecpay.com.tw)
 

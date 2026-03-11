@@ -385,7 +385,7 @@ RtnCode, RtnMsg, IA_Allow_No, IA_Invoice_No, IA_Date, IIS_Remain_Allowance_Amt, 
 
 1. 將回傳參數（不含 CheckMacValue）依英文字母 A-Z 排序，以 `&` 串連
 2. 前加 `HashKey=...&`，後加 `&HashIV=...`
-3. URL encode（使用 ecpay 規格，見 [guides/14](./14-url-encode.md)）
+3. URL encode（使用 ecpay 規格，見 [guides/14](./14-aes-encryption.md)）
 4. 轉小寫
 5. **MD5** 雜湊 → 轉大寫 = CheckMacValue
 
