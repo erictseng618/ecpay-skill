@@ -193,7 +193,9 @@ func routes(_ app: Application) throws {
         }
         let expectedCmv = generateCheckMacValue(params: mutableParams, hashKey: hashKey, hashIV: hashIV)
 
-        // timing-safe：用 HMAC 間接比較（CryptoKit isValidAuthenticationCode 為 constant-time）
+        // timing-safe：CryptoKit 的 isValidAuthenticationCode 為 constant-time 實作
+        // 原理：HMAC(received, key) == HMAC(expected, key) → 間接實現 constant-time 字串比較
+        // Swift 標準庫無直接 constantTimeEquals，此為官方推薦作法
         let key = SymmetricKey(data: Data(hashKey.utf8))
         let isValid = HMAC<SHA256>.isValidAuthenticationCode(
             HMAC<SHA256>.authenticationCode(for: Data(receivedCmv.utf8), using: key),
@@ -238,6 +240,15 @@ struct EcpayConfig {
         )
     }
 }
+```
+
+## URL Encode 注意
+
+```swift
+// ⚠️ Swift 的 addingPercentEncoding() 空格編碼為 %20 而非 +
+// ECPay CheckMacValue 要求：%20 → +
+// guides/13 的 ecpayUrlEncode 已處理此轉換
+// 請直接使用 guides/13 提供的函式，勿自行實作
 ```
 
 ## 單元測試模式

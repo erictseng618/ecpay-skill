@@ -248,6 +248,15 @@ ecpay::Config loadConfig() {
 }
 ```
 
+## URL Encode 注意
+
+```cpp
+// ⚠️ C++ 無標準 URL encode — 使用 Boost.URL 或手動實作時注意：
+// 空格必須編碼為 +（非 %20）、~ 必須編碼為 %7e
+// guides/13 的 ecpayUrlEncode 已處理這些轉換
+// 請直接使用 guides/13 提供的函式，勿自行實作
+```
+
 ## 單元測試模式
 
 ```cpp

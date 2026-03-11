@@ -173,6 +173,16 @@ app.post('/ecpay/callback', (req: Request, res: Response) => {
 });
 ```
 
+## URL Encode 注意
+
+```typescript
+// ⚠️ encodeURIComponent() 空格編碼為 %20 而非 +
+// 且不會編碼 ~ 字元和 ' 字元
+// ECPay CheckMacValue 要求：%20 → +、~ → %7e、' → %27
+// guides/13 的 ecpayUrlEncode 已處理這些轉換
+// 請直接使用 guides/13 提供的函式，勿自行實作
+```
+
 ## 單元測試模式
 
 ```bash

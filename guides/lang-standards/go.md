@@ -236,6 +236,15 @@ func LoadConfig() Config {
 }
 ```
 
+## URL Encode 注意
+
+```go
+// ⚠️ Go 的 url.QueryEscape() 不會編碼 ~ 字元
+// ECPay CheckMacValue 要求 ~ 編碼為 %7e
+// guides/13 的 ecpayURLEncode 已處理此轉換（~ → %7e）
+// 請直接使用 guides/13 提供的函式，勿自行實作
+```
+
 ## 單元測試模式
 
 ```go

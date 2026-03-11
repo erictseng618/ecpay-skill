@@ -190,6 +190,15 @@ BASE_URL = (
 )
 ```
 
+## URL Encode 注意
+
+```python
+# ⚠️ Python 的 urllib.parse.quote_plus() 不會編碼 ~ 字元
+# ECPay CheckMacValue 要求 ~ 編碼為 %7e
+# guides/13 的 ecpayUrlEncode 已處理此轉換（~ → %7e）
+# 請直接使用 guides/13 提供的函式，勿自行實作
+```
+
 ## 單元測試模式
 
 ```python

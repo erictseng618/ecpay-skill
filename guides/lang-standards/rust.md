@@ -24,6 +24,7 @@ reqwest = { version = "0.12", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+subtle = "2.5"
 dotenv = "0.15"
 ```
 
@@ -236,6 +237,16 @@ fn load_config() -> EcpayConfig {
 // serde_json::to_string 預設保留 Unicode（不轉義為 \uXXXX）
 // ⚠️ serde_json 預設不會轉義 < > &（與 Go 不同）— 符合 ECPay 預期
 // ⚠️ BTreeMap 自動按 key 排序（CMV 不需要，但 AES 不依賴排序所以無害）
+```
+
+## URL Encode 注意
+
+```rust
+// ⚠️ Rust 的 urlencoding::encode() 空格編碼為 %20 而非 +
+// 且不會編碼 ~ 字元
+// ECPay CheckMacValue 要求：%20 → +、~ → %7e
+// guides/13 的 ecpay_url_encode 已處理這些轉換
+// 請直接使用 guides/13 提供的函式，勿自行實作
 ```
 
 ## 單元測試模式
