@@ -78,7 +78,8 @@ metadata:
 | 嵌入付款到你的頁面（SPA/App） | **AES-JSON** | ★★★ | [guides/02](./guides/02-payment-ecpg.md) — **注意雙 Domain：Token API 走 `ecpg`，交易/查詢 API 走 `ecpayment`，混用會 404** |
 | 純後台扣款（無前端） | **AES-JSON** | ★★★ | [guides/03](./guides/03-payment-backend.md) |
 | 超商取貨/宅配（國內物流） | **CMV-MD5** | ★★☆ | [guides/06](./guides/06-logistics-domestic.md) |
-| 全方位/跨境物流 | **AES-JSON** | ★★★ | [guides/07](./guides/07-logistics-allinone.md) |
+| 全方位物流 | **AES-JSON** | ★★★ | [guides/07](./guides/07-logistics-allinone.md) |
+| 跨境物流 | **AES-JSON** | ★★★ | [guides/08](./guides/08-logistics-crossborder.md) |
 | 電子發票 | **AES-JSON** | ★★★ | [guides/04](./guides/04-invoice-b2c.md) |
 | 電子票證 | **AES-JSON + CMV** | ★★★ | [guides/09](./guides/09-ecticket.md) — **除 AES 外還需計算 CheckMacValue（SHA256），公式與 AIO 不同** |
 

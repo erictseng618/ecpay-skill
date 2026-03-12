@@ -139,7 +139,7 @@ function aesUrlEncode(source) {
 ```
 
 ```go
-// Go — AES 專用（QueryEscape 不編碼 ~!*'()，需手動補齊以匹配 PHP urlencode）
+// Go — AES 專用（QueryEscape 可能不編碼 ~，且 replace 其餘字元為冪等保險，確保匹配 PHP urlencode）
 func aesURLEncode(s string) string {
     encoded := url.QueryEscape(s)
     r := strings.NewReplacer("~", "%7E", "!", "%21", "*", "%2A", "'", "%27", "(", "%28", ")", "%29")
@@ -390,7 +390,7 @@ public class EcpayAes {
 
     public static String encrypt(String jsonStr, String hashKey, String hashIv) throws Exception {
         // 2. URL encode
-        // URLEncoder.encode 不編碼 ~，但 PHP urlencode 會編碼為 %7E
+        // URLEncoder.encode 不編碼 *，但 PHP urlencode 會編碼為 %2A（其餘 ~'() 已被 URLEncoder 編碼，replace 為冪等保險）
         String urlEncoded = URLEncoder.encode(jsonStr, "UTF-8")
             .replace("~", "%7E").replace("*", "%2A")
             .replace("'", "%27").replace("(", "%28").replace(")", "%29"); // 空格→+
@@ -567,7 +567,7 @@ func AesEncrypt(data interface{}, hashKey, hashIv string) (string, error) {
 	}
 	jsonStr := strings.TrimRight(buf.String(), "\n")
 	// 2. URL encode（空格→+）
-	// QueryEscape 不編碼 ~!*'()，但 PHP urlencode 會
+	// QueryEscape 可能不編碼 ~（依 Go 版本），PHP urlencode 會；其餘 !*'() 多已被編碼，replace 為冪等保險
 	urlEncoded := url.QueryEscape(jsonStr)
 	r := strings.NewReplacer("~", "%7E", "!", "%21", "*", "%2A", "'", "%27", "(", "%28", ")", "%29")
 	urlEncoded = r.Replace(urlEncoded)
@@ -1096,7 +1096,7 @@ import java.util.Base64
 
 fun ecpayAesEncrypt(jsonStr: String, hashKey: String, hashIv: String): String {
     // 2. URL encode
-    // URLEncoder.encode 不編碼 ~，但 PHP urlencode 會編碼為 %7E
+    // URLEncoder.encode 不編碼 *，但 PHP urlencode 會編碼為 %2A（其餘 ~'() 已被 URLEncoder 編碼，replace 為冪等保險）
     val urlEncoded = URLEncoder.encode(jsonStr, StandardCharsets.UTF_8)
         .replace("~", "%7E").replace("*", "%2A")
         .replace("'", "%27").replace("(", "%28").replace(")", "%29") // 空格→+

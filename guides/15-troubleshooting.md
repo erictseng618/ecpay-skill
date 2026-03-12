@@ -247,8 +247,9 @@ ATM 取號成功的 `RtnCode` 是 `2`（不是 `1`）。
 2. **加解密順序**：加密前先 URL encode，解密後才 URL decode（ECPay 獨有）
 3. **Padding**：PKCS7
 4. **Base64**：確認沒有多餘的換行或空格
+5. **URL encode 函式**：AES 使用**純 urlencode**（不做 toLowerCase、不做 .NET 字元替換），與 CheckMacValue 的 `ecpayUrlEncode` **完全不同**。若誤用 CMV 的 URL encode 邏輯，解密將永遠失敗
 
-詳見：[guides/14-aes-encryption.md](./14-aes-encryption.md)
+詳見：[guides/14-aes-encryption.md §AES vs CMV URL Encode 對比表](./14-aes-encryption.md#aes-vs-cmv-url-encode-對比表)
 
 ## 14. ECPG 404 雙 Domain 錯誤
 

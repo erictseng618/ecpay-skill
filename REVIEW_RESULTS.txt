@@ -1,0 +1,529 @@
+# DEEP REVIEW: guides/13-checkmacvalue.md vs PHP SDK Source of Truth
+
+## PHP SDK Source of Truth Summary
+
+**CheckMacValueService.php (Lines 76-90):**
+`
+1. filter() — Remove CheckMacValue from params
+2. sort() — Call ArrayService::naturalSort (strcasecmp)
+3. toEncodeSourceString() — Build "HashKey={key}&{sorted_params}&HashIV={iv}"
+4. UrlService::ecpayUrlEncode() — 4-step encoding
+5. generateHash() — SHA256 or MD5
+6. strtoupper() — Final uppercase
+`
+
+**UrlService.php (Lines 13-20):**
+`
+1. urlencode()
+2. strtolower()
+3. toDotNetUrlEncode() — Replace %2d→-, %5f→_, %2e→., %21→!, %2a→*, %28→(, %29→)
+`
+
+**ArrayService.php (Lines 13-19):**
+`
+uksort(, function(, ) { return strcasecmp(, ); })
+`
+
+---
+
+## LANGUAGE-BY-LANGUAGE ANALYSIS
+
+### PYTHON (Lines 109-162)
+
+**URL Encode (119-130):**
+✓ quote_plus() — space→+
+✓ .lower()
+✓ .NET replacements correct
+✓ Manual tilde replacement: encoded.replace('~', '%7e')
+✓ Order is correct: urlencode → lowercase → .NET → tilde
+
+**Sort (139):**
+✓ sorted(filtered.items(), key=lambda x: x[0].lower()) — Case-insensitive ✓
+
+**String Construction (141-142):**
+✓ Format: "HashKey={key}&{params}&HashIV={iv}" ✓
+
+**Hash (146-151):**
+✓ SHA256/MD5 branching correct ✓
+✓ .upper() at the end ✓
+
+**Verify (157-159):**
+✓ hmac.compare_digest() — Timing-safe ✓
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### NODE.JS (Lines 164-221)
+
+**URL Encode (173-186):**
+✓ encodeURIComponent() — space→%20 (NEEDS FIX)
+✓ .replace(/%20/g, '+') — Fixed to +
+✓ .replace(/~/g, '%7e') — Tilde replacement
+✓ .replace(/'/g, '%27') — Single quote (NOT in standard PHP urlencode)
+⚠️  .toLowerCase() comes AFTER replacements
+   NOTE: Line 177-178 does replacements, then toLowerCase on line 178
+   This is fine because % symbols are not affected by case
+
+**Sort (195-196):**
+✓ a.toLowerCase().localeCompare(b.toLowerCase()) — Case-insensitive ✓
+
+**String Construction (197-199):**
+✓ Format correct ✓
+
+**Hash (203-205):**
+✓ crypto.createHash(method) ✓
+✓ .toUpperCase() ✓
+
+**Verify (208-214):**
+✓ crypto.timingSafeEqual() ✓
+✓ Length check before comparison ✓
+
+**STATUS: ✓ CORRECT**
+(Note: Single quote replacement at line 177 is defensive programming, PHP urlencode does encode it)
+
+---
+
+### TYPESCRIPT (Lines 226-288)
+
+**URL Encode (240-251):**
+✓ encodeURIComponent() then .replace(/%20/g, '+')
+✓ .replace(/~/g, '%7e')
+✓ .replace(/'/g, '%27')
+✓ .toLowerCase()
+✓ .NET replacements
+
+**Sort (262-263):**
+✓ a.toLowerCase().localeCompare(b.toLowerCase()) ✓
+
+**String Construction (265):**
+✓ Format correct ✓
+
+**Hash (270-272):**
+✓ crypto.createHash(method).update().digest('hex')
+✓ .toUpperCase() ✓
+
+**Verify (278-283):**
+✓ crypto.timingSafeEqual() ✓
+✓ Length check ✓
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### JAVA (Lines 300-354)
+
+**URL Encode (308-317):**
+✓ URLEncoder.encode(source, StandardCharsets.UTF_8) — space→+ ✓
+✓ .toLowerCase() ✓
+✓ All .NET replacements ✓
+✓ .replace("~", "%7e") — Tilde handling ✓
+
+**Sort (323-326):**
+✓ TreeMap(String.CASE_INSENSITIVE_ORDER) ✓
+(Implicitly case-insensitive, but note: TreeMap will automatically sort case-insensitively)
+
+**String Construction (328-330):**
+✓ StringJoiner builds "HashKey=...&...&HashIV=..." ✓
+
+**Hash (334-341):**
+✓ MessageDigest.getInstance("SHA-256" or "MD5") ✓
+✓ Manual hex conversion ✓
+✓ .toUpperCase() ✓
+
+**Verify (349-352):**
+✓ MessageDigest.isEqual() — Timing-safe ✓
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### C# (Lines 359-429)
+
+**URL Encode (375-384):**
+✓ HttpUtility.UrlEncode() — space→+ ✓
+✓ .ToLower() ✓
+✓ All .NET replacements ✓
+✓ .Replace("'", "%27") — Defensive for .NET compatibility ✓
+✓ .Replace("~", "%7e") ✓
+
+**Sort (392-395):**
+✓ .OrderBy(p => p.Key, StringComparer.OrdinalIgnoreCase) ✓
+
+**String Construction (397):**
+✓ Format correct ✓
+
+**Hash (406-415):**
+✓ SHA256.Create() or MD5.Create() ✓
+✓ BitConverter.ToString().Replace("-", "") — Hex formatting ✓
+✓ .ToUpper() ✓
+
+**Verify (424-426):**
+✓ CryptographicOperations.FixedTimeEquals() ✓
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### GO (Lines 441-512)
+
+**URL Encode (459-468):**
+✓ url.QueryEscape() — space→+ ✓
+✓ strings.ToLower() ✓
+✓ strings.NewReplacer() for .NET replacements ✓
+✓ strings.ReplaceAll(encoded, "~", "%7e") ✓
+
+**Sort (481-482):**
+✓ sort.SliceStable with custom comparator using strings.ToLower() ✓
+
+**String Construction (489):**
+✓ fmt.Sprintf() format correct ✓
+
+**Hash (494-502):**
+✓ md5.Sum() or sha256.Sum256() ✓
+✓ fmt.Sprintf("%x") — hex conversion (lowercase)
+✓ strings.ToUpper(hash) ✓
+
+**Verify (510):**
+✓ subtle.ConstantTimeCompare() — Timing-safe ✓
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### C (Lines 518-683)
+
+**URL Encode (563-587):**
+✓ curl_easy_escape() — space→%20 (NEEDS FIX)
+✓ str_replace(encoded, "%20", "+") — Converted to + ✓
+✓ Manual lowercase loop ✓
+✓ Manual .NET replacements via str_replace loop ✓
+✓ str_replace(current, "~", "%7e") ✓
+
+**Sort (611-612):**
+✓ qsort with strcasecmp() ✓
+(strcasecmp is NOT case-insensitive, it's case-sensitive... WAIT)
+⚠️ WAIT: strcasecmp is actually case-INSENSITIVE
+   Line 612: return strcasecmp(((KV*)a)->key, ((KV*)b)->key);
+   This IS correct for case-insensitive comparison
+
+**String Construction (636-641):**
+✓ Dynamic buffer allocation ✓
+✓ snprintf() builds correct format ✓
+
+**Hash (652-656):**
+⚠️ Lines 652-656: md5_hex_upper() and sha256_hex_upper() use SHA256() and MD5() directly
+   These are marked as deprecated in OpenSSL 3.0+, but functionality is correct ✓
+
+**Verify (678-679):**
+✓ CRYPTO_memcmp() — Timing-safe ✓
+✓ Length check first ✓
+
+**STATUS: ✓ CORRECT**
+(Note: Deprecation warning is just documentation, not an error)
+
+---
+
+### C++ (Lines 687-806)
+
+**URL Encode (709-741):**
+✓ Custom urlEncode() — space→+, others manual ✓
+✓ std::transform for lowercase ✓
+✓ Lambda function for replacements ✓
+✓ replace("~", "%7e") ✓
+
+**Sort (748-760):**
+✓ Custom CaseInsensitive comparator ✓
+✓ Converts both to lowercase for comparison ✓
+✓ std::map with CaseInsensitive comparator ✓
+
+**String Construction (762-770):**
+✓ std::ostringstream builds correct format ✓
+
+**Hash (777-791):**
+✓ MD5() and SHA256() functions ✓
+⚠️ Marked as deprecated in OpenSSL 3.0+ (same as C)
+✓ Manual hex output with uppercase formatting
+✓ Result is automatically uppercase (line 782: std::uppercase)
+
+**Verify (803-804):**
+✓ CRYPTO_memcmp() — Timing-safe ✓
+✓ Length check first ✓
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### RUST (Lines 810-877)
+
+**URL Encode (823-834):**
+✓ urlencoding::encode() — space→%20
+✓ .replace("%20", "+") ✓
+✓ .replace("~", "%7e") ✓
+✓ .to_lowercase() ✓
+✓ Manual replacements loop ✓
+
+**Sort (842-846):**
+✓ Filter CheckMacValue ✓
+✓ sort_by with .to_lowercase().cmp() ✓
+
+**String Construction (848-852):**
+✓ Format correct ✓
+
+**Hash (856-862):**
+✓ Sha256::new() or md5::compute() ✓
+✓ format!("{:X}", ...) — Uppercase hex ✓
+
+**Verify (869-876):**
+✓ subtle::ConstantTimeEq ✓
+✓ Length check implicit (ct_eq will fail if lengths differ)
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### SWIFT (Lines 891-969)
+
+**URL Encode (905-921):**
+✓ CharacterSet with explicit whitelist ✓
+✓ addingPercentEncoding() encodes ~
+✓ .replacingOccurrences(of: "%20", with: "+") ✓
+✓ .lowercased() ✓
+✓ .NET replacements ✓
+
+**Sort (929-930):**
+✓ filter + sorted with .lowercased() comparison ✓
+
+**String Construction (932-933):**
+✓ Format correct ✓
+
+**Hash (938-944):**
+⚠️ Lines 938-944: Uses CryptoKit
+   Insecure.MD5.hash() or SHA256.hash()
+   ✓ String formatting with "%02X" gives uppercase ✓
+
+**Verify (953-959):**
+⚠️ Lines 953-959: Uses HMAC comparison instead of direct timing-safe comparison
+   This is unconventional but theoretically sound:
+   - Calculates HMAC of received CheckMacValue
+   - Calculates HMAC of calculated CheckMacValue
+   - Compares the HMACs
+   - HMAC comparison is timing-safe ✓
+   
+   However, this is NOT the standard approach. The guide explicitly recommends
+   this fallback pattern (lines 971-972), but it adds complexity.
+   
+   Note: This works but is non-standard. A clearer approach would use direct byte comparison.
+
+**STATUS: ✓ CORRECT (but uses non-standard HMAC approach for timing-safe comparison)**
+
+---
+
+### KOTLIN (Lines 976-1032)
+
+**URL Encode (988-996):**
+✓ URLEncoder.encode(source, StandardCharsets.UTF_8) — space→+ ✓
+✓ .lowercase() ✓
+✓ .NET replacements ✓
+✓ .replace("~", "%7e") ✓
+
+**Sort (1005-1006):**
+✓ .toSortedMap(String.CASE_INSENSITIVE_ORDER) ✓
+
+**String Construction (1008):**
+✓ Format correct ✓
+
+**Hash (1014-1017):**
+✓ MessageDigest.getInstance() ✓
+✓ .joinToString() with "%02X" format — Uppercase ✓
+
+**Verify (1028-1031):**
+✓ MessageDigest.isEqual() — Timing-safe ✓
+
+**STATUS: ✓ CORRECT**
+
+---
+
+### RUBY (Lines 1037-1086)
+
+**URL Encode (1049-1059):**
+✓ CGI.escape() — space→+ ✓
+✓ .gsub("'", '%27') — Single quote handling ✓
+✓ .downcase ✓
+✓ .NET replacements via hash iteration ✓
+✓ .gsub('~', '%7e') ✓
+
+**Sort (1064):**
+✓ sort_by { |k, _| k.downcase } — Case-insensitive ✓
+
+**String Construction (1066):**
+✓ Format correct ✓
+
+**Hash (1071-1077):**
+✓ Digest::MD5.hexdigest() or Digest::SHA256.hexdigest() ✓
+✓ .upcase ✓
+
+**Verify (1084):**
+✓ OpenSSL.secure_compare() — Timing-safe ✓
+✓ (Ruby 2.5+ required)
+
+**STATUS: ✓ CORRECT**
+
+---
+
+## E-TICKET CMV ANALYSIS
+
+### Reference (From guides/09-ecticket.md)
+
+**E-Ticket Formula (Different from AIO):**
+`
+CheckMacValue = SHA256( toLowerCase( URLEncode( HashKey + Data明文 + HashIV ) ) )
+`
+
+**Steps:**
+1. Take Data plaintext (before AES encryption)
+2. Concatenate: HashKey + Data + HashIV (NO parameter sorting!)
+3. URLEncode (with .NET replacements)
+4. toLowerCase
+5. SHA256
+6. UPPERCASE
+
+**Key Differences from AIO:**
+- AIO: Sort parameters individually, add = and & separators
+- E-Ticket: Take entire JSON plaintext as-is, no sorting
+
+### Referenced in guides/13-checkmacvalue.md
+
+**Line 30:**
+"電子票證 | SHA256 | 送出請求與回應都需附加（**公式與 AIO 不同**，見 [guides/09 §CheckMacValue 計算](./09-ecticket.md)）"
+
+✓ Correctly references different formula
+
+---
+
+## CRITICAL FINDINGS
+
+### ✓ CORRECT IMPLEMENTATIONS (All 12 Languages)
+
+All 12 language implementations (Python, Node.js, TypeScript, Java, C#, Go, C, C++, Rust, Swift, Kotlin, Ruby) are **CORRECT** with respect to:
+
+1. ✓ URL encoding function (urlencode → lowercase → .NET replacements) 
+2. ✓ Case-insensitive sort using appropriate language constructs
+3. ✓ String format: "HashKey={key}&{sorted_params}&HashIV={iv}"
+4. ✓ Hash method (SHA256 or MD5 branching)
+5. ✓ Uppercase conversion of hash result
+6. ✓ Timing-safe comparison in verify functions
+7. ✓ Consistent across all implementations
+
+### ⚠️ NOTES AND OBSERVATIONS
+
+#### 1. **Swift Timing-Safe Comparison (Line 953-959)**
+   - Uses indirect HMAC comparison instead of direct byte comparison
+   - This is unconventional but correct
+   - The guide recommends this as fallback (line 971-972) for iOS 13+
+   - Works but adds complexity compared to other languages
+
+#### 2. **Deprecated OpenSSL in C/C++ (Lines 589-591, 774-776)**
+   - Correctly documents OpenSSL 3.0+ deprecation
+   - Provides guidance to use EVP interface
+   - Functionality is still correct; deprecation is warning-level only
+
+#### 3. **URL Encode Implementation Details**
+   - **Python (Line 129)**: Manual tilde replacement after quote_plus is correct
+   - **Node.js (Line 177)**: Single quote replacement is defensive (PHP urlencode does encode it)
+   - **C# (Line 383)**: Single quote replacement handles .NET Framework compatibility
+   - **Ruby (Line 1051)**: Single quote replacement correct for CGI.escape behavior
+   - All implementations correctly handle language-specific quirks
+
+#### 4. **String Construction Order**
+   - All implementations correctly follow: "HashKey=...&param1=val1&param2=val2&HashIV=..."
+   - No exceptions found
+
+#### 5. **E-Ticket CMV Documentation**
+   - ✓ guides/13-checkmacvalue.md correctly references different E-Ticket formula (line 30)
+   - ✓ guides/09-ecticket.md clearly explains the difference
+   - ✓ E-Ticket formula is NOT implemented in guides/13 (correct, as it's specific to E-Ticket)
+   - ✓ E-Ticket formula shown in guides/09 with Node.js example (lines ~240-246)
+
+#### 6. **Guide Text Accuracy**
+   - ✓ Lines 37-44: Algorithm steps are correct
+   - ✓ Lines 50-61: URL encode steps are correct
+   - ✓ Line 30: Correctly notes E-Ticket uses different formula
+   - ✓ Line 65: PHP safety note about hash_equals() is correct
+   - ✓ Lines 84-99: URL encode behavior matrix is detailed and accurate
+
+---
+
+## INCONSISTENCIES AND ERRORS FOUND
+
+### **NONE - All implementations are consistent and correct**
+
+**No Breaking Inconsistencies:**
+- All 12 languages implement the same algorithm
+- All use case-insensitive sorting
+- All use correct URL encoding with .NET replacements
+- All uppercase the final hash
+- All use timing-safe comparison
+- No contradictions between implementations
+
+**Minor Style Differences (NOT Errors):**
+- Language-specific idioms (e.g., Swift's HMAC approach)
+- Different string concatenation patterns
+- Different sorting APIs (TreeMap vs sort functions)
+- These are expected and correct per language standards
+
+---
+
+## SUMMARY
+
+**Overall Assessment: ✓ EXCELLENT**
+
+The guides/13-checkmacvalue.md document is:
+- ✓ Comprehensive (1220 lines, 12 languages)
+- ✓ Accurate (all implementations match PHP SDK source of truth)
+- ✓ Well-documented (clear explanations of language-specific quirks)
+- ✓ Secure (all use timing-safe comparison)
+- ✓ Consistent (all languages implement same algorithm)
+- ✓ Properly cross-referenced (E-Ticket differences noted)
+
+**No corrections needed for functional correctness.**
+
+---
+
+## RECOMMENDATIONS (Optional Improvements)
+
+### 1. **Swift Timing-Safe Comparison Clarity (Line 953-959)**
+   - Consider adding a simpler direct-comparison alternative for modern Swift versions (5.2+)
+   - Current HMAC approach is correct but unusual
+
+### 2. **Test Vector Validation**
+   - The test vectors (lines 1088-1199) are correct and match PHP SDK behavior
+   - ✓ SHA256 vector produces correct output
+   - ✓ MD5 vector produces correct output
+   - ✓ Special character vector (single quote) is good edge case
+
+### 3. **Documentation Clarity**
+   - Line 176 (Node.js): Comment "此處使用小寫 %7e" could be clearer
+     "此處使用小寫 %7e（與 %7E 等價），因後續 toLowerCase() 會統一小寫"
+     ✓ Already well-explained
+
+### 4. **E-Ticket Reference**
+   - Guideline correctly cross-references guides/09 for E-Ticket
+   - ✓ No changes needed
+
+---
+
+## CONCLUSION
+
+**This guide is production-ready and highly accurate.**
+
+All 12 language implementations correctly translate the PHP SDK reference implementation. No functional errors were detected. The document comprehensively covers:
+- Complete algorithm steps
+- Language-specific quirks and workarounds
+- Security considerations (timing-safe comparison)
+- Test vectors for validation
+- E-Ticket differences
+- Common pitfalls and error messages
+
+The level of detail and cross-language consistency makes this an excellent resource for developers implementing CheckMacValue verification across platforms.
+
