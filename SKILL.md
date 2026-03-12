@@ -294,7 +294,7 @@ ECPay 金流有兩種合約模式，**API 技術規格相同**，差異在於商
 - **guides/ 參數表為 SNAPSHOT（2026-03）**：整合流程理解和初步開發可直接使用。**正式上線前應**從 references/ 即時 web_fetch 官方最新規格確認端點路徑和參數定義
 - **生成程式碼時必須標註資料來源**：在程式碼註解中標明參數值取自 SNAPSHOT 或 web_fetch（例如 `// Source: web_fetch references/Payment/... 2026-03-06`），方便開發者日後驗證
 - **不可將 ECPG 所有端點都打向 ecpg domain**（交易類走 `ecpayment`，Token 類走 `ecpg`）
-- **不可省略 Callback 回應**：CMV-SHA256（AIO）回 `1|OK`、非信用卡幕後取號回 `1|OK`、ECPG/信用卡幕後授權回 JSON `{ "TransCode": 1 }`、國內物流 CMV-MD5 回 `1|OK`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）、電子票證回 **AES 加密 JSON + CheckMacValue**（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`）。**`1|OK` 常見錯誤格式**（會導致系統重發 4 次）：`"1|OK"`（含引號）、`1|ok`（小寫 ok）、`_OK`、`1OK`（缺分隔）、帶空白或換行
+- **不可省略 Callback 回應**：CMV-SHA256（AIO）回 `1|OK`、非信用卡幕後取號回 `1|OK`、ECPG/信用卡幕後授權回 JSON `{ "TransCode": 1 }`、國內物流 CMV-MD5 回 `1|OK`、全方位/跨境物流 v2 回 **AES 加密 JSON**（三層結構）、電子票證回 **AES 加密 JSON + CheckMacValue**（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`）、**B2C 發票線上折讓（AllowanceByCollegiate）回 `1|OK`**（⚠️ Callback 為 Form POST + CheckMacValue **MD5**，是發票中唯一帶 CheckMacValue 的 API，詳見 [guides/04](./guides/04-invoice-b2c.md)）。**`1|OK` 常見錯誤格式**（會導致系統重發 4 次）：`"1|OK"`（含引號）、`1|ok`（小寫 ok）、`_OK`、`1OK`（缺分隔）、帶空白或換行
 - **AES-JSON API 必須做雙層錯誤檢查**：先查 `TransCode`（傳輸層），再查 `RtnCode`（業務層）。僅 `TransCode == 1` 且 `RtnCode` 為成功值時交易才真正成功（詳見 [guides/21](./guides/21-error-codes-reference.md) §TransCode vs RtnCode）。**電子票證須做三層檢查**：TransCode → 驗證 CheckMacValue → 解密 Data → RtnCode（詳見 [guides/09](./guides/09-ecticket.md)）
 - **不可使用 TWD 以外的幣別**（ECPay 僅支援新台幣）
 - **超出範圍**：若功能不在本 Skill 覆蓋範圍或需要未支援的語言，告知使用者聯繫綠界客服 (02-2655-1775) 或參考最接近的語言實作翻譯

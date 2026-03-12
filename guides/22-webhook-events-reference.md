@@ -9,7 +9,7 @@
 
 本文件彙整所有 ECPay 服務的 Callback（Webhook）機制，提供統一的欄位定義和安全處理指引。
 
-> **⚠️ 認證方式依服務而異**：金流 AIO → SHA256，國內物流 → **MD5**，ECPG / 幕後授權 / 幕後取號 / 發票 / 物流 v2 → AES 解密（無 CheckMacValue），票證 → AES 解密 + CheckMacValue (SHA256)。
+> **⚠️ 認證方式依服務而異**：金流 AIO → SHA256，國內物流 → **MD5**，B2C 發票線上折讓 → **MD5**，ECPG / 幕後授權 / 幕後取號 / 發票（其他 API）/ 物流 v2 → AES 解密（無 CheckMacValue），票證 → AES 解密 + CheckMacValue (SHA256)。
 > 錯用演算法（如把國內物流當 SHA256 計算）會導致所有 callback 驗證永遠失敗。
 
 ## ⚡ Callback 回應格式速查（跨服務整合必讀）
@@ -59,7 +59,8 @@
 | 全方位物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON | 約每 2 小時重試（次數未公開）|
 | 跨境物流 | ServerReplyURL | 物流狀態變更 | AES 解密 | AES 加密 JSON（與全方位物流相同） | 約每 2 小時重試（次數未公開）|
 | 電子票證 | UseStatusNotifyURL | 退款/核退通知 | AES 解密 Data + CheckMacValue (SHA256) | AES 加密 JSON + **CheckMacValue**（Data 內 `RtnCode=1`） | 每 5-15 分鐘重送，每日最多 4 次 |
-| 電子發票 | — | 通常由 API 主動查詢 | AES 解密 | JSON | — |
+| B2C 發票（線上折讓） | ReturnURL | 消費者同意折讓 | CheckMacValue (**MD5**) | `1\|OK` | 未公開 |
+| 電子發票（其他 API） | — | 通常由 API 主動查詢 | AES 解密 | JSON | — |
 
 > **重試觸發條件**：HTTP 超時、回應非 200 狀態碼、或回應格式不符（如應回 `1|OK` 但回了其他內容）時觸發重試。AIO 的重試次數有上限（每日 4 次），其他服務的重試上限未公開，建議實作冪等處理（見下方 §冪等性處理建議）。
 
@@ -77,7 +78,8 @@
 > **最常見錯誤**：國內物流的 CheckMacValue 使用 **MD5**（不是 SHA256）。用錯雜湊演算法會導致驗證永遠失敗。
 > - 金流 AIO → SHA256
 > - 國內物流 → MD5
-> - ECPG / 信用卡幕後授權 / 非信用卡幕後取號 / 發票 / 全方位物流 / 跨境物流 → AES 解密（無 CheckMacValue）
+> - B2C 發票線上折讓（AllowanceByCollegiate）→ **MD5**（發票中唯一帶 CheckMacValue 的 API，詳見 [guides/04](./04-invoice-b2c.md)）
+> - ECPG / 信用卡幕後授權 / 非信用卡幕後取號 / 發票（其他 API）/ 全方位物流 / 跨境物流 → AES 解密（無 CheckMacValue）
 > - 票證 → AES 解密 + CheckMacValue (SHA256)
 
 ## AIO ReturnURL — 付款成功通知
@@ -632,8 +634,8 @@ async def notify(request: Request):
 | 認證模式 | 驗證方式 | 適用服務 |
 |---------|---------|---------|
 | CMV-SHA256 | 計算 CheckMacValue（SHA256）並以 **timing-safe** 函式比對（見 [guides/13](./13-checkmacvalue.md)）| AIO 金流 |
-| AES-JSON | AES 解密成功即可視為來自 ECPay | ECPG 站內付、全方位物流、電子發票 |
-| CMV-MD5 | 計算 CheckMacValue（MD5）並以 **timing-safe** 函式比對（見 [guides/13](./13-checkmacvalue.md)）| 國內物流 |
+| AES-JSON | AES 解密成功即可視為來自 ECPay | ECPG 站內付、全方位物流、電子發票（其他 API） |
+| CMV-MD5 | 計算 CheckMacValue（MD5）並以 **timing-safe** 函式比對（見 [guides/13](./13-checkmacvalue.md)）| 國內物流、B2C 發票線上折讓（AllowanceByCollegiate） |
 
 ### 2. HTTPS 必須
 
