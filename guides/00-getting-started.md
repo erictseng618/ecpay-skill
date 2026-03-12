@@ -660,7 +660,10 @@ app.get('/checkout', (req, res) => {
 // === ReturnURL Webhook Handler ===
 app.post('/ecpay/notify', (req, res) => {
   const cmv = generateCheckMacValue(req.body);
-  if (cmv !== req.body.CheckMacValue) {
+  // ⚠️ 必須使用 timing-safe 比較，禁止 === / !==（見 guides/13）
+  const a = Buffer.from(cmv);
+  const b = Buffer.from(req.body.CheckMacValue || '');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
     console.error('CheckMacValue 驗證失敗');
     return res.send('0|ErrorMessage');
   }
@@ -683,7 +686,7 @@ pip install fastapi uvicorn pycryptodome
 ```python
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
-import hashlib, urllib.parse, time, datetime
+import hashlib, hmac, urllib.parse, time, datetime
 
 app = FastAPI()
 
@@ -697,7 +700,7 @@ CONFIG = {
 
 # === CheckMacValue 計算（參考 guides/13-checkmacvalue.md）===
 def ecpay_url_encode(source: str) -> str:
-    encoded = urllib.parse.quote_plus(source).replace('~', '%7e').lower()
+    encoded = urllib.parse.quote_plus(source).replace('~', '%7E').lower()
     for old, new in {'%2d': '-', '%5f': '_', '%2e': '.', '%21': '!', '%2a': '*', '%28': '(', '%29': ')'}.items():
         encoded = encoded.replace(old, new)
     return encoded
@@ -733,7 +736,8 @@ async def checkout():
 async def notify(request: Request):
     form = dict(await request.form())
     cmv = generate_cmv(form)
-    if cmv != form.get('CheckMacValue'):
+    # ⚠️ 必須使用 timing-safe 比較，禁止 == / !=（見 guides/13）
+    if not hmac.compare_digest(cmv, form.get('CheckMacValue', '')):
         return '0|ErrorMessage'
     if form.get('RtnCode') == '1' and form.get('SimulatePaid') == '0':
         print(f"付款成功: {form.get('MerchantTradeNo')}")

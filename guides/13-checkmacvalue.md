@@ -119,6 +119,7 @@ import urllib.parse
 def ecpay_url_encode(source: str) -> str:
     """對應 UrlService::ecpayUrlEncode()"""
     encoded = urllib.parse.quote_plus(source)  # 空格→+
+    encoded = encoded.replace('~', '%7E')  # PHP urlencode('~') → %7E
     encoded = encoded.lower()
     replacements = {
         '%2d': '-', '%5f': '_', '%2e': '.', '%21': '!',
@@ -126,7 +127,6 @@ def ecpay_url_encode(source: str) -> str:
     }
     for old, new in replacements.items():
         encoded = encoded.replace(old, new)
-    encoded = encoded.replace('~', '%7e')  # PHP urlencode('~') → %7E
     return encoded
 
 def generate_check_mac_value(
