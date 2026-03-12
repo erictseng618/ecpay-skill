@@ -21,8 +21,8 @@
 | 服務 | 你的 Callback URL | 必須回應的格式 | Content-Type | 錯誤後果 |
 |------|-----------------|--------------|-------------|---------|
 | AIO 金流（ReturnURL / PaymentInfoURL / PeriodReturnURL） | ReturnURL | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次（持續天數有上限，重試停止後需手動補查） |
-| ECPG 站內付 | OrderResultURL | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
-| 信用卡幕後授權 | ReturnURL | `{ "TransCode": 1 }`（JSON） | application/json | 約每 2 小時重試 |
+| 站內付 2.0 | ReturnURL | `1\|OK`（純文字） | application/json | 約每 2 小時重試 |
+| 信用卡幕後授權 | ReturnURL | `1\|OK`（純文字） | application/json | 約每 2 小時重試 |
 | 非信用卡幕後取號 | ReturnURL | `1\|OK`（純文字） | text/plain | 每 5-15 分鐘重送，每日最多 4 次 |
 | 國內物流 | ServerReplyURL | `1\|OK`（純文字） | text/plain | 約每 2 小時重試 |
 | 全方位 / 跨境物流 | ServerReplyURL | AES 加密 JSON 三層結構 | application/json | 約每 2 小時重試 |
@@ -38,7 +38,7 @@
 - [ ] 驗證 CheckMacValue / AES 解密是否通過
 - [ ] RtnCode 是否在預期值範圍（AIO: 1=成功, 2=ATM取號, 10100073=CVS取號）
 - [ ] 此 MerchantTradeNo 是否已處理過（冪等檢查）
-- [ ] **立即回應**：依服務回應正確格式（`1|OK`、`{"TransCode": 1}` 或 AES 加密 JSON，見上方速查表）
+- [ ] **立即回應**：依服務回應正確格式（`1|OK`、AES 加密 JSON，見上方速查表）
 - [ ] 非同步處理業務邏輯（發信、開發票、更新庫存）
 
 ## Callback 總覽表
@@ -50,8 +50,9 @@
 | AIO 金流 | PeriodReturnURL | 定期定額每期扣款 | CheckMacValue (SHA256) | `1\|OK` | 同上 |
 | AIO 金流 | — | BNPL 無卡分期申請結果 | CheckMacValue (SHA256) | `1\|OK` | 同上 |
 | AIO 金流 | OrderResultURL | 前端跳轉（非 server-to-server） | CheckMacValue (SHA256) | HTML 頁面 | 不重試 |
-| ECPG 站內付 | OrderResultURL | 付款完成 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試（次數未公開）|
-| 信用卡幕後授權 | ReturnURL | 授權結果 | AES 解密 Data | JSON `{ "TransCode": 1 }` | 約每 2 小時重試（次數未公開）|
+| 站內付 2.0 | ReturnURL | 付款完成 | AES 解密 Data | `1\|OK` | 約每 2 小時重試（次數未公開）|
+| 站內付 2.0 | OrderResultURL | 前端跳轉（非 server-to-server） | AES 解密 ResultData | HTML 頁面 | 不重試（一次性） |
+| 信用卡幕後授權 | ReturnURL | 授權結果 | AES 解密 Data | `1\|OK` | 約每 2 小時重試（次數未公開）|
 | 非信用卡幕後取號 | ReturnURL | ATM/CVS/BARCODE 付款完成 | AES 解密 Data | `1\|OK` | 每 5-15 分鐘重送，每日最多 4 次 |
 | 國內物流 | ServerReplyURL | 物流狀態變更 | CheckMacValue (**MD5**) | `1\|OK` | 約每 2 小時重試（次數未公開）|
 | 國內物流（逆物流） | ServerReplyURL | 逆物流狀態變更 | CheckMacValue (**MD5**) | `1\|OK` | 約每 2 小時重試（次數未公開）|
@@ -263,13 +264,18 @@ echo '1|OK';  // 必須回應
 4. 記錄 BNPLTradeNo 與分期期數
 5. 回應純字串 `1|OK`
 
-## ECPG OrderResultURL — 站內付結果
+## 站內付 2.0 ReturnURL — 付款結果通知（Server-to-Server）
 
-**觸發時機**：站內付交易完成後通知。
+**觸發時機**：站內付交易完成後，綠界以 Server POST 方式通知特店。
 
 **HTTP 方法**：POST（application/json）
 
-**外層 JSON 結構**：
+> ⚠️ **ReturnURL 與 OrderResultURL 是不同的 Callback**（官方規格 9058.md / 15076.md）：
+> - **ReturnURL**：Server-to-Server POST（`application/json`），JSON body 直接包含三層結構，商家回應 `1|OK`，未正確回應會觸發重試。
+> - **OrderResultURL**：瀏覽器端 Form POST（`application/x-www-form-urlencoded`），資料放在 `ResultData` 表單欄位（AES 加密），一次性跳轉，不重試。
+> - 兩者沒有固定先後順序。
+
+**ReturnURL 外層 JSON 結構**：
 
 ```json
 {
@@ -308,28 +314,50 @@ echo '1|OK';  // 必須回應
 
 **處理流程**：
 
-1. 解析 JSON body
+1. 解析 JSON body（`json_decode(file_get_contents('php://input'))`）
 2. 檢查外層 TransCode（1=傳輸成功）
 3. AES 解密 Data 欄位（見 [guides/14-aes-encryption.md](./14-aes-encryption.md)）
 4. 檢查內層 RtnCode（1=交易成功）
 5. 更新訂單狀態
-6. 回應 JSON `{ "TransCode": 1 }`
+6. 回應純字串 `1|OK`
 
 ```php
 $aesService = $factory->create(AesService::class);
 
+// ReturnURL 是 JSON POST，需從 php://input 讀取
+$jsonBody = json_decode(file_get_contents('php://input'), true);
+
 // 先檢查 TransCode 確認 API 是否成功
-$transCode = $_POST['TransCode'] ?? null;
+$transCode = $jsonBody['TransCode'] ?? null;
 if ($transCode != 1) {
-    error_log('ECPay TransCode Error: ' . ($_POST['TransMsg'] ?? 'unknown'));
+    error_log('ECPay TransCode Error: ' . ($jsonBody['TransMsg'] ?? 'unknown'));
 }
 
 // 解密 Data 取得交易細節
-$decryptedData = $aesService->decrypt($_POST['Data']);
+$decryptedData = $aesService->decrypt($jsonBody['Data']);
 // $decryptedData 包含：RtnCode, RtnMsg, MerchantID, Token, TokenExpireDate 等
+
+// 業務邏輯處理...
+
+// 回應 1|OK（官方規格 9058.md）
+echo '1|OK';
 ```
 
-> **兩層檢查**：ECPG 需要檢查兩層狀態碼。TransCode 代表「傳輸是否成功」，RtnCode 代表「交易是否成功」。兩者都為 1 才算完全成功。
+> **兩層檢查**：站內付 2.0 需要檢查兩層狀態碼。TransCode 代表「傳輸是否成功」，RtnCode 代表「交易是否成功」。兩者都為 1 才算完全成功。
+
+### OrderResultURL — 前端跳轉（非 Server-to-Server）
+
+**HTTP 方法**：POST（application/x-www-form-urlencoded）
+
+OrderResultURL 是瀏覽器端的一次性跳轉，綠界將 `ResultData`（AES 加密的 Base64 字串）放在表單欄位中 POST 到特店頁面。特店解密 `ResultData` 後顯示付款結果頁面。
+
+```php
+// OrderResultURL 是 Form POST，資料在 ResultData 欄位
+$resultData = $_POST['ResultData'] ?? null;
+$decryptedResult = $aesService->decrypt($resultData);
+// 解密後結構同 ReturnURL 的外層 JSON（含 TransCode, Data 等）
+// 顯示付款結果頁面給消費者
+```
 
 ## 物流 ServerReplyURL — 物流狀態變更
 
@@ -426,7 +454,7 @@ echo json_encode($response);
 ```
 
 > **重要**：全方位/跨境物流的 callback 回應**不是** `1|OK`，而是 AES 加密的 JSON 三層結構。
-> 這與國內物流（回 `1|OK`）和 ECPG（回 `{ "TransCode": 1 }`）都不同。
+> 這與國內物流（回 `1|OK`）和站內付 2.0（回 `1|OK`）都不同。
 > AES 加解密實作見 [guides/14](./14-aes-encryption.md)。
 
 **物流狀態碼參考**：`scripts/SDK_PHP/example/Logistics/logistics_status.xlsx` 和 `logistics_history.xlsx`

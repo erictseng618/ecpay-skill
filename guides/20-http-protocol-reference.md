@@ -235,8 +235,9 @@ AES-JSON 的 Callback 處理因服務而異：
 
 | 服務 | Callback 格式 | 商家回應格式 |
 |------|-------------|------------|
-| ECPG（ReturnURL/OrderResultURL） | JSON POST（三層結構，Data 需 AES 解密） | JSON `{ "TransCode": 1 }` |
-| ECPG（PeriodReturnURL） | JSON POST | JSON `{ "TransCode": 1 }` |
+| 站內付 2.0（ReturnURL） | JSON POST（三層結構，Data 需 AES 解密） | `1\|OK` |
+| 站內付 2.0（OrderResultURL） | Form POST（`ResultData` 欄位需 AES 解密） | HTML 頁面（前端跳轉） |
+| 站內付 2.0（PeriodReturnURL） | JSON POST | `1\|OK` |
 | 全方位物流 v2 | JSON POST（三層結構，Data 需 AES 解密） | **AES 加密 JSON**（三層結構，含 TransCode + Data） |
 | 跨境物流 | JSON POST（三層結構，Data 需 AES 解密） | **AES 加密 JSON**（三層結構，含 TransCode + Data） |
 | 電子票證 | JSON POST（四層結構，含 CheckMacValue） | **AES 加密 JSON + CheckMacValue**（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`） |
@@ -726,7 +727,7 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 |----------|-----------------|------------|
 | CMV-SHA256（AIO 金流） | Form POST（`application/x-www-form-urlencoded`） | 純字串 `1|OK` |
 | AES-JSON（非信用卡幕後取號） | JSON POST（三層結構，Data 需 AES 解密） | 純字串 `1|OK` |
-| AES-JSON（ECPG、信用卡幕後授權） | JSON POST（三層結構，Data 需 AES 解密） | JSON `{ "TransCode": 1 }` |
+| AES-JSON（站內付 2.0、信用卡幕後授權） | JSON POST（三層結構，Data 需 AES 解密） | `1\|OK` |
 | AES-JSON（全方位/跨境物流 v2） | JSON POST（三層結構，Data 需 AES 解密） | AES 加密 JSON（三層結構，含 TransCode） |
 | AES-JSON + CMV（電子票證） | JSON POST（四層結構，含 CheckMacValue） | **AES 加密 JSON + CheckMacValue**（Data 內 `{"RtnCode": 1, "RtnMsg": "成功"}`） |
 | AES-JSON（發票：線上折讓 ReturnURL） | Form POST + CheckMacValue（**MD5**） | 純字串 `1|OK` |
@@ -773,7 +774,7 @@ MerchantID=2000132&MerchantTradeDate=2026%2f03%2f05+12%3a00%3a00&LogisticsType=C
 |------|---------|
 | AioCheckOut 回傳 JSON | 回傳 HTML 頁面，用於瀏覽器重導 |
 | AES-JSON 只檢查 TransCode | 需要**雙層檢查**：TransCode=1 且 RtnCode=1 |
-| ECPG Callback 回應 `1|OK` | ECPG Callback 需回應 JSON `{ "TransCode": 1 }` |
+| 站內付 2.0 Callback 回應 `{ "TransCode": 1 }` | 站內付 2.0 / 信用卡幕後授權 Callback 需回應 `1\|OK`（官方規格 9058.md / 45907.md） |
 
 ### 5.4 加密與認證
 

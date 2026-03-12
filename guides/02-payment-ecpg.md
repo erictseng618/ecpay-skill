@@ -86,7 +86,7 @@
 | Token 環境 | `https://ecpg-stage.ecpay.com.tw`（測試） / `https://ecpg.ecpay.com.tw`（正式） |
 | 交易/查詢環境 | `https://ecpayment-stage.ecpay.com.tw`（測試） / `https://ecpayment.ecpay.com.tw`（正式） |
 | 回應結構 | 三層 JSON（TransCode → 解密 Data → RtnCode） |
-| Callback 回應 | JSON `{ "TransCode": 1 }` |
+| Callback 回應 | `1\|OK`（官方規格 9058.md） |
 
 > **注意**：ECPG 使用**兩個不同 domain** — Token 相關（GetTokenbyTrade/GetTokenbyUser/CreatePayment）走 `ecpg`，查詢/請退款走 `ecpayment`。詳見 [guides/20 ECPG 端點表](./20-http-protocol-reference.md)。
 
@@ -325,13 +325,12 @@ try {
 
 ReturnURL / OrderResultURL 收到的 POST 需要 AES 解密。
 
-> ⚠️ **常見陷阱：回傳格式是 Form POST，不是 JSON**
-> 3D 驗證完成後，綠界透過瀏覽器 Form POST（`Content-Type: application/x-www-form-urlencoded`）將結果送至 OrderResultURL / ReturnURL。
-> 資料放在表單欄位 **`ResultData`**（內含 AES 加密的 Base64 字串），**不是** JSON body。
-> 非 PHP 語言常見錯誤：用 `request.json()` 解析 → 出錯 → 誤判為交易失敗。
-> **正確做法**：優先用 form data 方式讀取（如 Python 的 `request.form['ResultData']`、Node.js 的 `req.body.ResultData`），再解密。
+> ⚠️ **常見陷阱：OrderResultURL 是 Form POST，ReturnURL 是 JSON POST**
+> 站內付 2.0 有兩個 Callback URL，格式不同（官方規格 15076.md / 9058.md）：
+> - **OrderResultURL**：3D 驗證完成後，綠界透過瀏覽器 Form POST（`Content-Type: application/x-www-form-urlencoded`）將結果導至特店頁面。資料放在表單欄位 **`ResultData`**（AES 加密的 Base64 字串），**不是** JSON body。非 PHP 語言常見錯誤：用 `request.json()` 解析 → 出錯。**正確做法**：用 form data 讀取（如 Python `request.form['ResultData']`、Node.js `req.body.ResultData`），再 AES 解密。
+> - **ReturnURL**：Server-to-Server POST（`Content-Type: application/json`），JSON body 直接包含三層結構（TransCode + Data），用 `json_decode(file_get_contents('php://input'))` 讀取。
 
-綠界回傳的完整 JSON 結構：
+ReturnURL 收到的 JSON 結構（OrderResultURL 則需先從 `ResultData` 欄位 AES 解密才得到此結構）：
 
 ```json
 {
@@ -348,16 +347,22 @@ ReturnURL / OrderResultURL 收到的 POST 需要 AES 解密。
 ```php
 $aesService = $factory->create(AesService::class);
 
-// 完整回應包含 TransCode、TransMsg、RpHeader、Data
+// ReturnURL 是 JSON POST（application/json），需從 php://input 讀取
+$jsonBody = json_decode(file_get_contents('php://input'), true);
+// OrderResultURL 則是 Form POST，資料在 $_POST['ResultData']
+
 // 先檢查 TransCode 確認 API 是否成功
-$transCode = $_POST['TransCode'] ?? null;
+$transCode = $jsonBody['TransCode'] ?? null;
 if ($transCode != 1) {
-    error_log('ECPay TransCode Error: ' . ($_POST['TransMsg'] ?? 'unknown'));
+    error_log('ECPay TransCode Error: ' . ($jsonBody['TransMsg'] ?? 'unknown'));
 }
 
 // 解密 Data 取得交易細節
-$decryptedData = $aesService->decrypt($_POST['Data']);
+$decryptedData = $aesService->decrypt($jsonBody['Data']);
 // $decryptedData 包含：RtnCode, RtnMsg, MerchantID, Token, TokenExpireDate 等
+
+// 回應 1|OK（官方規格 9058.md）
+echo '1|OK';
 ```
 
 #### Response 欄位表
@@ -950,7 +955,7 @@ function PaymentScreen({ payToken, onComplete }) {
 > 1. 驗證 MerchantID 為自己的
 > 2. 比對金額與訂單記錄
 > 3. 防重複處理（記錄已處理的 MerchantTradeNo）
-> 4. 異常時仍回應 JSON `{ "TransCode": 1 }`（避免重送風暴）
+> 4. 異常時仍回應 `1|OK`（避免重送風暴）
 > 5. 記錄完整日誌（遮蔽 HashKey/HashIV）
 
 ### GetResponse 安全處理

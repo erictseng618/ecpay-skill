@@ -2,30 +2,30 @@
 
 # 幕後授權 + 幕後取號指南
 
-> **讀對指南了嗎？** 消費者需要看到付款介面 → [guides/01 AIO](./01-payment-aio.md) 或 [guides/02 ECPG](./02-payment-ecpg.md)。需要 Token 綁卡快速付 → [guides/02 §綁卡](./02-payment-ecpg.md)。
+> **讀對指南了嗎？** 消費者需要看到付款介面 → [guides/01 AIO](./01-payment-aio.md) 或 [guides/02 站內付 2.0](./02-payment-ecpg.md)。需要 Token 綁卡快速付 → [guides/02 §綁卡](./02-payment-ecpg.md)。
 
 ## 概述
 
 幕後 API 是純後台操作，消費者不需要看到付款頁面。適合 B2B、電話訂購、自動扣款等場景。
-兩套 API 都使用 **AES 加密 + JSON 格式**（與 ECPG 相同的三層結構）。
+兩套 API 都使用 **AES 加密 + JSON 格式**（與站內付 2.0 相同的三層結構）。
 
 ## 何時使用幕後 API
 
 | 場景 | 推薦方案 | 原因 |
 |------|---------|------|
-| 一般電商 | AIO 或 ECPG | 消費者需要看到付款介面 |
+| 一般電商 | AIO 或站內付 2.0 | 消費者需要看到付款介面 |
 | 電話訂購 | 信用卡幕後授權 | 客服代為輸入卡號 |
-| 自動扣款 | ECPG 綁卡 | Token 模式更安全 |
+| 自動扣款 | 站內付 2.0 綁卡 | Token 模式更安全 |
 | 背景產生繳費資訊 | 非信用卡幕後取號 | ATM/CVS 不需消費者互動即可產生 |
 | 大型商戶 | 信用卡幕後授權 | 需 PCI DSS 認證 |
 
-> **大多數開發者不需要幕後 API**。如果你的使用者會在網頁/App 上操作，請使用 [AIO](./01-payment-aio.md) 或 [ECPG](./02-payment-ecpg.md)。
+> **大多數開發者不需要幕後 API**。如果你的使用者會在網頁/App 上操作，請使用 [AIO](./01-payment-aio.md) 或[站內付 2.0](./02-payment-ecpg.md)。
 
 > **注意**：本指南所有 PHP 程式碼範例為依據官方 API 文件手寫，未包含在 `scripts/SDK_PHP/example/` 官方範例中。程式碼已參照 `references/Payment/信用卡幕後授權API技術文件.md` 驗證，但建議在測試環境完整驗證後再部署正式環境。
 
 ## 前置需求
 
-- MerchantID / HashKey / HashIV（測試帳號同 ECPG：3002607 / pwFHCqoQZGmho4w6 / EkRm7iFT261dpevs）
+- MerchantID / HashKey / HashIV（測試帳號同站內付 2.0：3002607 / pwFHCqoQZGmho4w6 / EkRm7iFT261dpevs）
 - SDK Service：`PostWithAesJsonResponseService`
 - 加密方式：AES-128-CBC（詳見 [guides/14-aes-encryption.md](./14-aes-encryption.md)）
 
@@ -48,7 +48,7 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 | 測試環境 | `https://ecpayment-stage.ecpay.com.tw` |
 | 正式環境 | `https://ecpayment.ecpay.com.tw` |
 | 回應結構 | 三層 JSON（TransCode → 解密 Data → RtnCode） |
-| Callback 回應 | 信用卡幕後授權：JSON `{ "TransCode": 1 }`（與 ECPG 相同）；非信用卡幕後取號：`1\|OK`（與 AIO 相同）— 詳見 [guides/22](./22-webhook-events-reference.md) |
+| Callback 回應 | 信用卡幕後授權：`1\|OK`（官方規格 45907.md）；非信用卡幕後取號：`1\|OK`（與 AIO 相同）— 詳見 [guides/22](./22-webhook-events-reference.md) |
 
 ### 端點 URL 一覽
 
@@ -80,7 +80,7 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 
 - **需要 PCI DSS 認證**：你的伺服器會直接處理信用卡卡號
 - 適合大型商戶、電話訂購中心
-- 一般電商建議使用 AIO 或 ECPG
+- 一般電商建議使用 AIO 或站內付 2.0
 
 ### 整合流程
 
@@ -115,7 +115,7 @@ $postService = $factory->create('PostWithAesJsonResponseService');
 
 ### 請求格式範例
 
-所有請求都使用 AES 三層結構（與 ECPG 相同模式）：
+所有請求都使用 AES 三層結構（與站內付 2.0 相同模式）：
 
 ```php
 $input = [
@@ -233,9 +233,9 @@ $response = $postService->post($input, 'https://ecpayment-stage.ecpay.com.tw/1.0
 > **重要**：幕後取號的 PHP SDK 沒有提供範例程式碼。上述程式碼僅展示 AES 請求格式。
 > 具體端點 URL 和必填參數請務必參考官方 API 技術文件。
 
-## 與 AIO/ECPG 的完整比較
+## 與 AIO/站內付 2.0 的完整比較
 
-| 面向 | AIO | ECPG | 幕後授權 | 幕後取號 |
+| 面向 | AIO | 站內付 2.0 | 幕後授權 | 幕後取號 |
 |------|-----|------|---------|---------|
 | 消費者互動 | 需要（綠界頁面） | 需要（嵌入式） | 不需要 | 不需要 |
 | 付款頁面 | 綠界提供 | 你的頁面 | 無 | 無 |
@@ -278,8 +278,8 @@ $response = $postService->post($input, 'https://ecpayment-stage.ecpay.com.tw/1.0
 - RtnCode（1=付款成功）
 - 付款方式相關欄位（BankCode/vAccount 或 PaymentNo 或 Barcode1~3）
 
-> ⚠️ **回應格式**：雖然收到的 Callback 是 AES-JSON 格式，但商家必須回應純字串 **`1|OK`**（與 AIO 金流相同），
-> **不是** JSON `{ "TransCode": 1 }`。未正確回應 `1|OK` 會導致綠界每 5-15 分鐘重送，每日最多 4 次。
+> ⚠️ **回應格式**：雖然收到的 Callback 是 AES-JSON 格式，但商家必須回應純字串 **`1|OK`**（與 AIO 金流相同，官方規格亦為 `1|OK`）。
+> 未正確回應 `1|OK` 會導致綠界每 5-15 分鐘重送，每日最多 4 次。
 
 > 完整參數規格請查閱 `references/Payment/非信用卡幕後取號API技術文件.md` 中的官方文件連結。
 

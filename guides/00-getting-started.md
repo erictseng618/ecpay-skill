@@ -69,7 +69,7 @@ ECPay 金流提供兩種合約模式。**API 技術規格完全相同**，差異
 
 ## 開發環境設定
 
-> ⚠️ **三大服務各用獨立帳號**：金流 / 物流 / 電子發票的 MerchantID + HashKey + HashIV **完全不同，混用導致所有 CheckMacValue 永遠失敗**。開始寫程式前請先確認使用正確帳號，完整對照表見下方「測試帳號」。
+> ⚠️ **各服務各用獨立帳號**：金流 / 物流 / 電子發票 / 電子票證的 MerchantID + HashKey + HashIV **完全不同，混用導致所有 CheckMacValue 永遠失敗**。開始寫程式前請先確認使用正確帳號，完整對照表見下方「測試帳號」。
 
 ### PHP（推薦，有官方 SDK）
 
@@ -373,6 +373,7 @@ func main() {
 > | 電子發票 | 2000132 |
 > | 物流 B2C/宅配 | 2000132 |
 > | 物流 C2C | 2000933 |
+> | 電子票證（E-Ticket） | 3085676 |
 >
 > 完整帳號詳見 [SKILL.md §測試帳號](../SKILL.md)。
 
@@ -416,7 +417,7 @@ func main() {
 > | 服務 | Callback 端點 | 你的伺服器必須回應 |
 > |------|------------|----------------|
 > | AIO 金流（CMV-SHA256） | ReturnURL | 純字串 `1\|OK`（無 HTML、無 BOM） |
-> | ECPG 站內付（AES-JSON） | OrderResultURL | JSON `{"TransCode": 1}` |
+> | ECPG 站內付 2.0（AES-JSON） | ReturnURL | `1\|OK` |
 > | 全方位/跨境物流（AES-JSON v2） | ServerReplyURL | AES 加密 JSON（見 guides/07） |
 > | 國內物流（CMV-MD5） | ServerReplyURL | `1\|OK` |
 >

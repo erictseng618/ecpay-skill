@@ -129,7 +129,7 @@ ECPAY_LOGISTICS_HASH_IV=v77hoKGq4kWxNNIS
 #### Callback 回應格式差異
 
 > 各服務 Callback 回應格式完整對照表見 [guides/22-webhook-events-reference.md](./22-webhook-events-reference.md) §Callback 總覽表。
-> 重點提醒：AIO 金流回應 `1|OK`，ECPG/信用卡幕後授權回應 JSON `{ "TransCode": 1 }`，全方位/跨境物流回應 AES 加密 JSON。
+> 重點提醒：AIO 金流回應 `1|OK`，站內付 2.0 / 信用卡幕後授權回應 `1|OK`，全方位/跨境物流回應 AES 加密 JSON。
 
 #### 冪等性與事件驅動建議
 
